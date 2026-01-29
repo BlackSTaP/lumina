@@ -3,126 +3,120 @@ from bs4 import BeautifulSoup
 import re
 import json
 import datetime
-import time
 
-# Список User-Agent для ротации
-USER_AGENTS = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Safari/605.1.15',
-    'Mozilla/5.0 (Linux; Android 10; SM-A505FN) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.105 Mobile Safari/537.36'
-]
+# --- НАСТРОЙКИ ---
+# Используем веб-версию канала zoe_alarm
+CHANNEL_URL = "https://t.me/s/zoe_alarm" 
 
-URL = "https://www.zoe.com.ua/outage/"
-
-# Карта месяцев
 MONTHS = {
-    "СІЧНЯ": 1, "ЛЮТОГО": 2, "БЕРЕЗНЯ": 3, "КВІТНЯ": 4, "ТРАВНЯ": 5, "ЧЕРВНЯ": 6,
-    "ЛИПНЯ": 7, "СЕРПНЯ": 8, "ВЕРЕСНЯ": 9, "ЖОВТНЯ": 10, "ЛИСТОПАДА": 11, "ГРУДНЯ": 12
+    "січня": 1, "лютого": 2, "березня": 3, "квітня": 4, "травня": 5, "червня": 6,
+    "липня": 7, "серпня": 8, "вересня": 9, "жовтня": 10, "листопада": 11, "грудня": 12
 }
 
 def clean_text(text):
+    # Заменяем HTML переносы на настоящие
+    text = text.replace('<br>', '\n').replace('<br/>', '\n')
+    # Убираем теги
+    text = re.sub(r'<[^>]+>', '', text)
+    # Убираем лишние пробелы
     return re.sub(r'\s+', ' ', text).strip()
 
-def get_page_content():
-    """Пытается загрузить страницу напрямую, а если не выйдет - через публичные веб-прокси"""
-    
-    # 1. Попытка напрямую (вдруг повезет)
+def parse_telegram():
+    print(f"Fetching {CHANNEL_URL}...")
     try:
-        print("Attempting direct connection...")
-        resp = requests.get(URL, headers={'User-Agent': USER_AGENTS[0]}, verify=False, timeout=10)
-        if resp.status_code == 200:
-            return resp.text
+        resp = requests.get(CHANNEL_URL, timeout=10)
+        if resp.status_code != 200:
+            print(f"Error: Status code {resp.status_code}")
+            return None
     except Exception as e:
-        print(f"Direct connection failed: {e}")
-
-    # 2. Если не вышло - используем Web-Proxy сервисы (CORS-proxy или анонимайзеры)
-    # Это позволяет запросу прийти с другого IP.
-    
-    # Вариант А: Использование allorigins (иногда работает для простого GET)
-    proxies = [
-        f"https://api.allorigins.win/get?url={URL}",
-        # Можно добавить другие
-    ]
-    
-    for proxy_url in proxies:
-        try:
-            print(f"Attempting via proxy wrapper: {proxy_url}")
-            resp = requests.get(proxy_url, timeout=15)
-            if resp.status_code == 200:
-                data = resp.json()
-                # allorigins возвращает JSON с полем contents
-                if 'contents' in data:
-                    return data['contents']
-        except Exception as e:
-            print(f"Proxy failed: {e}")
-            
-    return None
-
-def parse_zoe():
-    html_content = get_page_content()
-    
-    if not html_content:
-        print("Failed to retrieve content from all sources.")
+        print(f"Connection error: {e}")
         return None
 
-    soup = BeautifulSoup(html_content, 'html.parser')
-    full_text = soup.get_text(separator="\n")
+    soup = BeautifulSoup(resp.text, 'html.parser')
     
+    # Ищем сообщения
+    messages = soup.select('.tgme_widget_message_text')
+    
+    if not messages:
+        print("No messages found. Parsing failed.")
+        return None
+
     schedule_data = []
     
-    # Регулярка для даты: "28 СІЧНЯ ... ГПВ"
-    date_pattern = re.compile(r"(\d{1,2})\s+([А-ЯІЇЄ]+)\s+.*(?:ГПВ|ВІДКЛЮЧЕНЬ)", re.IGNORECASE)
-    
-    lines = full_text.split('\n')
-    current_date = None
-    current_queues = {}
-    
-    for line in lines:
-        line = clean_text(line)
-        if not line:
+    # Смотрим с конца (самые свежие)
+    for msg in reversed(messages):
+        raw_html = str(msg)
+        text_content = clean_text(raw_html)
+        text_lower = text_content.lower()
+
+        # 1. Фильтр: ищем слова "график", "гпв", "відключень"
+        if not any(x in text_lower for x in ["гпв", "графік", "відключень"]):
             continue
             
-        date_match = date_pattern.search(line)
+        # 2. Ищем дату (Например: "29 січня", "на 29.01")
+        # Regex ищет день + месяц словом
+        date_match = re.search(r"(\d{1,2})\s+(січня|лютого|березня|квітня|травня|червня|липня|серпня|вересня|жовтня|листопада|грудня)", text_lower)
+        
+        current_date = None
         if date_match:
-            if current_date and current_queues:
-                schedule_data.append({"date": current_date, "queues": current_queues})
-            
             day = int(date_match.group(1))
-            month_name = date_match.group(2).upper()
-            month = MONTHS.get(month_name, datetime.datetime.now().month)
+            month_name = date_match.group(2)
+            month = MONTHS.get(month_name)
             
             year = datetime.datetime.now().year
-            if month == 1 and datetime.datetime.now().month == 12:
-                year += 1
-            if month == 12 and datetime.datetime.now().month == 1:
-                year -= 1 # На случай если смотрим старый декабрь в январе
-                
-            current_date = f"{day:02d}.{month:02d}.{year}"
-            current_queues = {}
-            continue
+            if month == 1 and datetime.datetime.now().month == 12: year += 1
+            if month == 12 and datetime.datetime.now().month == 1: year -= 1
             
-        queue_pattern = re.search(r"(\d\.\d)[:\s]+([\d\:\s–,-]+)", line)
-        if current_date and queue_pattern:
-            queue_id = queue_pattern.group(1)
-            times_raw = queue_pattern.group(2)
-            times_clean = times_raw.replace('–', '-').replace('—', '-').replace(',', ', ')
-            times_clean = re.sub(r'\s*-\s*', '-', times_clean)
-            current_queues[queue_id] = times_clean.strip()
+            current_date = f"{day:02d}.{month:02d}.{year}"
+        else:
+            # Если дата не найдена словом, пробуем формат ЧЧ.ММ (например 29.01)
+            date_short = re.search(r"(\d{1,2})\.(\d{1,2})", text_content)
+            if date_short:
+                day = int(date_short.group(1))
+                month = int(date_short.group(2))
+                year = datetime.datetime.now().year
+                current_date = f"{day:02d}.{month:02d}.{year}"
+            else:
+                continue
 
-    if current_date and current_queues:
-        schedule_data.append({"date": current_date, "queues": current_queues})
+        print(f"Found schedule for: {current_date}")
+
+        # 3. Парсим очереди
+        # Ищет: "1.1 ... 00-04" или "Черга 1 ... 00-04"
+        queues = {}
         
+        # Regex ловит: (Группа)(Разделитель)(Время)
+        # Группа: 1.1 или просто 1
+        matches = re.findall(r"(?:Черга|Група)?\s*(\d(?:\.\d)?)\s*[:\-\)]\s*([\d\:\s\-\–,;]+)", text_content)
+        
+        for q_id, q_times in matches:
+            # Валидация времени: должно содержать цифры
+            if not any(c.isdigit() for c in q_times): continue
+            
+            # Чистка строки времени
+            clean_time = q_times.replace('–', '-').replace('—', '-').replace(',', ', ').replace(';', ', ')
+            # Оставляем только цифры, двоеточия, дефисы, запятые
+            clean_time = re.sub(r'[^\d\:\-\,\s]', '', clean_time)
+            clean_time = re.sub(r'\s+', '', clean_time) # сжимаем пробелы
+            clean_time = clean_time.replace('-', ' - ').replace(',', ', ')
+            
+            queues[q_id] = clean_time.strip()
+
+        if queues:
+            schedule_data.append({
+                "date": current_date,
+                "queues": queues
+            })
+            # Нашли свежий график — выходим (чтобы не брать старые)
+            break 
+    
     return schedule_data
 
 if __name__ == "__main__":
-    # Отключаем предупреждения SSL (так как verify=False)
-    import urllib3
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    
-    data = parse_zoe()
+    data = parse_telegram()
     if data:
         with open('schedule.json', 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        print(f"Schedule updated successfully. Found {len(data)} days.")
+        print(f"Success! Data found for: {[d['date'] for d in data]}")
     else:
-        print("No data found or parsing error.")
+        print("No schedule found.")
