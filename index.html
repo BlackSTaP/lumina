@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Менеджер графиков света</title>
+  
+  <!-- Materialize CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- HTML2Canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    /* --- OVERRIDES FOR DARK THEME --- */
+    :root {
+      --bg: #0f1724;
+      --card-bg: #1e293b;
+      --text-main: #e6eef6;
+      --text-muted: #94a3b8;
+      --accent: #6ee7b7; /* Teal-ish green */
+      --accent-dark: #059669;
+      --danger: #fb7185;
+      --border: rgba(255,255,255,0.1);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Navbar / Header styling */
+    nav {
+      background-color: transparent;
+      box-shadow: none;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+    nav .brand-logo {
+      font-size: 1.5rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    /* Cards */
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+    }
+    .card-content {
+      padding: 20px;
+    }
+
+    /* Inputs & Textareas (Dark Mode overrides) */
+    .input-field input[type=text], 
+    .input-field textarea.materialize-textarea {
+      color: var(--text-main);
+      border-bottom: 1px solid var(--border);
+    }
+    .input-field input[type=text]:focus, 
+    .input-field textarea.materialize-textarea:focus {
+      border-bottom: 1px solid var(--accent);
+      box-shadow: 0 1px 0 0 var(--accent);
+    }
+    .input-field label {
+      color: var(--text-muted);
+    }
+    .input-field input[type=text]:focus + label, 
+    .input-field textarea.materialize-textarea:focus + label {
+      color: var(--accent);
+    }
+
+    /* Checkboxes */
+    [type="checkbox"] + span:not(.lever) {
+      color: var(--text-main);
+    }
+    [type="checkbox"]:checked + span:not(.lever):before {
+      border-right: 2px solid var(--accent);
+      border-bottom: 2px solid var(--accent);
+    }
+
+    /* Tabs */
+    .tabs {
+      background-color: transparent;
+      border-bottom: 1px solid var(--border);
+    }
+    .tabs .tab a {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .tabs .tab a:hover, .tabs .tab a.active {
+      color: var(--accent);
+      background-color: rgba(110, 231, 183, 0.05);
+    }
+    .tabs .indicator {
+      background-color: var(--accent);
+    }
+
+    /* Buttons */
+    .btn, .btn-large {
+      background-color: var(--accent);
+      color: #0f1724;
+      font-weight: 700;
+    }
+    .btn:hover, .btn-large:hover {
+      background-color: #34d399;
+    }
+    .btn-flat {
+      color: var(--text-main);
+    }
+    .btn:disabled {
+      background-color: #334155 !important;
+      color: #64748b !important;
+    }
+
+    /* Chips (Tags) */
+    .chip {
+      background-color: rgba(255,255,255,0.1);
+      color: var(--text-main);
+    }
+    .chip.added {
+      background-color: rgba(110, 231, 183, 0.15);
+      color: var(--accent);
+    }
+    .chip.removed {
+      background-color: rgba(251, 113, 133, 0.15);
+      color: var(--danger);
+    }
+
+    /* Result Row (Comparator) */
+    .diff-row {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      padding: 10px 15px;
+    }
+    .diff-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    details {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+    }
+    summary {
+      color: var(--text-muted);
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* --- MODAL STYLING (VISUALIZER) --- */
+    .modal {
+      background-color: var(--card-bg);
+      color: var(--text-main);
+      max-height: 90%;
+      width: 95%; /* Wider modal for chart */
+      max-width: 1400px;
+      border-radius: 12px;
+    }
+    .modal .modal-footer {
+      background-color: #162032;
+      border-top: 1px solid var(--border);
+    }
+    /* Fix scrollbar in modal */
+    .modal-content {
+      padding: 24px;
+    }
+
+    /* --- CHART GRID STYLES --- */
+    .chart-scroll-wrapper {
+      overflow-x: auto;
+      padding-bottom: 10px;
+      /* Custom Scrollbar */
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent) var(--bg);
+    }
+    .chart-scroll-wrapper::-webkit-scrollbar {
+      height: 8px;
+    }
+    .chart-scroll-wrapper::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+    .chart-scroll-wrapper::-webkit-scrollbar-thumb {
+      background-color: var(--accent);
+      border-radius: 4px;
+    }
+
+    #chart-grid {
+      display: grid;
+      /* 1st col (label): 180px, then 48 slots */
+      grid-template-columns: 180px repeat(48, minmax(20px, 1fr));
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      min-width: 1200px; /* Force scroll on mobile */
+    }
+
+    .grid-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      font-size: 12px;
+      height: 45px;
+      color: var(--text-muted);
+      position: relative;
+    }
+
+    /* Header Cells (Time) */
+    .header-cell {
+      background-color: rgba(110,231,183,0.05);
+      color: var(--accent);
+      font-weight: bold;
+      grid-column: span 2; /* 1 hour = 2 slots */
+    }
+
+    /* Corner Cell (Date) */
+    .corner-cell {
+      color: var(--accent);
+      font-family: 'Inter', sans-serif;
+      border-right: none;
+      padding: 0 10px;
+      justify-content: center; 
+      background-color: rgba(110,231,183,0.05);
+    }
+    .date-display {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-shadow: 0 0 10px rgba(110, 231, 183, 0.3);
+    }
+
+    /* Label Cells (Groups) */
+    .label-cell {
+      background-color: rgba(110,231,183,0.05);
+      color: var(--text-main);
+      font-weight: 600;
+      justify-content: space-between; /* Space between name and time */
+      padding: 0 12px;
+      text-align: left;
+      border-right: 2px solid var(--accent); /* Separator */
+      white-space: nowrap;
+    }
+    .label-cell span.total-time {
+      font-size: 0.85em;
+      color: var(--accent);
+      opacity: 0.9;
+      margin-left: 8px;
+    }
+
+    /* Data Cells */
+    .data-cell.off {
+      background-color: rgba(251, 113, 133, 0.15);
+      color: var(--danger);
+    }
+    /* Remove last borders */
+    .grid-cell:nth-child(49n+1) { border-right: none; } /* Logic adjusted for grid structure */
+    
+    /* FOOTER TOTAL ROW */
+    .grid-footer {
+      grid-column: 1 / -1; /* Span ALL columns */
+      background-color: rgba(255,255,255,0.03);
+      color: var(--text-main);
+      padding: 12px 20px;
+      font-weight: 600;
+      border-top: 2px solid var(--border);
+      text-align: right;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+    }
+    .grid-footer strong {
+      color: var(--accent);
+      font-size: 1.1em;
+    }
+
+    /* Move Button Styling */
+    .move-btn-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px 0;
+    }
+    .btn-move {
+      border: 1px solid var(--border);
+      background: transparent;
+      box-shadow: none;
+      color: var(--accent);
+    }
+    .btn-move:hover {
+      background: rgba(110, 231, 183, 0.1);
+      box-shadow: 0 0 10px rgba(110, 231, 183, 0.2);
+    }
+
+    /* Utilities */
+    .hidden { display: none !important; }
+    .mt-2 { margin-top: 1rem; }
+    .mb-2 { margin-bottom: 1rem; }
+    
+    .helper-text { color: var(--text-muted); font-size: 0.9rem; margin-top: -10px; margin-bottom: 20px; display: block;}
+    
+    /* Auto-update status */
+    #update-status {
+        text-align: right;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: -15px;
+        margin-bottom: 15px;
+        padding-right: 15px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- HEADER -->
+    <nav>
+      <div class="nav-wrapper">
+        <a href="#" class="brand-logo">
+          <i class="material-icons" style="color: var(--accent)">bolt</i>
+          <span style="font-size: 1.2rem; font-weight: 600;">Графики Света</span>
+        </a>
+      </div>
+    </nav>
+    <div id="update-status">Проверка обновлений...</div>
+
+    <!-- TABS -->
+    <div class="row">
+      <div class="col s12">
+        <ul class="tabs">
+          <li class="tab col s6"><a class="active" href="#comparator">Сравнение</a></li>
+          <li class="tab col s6"><a href="#visualizer">Визуализатор</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- VIEW 1: COMPARATOR -->
+    <div id="comparator" class="col s12">
+      <div class="card">
+        <div class="card-content">
+          <div class="row" style="display: flex; flex-wrap: wrap; align-items: center;">
+            <!-- Old Input -->
+            <div class="input-field col s12 m5">
+              <textarea id="old" class="materialize-textarea" placeholder="1.1: 00:00-04:00"></textarea>
+              <label for="old">Старый график (вчера)</label>
+            </div>
+
+            <!-- Move Button (Interactive compare_arrows) -->
+            <div class="col s12 m2 move-btn-container">
+              <button id="moveDataBtn" class="btn-floating btn-large btn-move waves-effect" title="Перенести Новый в Старый">
+                <i class="material-icons">compare_arrows</i>
+              </button>
+            </div>
+
+            <!-- New Input -->
+            <div class="input-field col s12 m5">
+              <textarea id="new" class="materialize-textarea" placeholder="1.1: 00:00-03:00&#10;Или новый формат:&#10;Черга 1.1: з 00:00 до 03:00"></textarea>
+              <label for="new">Новый график (сегодня/завтра)</label>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col s12">
+               <label>
+                <input type="checkbox" id="onlyChanges" />
+                <span style="color: var(--text-main)">Показать только изменения</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top: 20px;">
+            <div class="col s12">
+              <button id="compareBtn" class="btn waves-effect waves-light">Сравнить и Перенести</button>
+              <button id="clearBtn" class="btn-flat waves-effect">Очистить</button>
+              
+              <div class="right hide-on-small-only">
+                 <!-- Hidden file input -->
+                 <input type="file" id="jsonInput" accept=".json" style="display:none">
+                 <button id="importJsonBtn" class="btn-small btn-flat waves-effect"><i class="material-icons left">file_upload</i>Импорт JSON</button>
+                 <button id="copyJsonBtn" class="btn-small btn-flat waves-effect"><i class="material-icons left">content_copy</i>JSON</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Results Area -->
+          <div id="resultArea" class="mt-2">
+            <!-- Dynamic content here -->
+            <div class="center-align" style="padding: 30px; opacity: 0.5">
+              <i class="material-icons" style="font-size: 3rem;">analytics</i>
+              <p>Вставьте данные и нажмите "Сравнить"</p>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: VISUALIZER -->
+    <div id="visualizer" class="col s12">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">Генератор графика</span>
+          <span class="helper-text">Вставьте расписание (одна группа на строку). Поддерживаются форматы с тире, запятыми, словами "з", "до".</span>
+
+          <div class="input-field">
+            <textarea id="vizInput" class="materialize-textarea" style="min-height: 150px;" placeholder="Черга 1.1: з 00:00 до 02:00, з 15:00 до 20:00&#10;1.2: 02:00 – 06:00"></textarea>
+            <label for="vizInput">Данные графика</label>
+          </div>
+
+          <div class="row" style="margin-bottom: 0;">
+             <div class="col s12 mb-2">
+               <label>
+                <input type="checkbox" id="nextDayCheck" />
+                <span>График на завтра (следующий день)</span>
+              </label>
+             </div>
+          </div>
+
+          <div class="row">
+            <div class="col s12">
+              <button id="generateVizBtn" class="btn btn-large waves-effect waves-light" style="width: 100%">
+                <i class="material-icons left">bar_chart</i>
+                Построить график
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- .container -->
+
+  <!-- MODAL: CHART RESULT -->
+  <div id="chartModal" class="modal bottom-sheet-on-mobile">
+    <div class="modal-content">
+      <h5 class="mb-2">Визуализация отключений</h5>
+      
+      <!-- Wrapper for horizontal scrolling -->
+      <div class="chart-scroll-wrapper" id="chartWrapper">
+        <div id="chart-grid">
+          <!-- Grid will be injected here -->
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span class="left hide-on-small-only" style="padding: 10px; color: var(--text-muted); font-size: 0.8rem;">
+        * Время указано в заголовках колонок
+      </span>
+      <a href="#!" class="modal-close btn-flat waves-effect">Закрыть</a>
+      <button id="downloadPngBtn" class="btn waves-effect waves-light">
+        <i class="material-icons left">download</i>Скачать
+      </button>
+    </div>
+  </div>
+
+  <!-- JS: Materialize + App Logic -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Init Materialize Components
+      M.AutoInit();
+      
+      // --- ЭЛЕМЕНТЫ ---
+      const compareBtn = document.getElementById('compareBtn');
+      const moveDataBtn = document.getElementById('moveDataBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const copyJsonBtn = document.getElementById('copyJsonBtn');
+      const importJsonBtn = document.getElementById('importJsonBtn');
+      const jsonInput = document.getElementById('jsonInput');
+
+      const oldInput = document.getElementById('old');
+      const newInput = document.getElementById('new');
+      const resultArea = document.getElementById('resultArea');
+      const onlyChangesCheck = document.getElementById('onlyChanges');
+      const updateStatus = document.getElementById('update-status');
+
+      const generateVizBtn = document.getElementById('generateVizBtn');
+      const vizInput = document.getElementById('vizInput');
+      const nextDayCheck = document.getElementById('nextDayCheck');
+      const chartModalEl = document.getElementById('chartModal');
+      const chartGrid = document.getElementById('chart-grid');
+      const downloadPngBtn = document.getElementById('downloadPngBtn');
+
+      const chartModalInstance = M.Modal.getInstance(chartModalEl);
+
+
+      // --- ЛОКАЛЬНОЕ ХРАНИЛИЩЕ ---
+      function loadFromStorage() {
+        if (localStorage.getItem('svet_old')) oldInput.value = localStorage.getItem('svet_old');
+        if (localStorage.getItem('svet_new')) newInput.value = localStorage.getItem('svet_new');
+        if (localStorage.getItem('svet_viz')) vizInput.value = localStorage.getItem('svet_viz');
+        
+        M.updateTextFields();
+        M.textareaAutoResize(oldInput);
+        M.textareaAutoResize(newInput);
+        M.textareaAutoResize(vizInput);
+      }
+
+      oldInput.addEventListener('input', () => localStorage.setItem('svet_old', oldInput.value));
+      newInput.addEventListener('input', () => localStorage.setItem('svet_new', newInput.value));
+      vizInput.addEventListener('input', () => localStorage.setItem('svet_viz', vizInput.value));
+      
+      loadFromStorage();
+      
+      // --- HELPER: PARSE DATE STRING (DD.MM.YYYY) ---
+      function parseDateStr(str) {
+         if(!str) return 0;
+         const parts = str.split('.');
+         if(parts.length < 3) return 0;
+         // YYYY, MM-1, DD
+         return new Date(parts[2], parts[1]-1, parts[0]).getTime();
+      }
+
+      // --- HELPER: FORMAT SINGLE DAY OBJECT ---
+      function formatSingleDay(day) {
+         if (!day || !day.queues) return '';
+         let resultText = `=== ${day.date} ===\n`;
+         Object.keys(day.queues).sort().forEach(q => {
+              resultText += `${q}: ${day.queues[q]}\n`;
+         });
+         return resultText.trim();
+      }
+
+      // --- PROCESS IMPORTED/FETCHED JSON ---
+      function processJsonData(dataArray) {
+          if (!dataArray || !Array.isArray(dataArray) || dataArray.length === 0) return false;
+
+          // 1. Сортируем дни по убыванию даты (Самый новый - первый)
+          // Предполагаем, что поле даты называется 'date' формата 'dd.mm.yyyy'
+          const sortedDays = [...dataArray].sort((a, b) => {
+              return parseDateStr(b.date) - parseDateStr(a.date);
+          });
+
+          // 2. Берем самый актуальный (последний по дате)
+          const latestDay = sortedDays[0];
+          const latestText = formatSingleDay(latestDay);
+
+          // 3. Берем предыдущий (предпоследний по дате)
+          let previousText = '';
+          if (sortedDays.length > 1) {
+              const prevDay = sortedDays[1];
+              previousText = formatSingleDay(prevDay);
+          }
+
+          // 4. Обновляем UI и Storage
+          
+          // НОВЫЙ график
+          if (latestText && latestText !== localStorage.getItem('svet_new')) {
+              localStorage.setItem('svet_new', latestText);
+              newInput.value = latestText;
+              
+              // Также сразу обновляем ВИЗУАЛИЗАТОР новыми данными
+              localStorage.setItem('svet_viz', latestText);
+              vizInput.value = latestText;
+          } else if (latestText) {
+              // Даже если совпадает, убедимся что поля заполнены
+              if (!newInput.value) newInput.value = latestText;
+              if (!vizInput.value) vizInput.value = latestText;
+          }
+
+          // СТАРЫЙ график (для сравнения)
+          // Если мы нашли предыдущий день, кладем его в Old
+          if (previousText) {
+               // Проверяем, не перезаписать ли что-то важное, 
+               // но логика "автосравнения" подразумевает автозаполнение
+               localStorage.setItem('svet_old', previousText);
+               oldInput.value = previousText;
+          }
+
+          M.updateTextFields();
+          M.textareaAutoResize(oldInput);
+          M.textareaAutoResize(newInput);
+          M.textareaAutoResize(vizInput);
+
+          return true; // Успех
+      }
+
+      // --- AUTO UPDATE FROM GITHUB JSON ---
+      const JSON_URL = 'schedule.json'; 
+
+      async function checkForUpdates() {
+          // Проверка на локальный файл
+          if (window.location.protocol === 'file:') {
+               updateStatus.innerHTML = '<span style="color:var(--text-muted)">⚠️ Локальный запуск (CORS): Авто-обновление отключено.<br>Запустите сервер или используйте "Импорт JSON"</span>';
+               return;
+          }
+
+          try {
+              const res = await fetch(JSON_URL + '?t=' + Date.now()); 
+              if (!res.ok) throw new Error("Файл не найден");
+              const jsonData = await res.json();
+              
+              // Сохраняем "сырую" версию для проверки изменений (или просто хеш)
+              // Но проще просто передать в процессор, он сам проверит
+              const success = processJsonData(jsonData);
+              
+              if (success) {
+                  updateStatus.innerHTML = '<span style="color:var(--accent)">✅ График обновлен автоматически!</span>';
+                  // Не будем спамить тостами каждый раз, только при загрузке страницы можно
+                  // M.toast({html: 'Графики обновлены', classes: 'rounded green'});
+              } else {
+                  updateStatus.innerHTML = '<span style="color:var(--text-muted)">Данные пусты.</span>';
+              }
+
+          } catch (e) {
+              console.log("Auto-update info: " + e.message);
+              updateStatus.innerHTML = '<span style="color:var(--text-muted)">Обновление недоступно (Ручной режим)</span>';
+          }
+      }
+
+      // Запускаем проверку
+      checkForUpdates();
+      setInterval(checkForUpdates, 60000);
+
+      // --- MANUAL JSON IMPORT ---
+      importJsonBtn.addEventListener('click', () => {
+          jsonInput.click();
+      });
+
+      jsonInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+              try {
+                  const jsonData = JSON.parse(evt.target.result);
+                  const success = processJsonData(jsonData);
+                  
+                  if (success) {
+                      M.toast({html: 'Файл успешно загружен и распределен!', classes: 'green'});
+                  } else {
+                      M.toast({html: 'Файл пуст или некорректный формат', classes: 'red'});
+                  }
+              } catch (err) {
+                  console.error(err);
+                  M.toast({html: 'Ошибка чтения JSON', classes: 'red'});
+              }
+              jsonInput.value = '';
+          };
+          reader.readAsText(file);
+      });
+
+
+      // --- ПАРСИНГ И ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+      
+      const pad = (t) => {
+        const [h,m] = t.split(':');
+        return h.padStart(2,'0') + ':' + m;
+      };
+
+      function parseScheduleLine(line) {
+        line = line.trim();
+        if (!line) return null;
+        if (line.startsWith('===')) return null; 
+
+        const firstIntervalPattern = /(?:з\s*)?(\d{1,2}:\d{2})\s*(?:[-–—]|до)\s*(\d{1,2}:\d{2})/i;
+        
+        const match = line.match(firstIntervalPattern);
+        if (!match) return null;
+
+        const firstIndex = match.index;
+        
+        let name = line.substring(0, firstIndex).trim();
+        if (name.endsWith(':')) {
+            name = name.slice(0, -1).trim();
+        }
+        if (!name) name = "Без названия";
+
+        const timePart = line.substring(firstIndex);
+        const ranges = [];
+        const globalIntervalPattern = /(?:з\s*)?(\d{1,2}:\d{2})\s*(?:[-–—]|до)\s*(\d{1,2}:\d{2})/gi;
+        
+        let m;
+        while ((m = globalIntervalPattern.exec(timePart)) !== null) {
+            ranges.push({
+                startStr: pad(m[1]),
+                endStr: pad(m[2]),
+                raw: m[0]
+            });
+        }
+
+        return { name, ranges };
+      }
+
+      function normalizeIntervals(arr){
+        const mapped = arr.map(a => ({s: a[0], e: a[1], str: a[0]+"-"+a[1]}));
+        mapped.sort((x,y) => timeToMin(x.s) - timeToMin(y.s));
+        const uniq = [];
+        for(const it of mapped){
+          if(!uniq.length || uniq[uniq.length-1].str !== it.str) uniq.push(it);
+        }
+        return uniq.map(x => x.str);
+      }
+
+      function timeToMin(t){
+        const [h,m] = t.split(':').map(Number);
+        return h*60 + m;
+      }
+
+      function parseTimeMinutes(str) {
+        if(str === '24:00') return 1440;
+        const [h, m] = str.split(':').map(Number);
+        return h*60 + m;
+      }
+
+      function compareSets(oldArr, newArr){
+        const oldSet = new Set(oldArr);
+        const newSet = new Set(newArr);
+        const removed = [...oldSet].filter(x => !newSet.has(x));
+        const added = [...newSet].filter(x => !oldSet.has(x));
+        removed.sort((a,b) => timeToMin(a.split('-')[0]) - timeToMin(b.split('-')[0]));
+        added.sort((a,b) => timeToMin(a.split('-')[0]) - timeToMin(b.split('-')[0]));
+        return {removed, added};
+      }
+
+      function escapeHtml(s){ 
+        return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); 
+      }
+
+      // --- ЛОГИКА КОМПАРАТОРА ---
+      
+      moveDataBtn.addEventListener('click', () => {
+        if (!newInput.value.trim()) {
+           M.toast({html: 'Поле "Новый график" пустое', classes: 'rounded'});
+           return;
+        }
+        oldInput.value = newInput.value;
+        newInput.value = '';
+        localStorage.setItem('svet_old', oldInput.value);
+        localStorage.setItem('svet_new', '');
+        M.updateTextFields();
+        M.textareaAutoResize(oldInput);
+        M.textareaAutoResize(newInput);
+        M.toast({html: 'Данные перенесены в Старый график'});
+      });
+
+      function parseBlock(text){
+        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        const data = {};
+        
+        for(const line of lines){
+          const parsed = parseScheduleLine(line);
+          if(!parsed) continue;
+          const intervals = parsed.ranges.map(r => [r.startStr, r.endStr]);
+          data[parsed.name] = normalizeIntervals(intervals);
+        }
+        return data;
+      }
+
+      compareBtn.addEventListener('click', () => {
+        const dOld = parseBlock(oldInput.value);
+        const dNew = parseBlock(newInput.value);
+        
+        // Дублирование в визуализатор (на всякий случай, если пользователь нажал Сравнить)
+        if (newInput.value.trim()) {
+            vizInput.value = newInput.value;
+            localStorage.setItem('svet_viz', vizInput.value);
+            M.textareaAutoResize(vizInput);
+            M.updateTextFields();
+        }
+
+        const keys = Array.from(new Set([...Object.keys(dOld), ...Object.keys(dNew)])).sort();
+        
+        resultArea.innerHTML = '';
+        const onlyDiff = onlyChangesCheck.checked;
+        let hasContent = false;
+        
+        const summaryJson = {};
+
+        keys.forEach(key => {
+          const oldA = dOld[key] || [];
+          const newA = dNew[key] || [];
+          const diff = compareSets(oldA, newA);
+          summaryJson[key] = {old: oldA, new: newA, changes: diff};
+
+          if(onlyDiff && !diff.removed.length && !diff.added.length) return;
+          hasContent = true;
+
+          const div = document.createElement('div');
+          div.className = 'diff-row';
+          
+          let html = `
+            <div class="diff-header">
+              <div>
+                <span style="font-weight:bold; font-size:1.1rem">${escapeHtml(key)}</span>
+                <span class="grey-text text-lighten-1" style="font-size:0.85rem; margin-left:10px">
+                   ${newA.length ? newA.length + ' интервалов' : 'Пусто'}
+                </span>
+              </div>
+              <div style="text-align:right">
+                ${diff.removed.map(r => `<span class="chip removed">-${r}</span>`).join('')}
+                ${diff.added.map(a => `<span class="chip added">+${a}</span>`).join('')}
+              </div>
+            </div>
+            <details>
+              <summary>Подробнее</summary>
+              <pre style="white-space:pre-wrap; font-family:monospace; font-size:0.9rem; margin-top:5px; color:#ccc">Старое: ${oldA.join(', ') || '—'}\nНовое:  ${newA.join(', ') || '—'}</pre>
+            </details>
+          `;
+          div.innerHTML = html;
+          resultArea.appendChild(div);
+        });
+
+        if(!hasContent) {
+          resultArea.innerHTML = '<div class="center-align muted">Нет изменений или данных</div>';
+        }
+        resultArea.dataset.json = JSON.stringify(summaryJson, null, 2);
+      });
+
+      clearBtn.addEventListener('click', ()=>{
+        oldInput.value = ''; newInput.value = ''; resultArea.innerHTML = '';
+        localStorage.removeItem('svet_old');
+        localStorage.removeItem('svet_new');
+        M.textareaAutoResize(oldInput);
+        M.textareaAutoResize(newInput);
+      });
+
+      copyJsonBtn.addEventListener('click', ()=>{
+        const txt = resultArea.dataset.json || '{}';
+        navigator.clipboard.writeText(txt).then(()=> M.toast({html: 'JSON скопирован'}));
+      });
+
+
+      // --- ЛОГИКА ВИЗУАЛИЗАТОРА (MODAL) ---
+
+      function mergeIntervals(ranges) {
+        if(!ranges.length) return [];
+        ranges.sort((a,b) => a.start - b.start);
+        const result = [];
+        let curr = {...ranges[0]};
+        for(let i=1; i<ranges.length; i++){
+          if(ranges[i].start <= curr.end) {
+            curr.end = Math.max(curr.end, ranges[i].end);
+          } else {
+            result.push(curr);
+            curr = {...ranges[i]};
+          }
+        }
+        result.push(curr);
+        return result;
+      }
+
+      function fmtDuration(mins) {
+        const h = Math.floor(mins/60);
+        const m = mins % 60;
+        let s = '';
+        if(h > 0) s += h + 'ч ';
+        if(m > 0) s += m + 'мин';
+        return s.trim() || '0мин';
+      }
+      
+      function getChartDate() {
+        const now = new Date();
+        if (nextDayCheck.checked) {
+          now.setDate(now.getDate() + 1);
+        }
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        return `${day}.${month}`;
+      }
+
+      function generateChart() {
+        const text = vizInput.value;
+        const lines = text.trim().split('\n');
+        const data = [];
+
+        for(const line of lines){
+          const parsed = parseScheduleLine(line);
+          if(!parsed) continue;
+          
+          const ranges = parsed.ranges.map(r => ({
+              start: parseTimeMinutes(r.startStr),
+              end: parseTimeMinutes(r.endStr)
+          }));
+          
+          const merged = mergeIntervals(ranges);
+          const totalMins = merged.reduce((acc, r) => acc + (r.end - r.start), 0);
+          
+          data.push({
+            group: parsed.name,
+            ranges: merged,
+            totalMinsNumeric: totalMins,
+            totalStr: fmtDuration(totalMins)
+          });
+        }
+
+        if(!data.length) {
+          M.toast({html: 'Нет данных для отображения', classes: 'red'});
+          return;
+        }
+
+        const dateStr = getChartDate();
+        renderGrid(data, dateStr);
+        chartModalInstance.open();
+      }
+
+      function renderGrid(data, dateStr) {
+        chartGrid.innerHTML = '';
+        
+        // 1. Заголовок (с датой)
+        const corner = document.createElement('div');
+        corner.className = 'grid-cell corner-cell';
+        corner.innerHTML = `<span class="date-display">${dateStr}</span>`; 
+        chartGrid.appendChild(corner);
+
+        // 2. Часы (00..23)
+        for(let h=0; h<24; h++){
+          const cell = document.createElement('div');
+          cell.className = 'grid-cell header-cell';
+          cell.textContent = h.toString().padStart(2,'0') + ':00';
+          chartGrid.appendChild(cell);
+        }
+
+        // 3. Данные
+        data.forEach(item => {
+          const label = document.createElement('div');
+          label.className = 'grid-cell label-cell';
+          label.innerHTML = `
+            <span>${escapeHtml(item.group)}</span>
+            <span class="total-time">(${item.totalStr})</span>
+          `;
+          chartGrid.appendChild(label);
+
+          for(let i=0; i<48; i++){
+            const start = i*30;
+            const end = (i+1)*30;
+            const isOff = item.ranges.some(r => start < r.end && end > r.start);
+            
+            const cell = document.createElement('div');
+            cell.className = `grid-cell data-cell ${isOff ? 'off' : ''}`;
+            if(isOff) {
+              cell.innerHTML = `<i class="material-icons" style="font-size:14px">flash_off</i>`;
+            }
+            chartGrid.appendChild(cell);
+          }
+        });
+
+        const grandTotalMins = data.reduce((acc, item) => acc + item.totalMinsNumeric, 0);
+        
+        const footerRow = document.createElement('div');
+        footerRow.className = 'grid-footer';
+        footerRow.innerHTML = `Всего времени отсутствия света (сумма по группам): <strong>${fmtDuration(grandTotalMins)}</strong>`;
+        chartGrid.appendChild(footerRow);
+      }
+
+      // --- СКАЧИВАНИЕ ---
+      downloadPngBtn.addEventListener('click', function() {
+        const el = document.getElementById('chart-grid');
+        const originalText = this.innerHTML;
+        this.innerHTML = 'Генерация...';
+        this.disabled = true;
+
+        html2canvas(el, {
+          backgroundColor: '#0f1724',
+          scale: 2 
+        }).then(canvas => {
+          const link = document.createElement('a');
+          link.download = `svet-chart-${getChartDate()}.png`; 
+          link.href = canvas.toDataURL();
+          link.click();
+        }).catch(err => {
+          console.error(err);
+          M.toast({html: 'Ошибка сохранения', classes: 'red'});
+        }).finally(() => {
+          this.innerHTML = originalText;
+          this.disabled = false;
+        });
+      });
+
+      generateVizBtn.addEventListener('click', generateChart);
+    });
+  </script>
+</body>
+</html>
