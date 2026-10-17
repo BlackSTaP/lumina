@@ -99,24 +99,25 @@ tr.mine td:first-child{border-left:3px solid var(--accent)}
 .sdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
 .sdot.on{background:var(--accent)}.sdot.off{background:var(--danger)}
 /* chart */
-dialog{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:12px;width:96%;max-width:1400px;padding:0;max-height:92vh}
+dialog{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:12px;width:98%;max-width:1800px;padding:0;max-height:94vh}
 dialog::backdrop{background:rgba(0,0,0,.65)}
-.dlg-body{padding:20px;overflow:auto;max-height:calc(92vh - 70px)}
+.dlg-body{padding:22px;overflow:auto;max-height:calc(94vh - 70px)}
 .dlg-foot{display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:12px 20px;background:var(--card2);border-top:1px solid var(--border);flex-wrap:wrap}
-.chart{min-width:1290px;border:1px solid var(--border);border-radius:8px;background:#0f1724;overflow:hidden}
-.c-grid{display:grid;grid-template-columns:230px repeat(48,minmax(22px,1fr))}
-.g-corner{height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(110,231,183,.06);border-bottom:1px solid var(--border);color:var(--accent)}
-.g-corner .date{font-size:1.7rem;font-weight:800;letter-spacing:1px;text-shadow:0 0 10px rgba(110,231,183,.3)}
-.g-corner .upd{font-size:.72rem;color:var(--muted);font-weight:400}
-.g-hour{grid-column:span 2;height:64px;display:flex;align-items:center;justify-content:center;background:rgba(110,231,183,.06);color:var(--accent);font-weight:700;font-size:.85rem;border-left:1px solid rgba(255,255,255,.07);border-bottom:1px solid var(--border)}
-.g-hour.now{background:rgba(255,255,255,.18);color:#fff}
-.g-label{height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-weight:700;background:rgba(110,231,183,.06);border-right:3px solid var(--accent);border-bottom:1px solid rgba(255,255,255,.07)}
-.g-label small{color:var(--accent);font-size:.78rem;font-weight:600}
-.g-cell{height:46px;border-right:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07)}
-.g-cell.off{background-color:rgba(251,113,133,.14);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M13 2 4 14h6l-1 8 9-12h-6z' fill='%23fb7185'/%3E%3Cpath d='M3 3l18 18' stroke='%23281a2a' stroke-width='3.5'/%3E%3Cpath d='M3 3l18 18' stroke='%23fb7185' stroke-width='1.6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:center;background-size:58% auto}
-.g-cell.nowc{box-shadow:inset 0 0 0 1px rgba(255,255,255,.55)}
-.g-foot{grid-column:1/-1;padding:16px 24px;text-align:right;background:var(--card2);border-top:2px solid var(--border);font-weight:600}
-.g-foot b{color:var(--accent);font-size:1.3em;margin-left:10px}
+.chart{min-width:1670px;border:1px solid var(--border);border-radius:10px;background:#0f1724;overflow:hidden}
+.c-grid{display:grid;grid-template-columns:240px repeat(48,minmax(30px,1fr))}
+.g-corner{height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(110,231,183,.06);border-bottom:1px solid var(--border);color:var(--accent)}
+.g-corner .date{font-size:2rem;font-weight:800;letter-spacing:1px;text-shadow:0 0 12px rgba(110,231,183,.35)}
+.g-corner .upd{font-size:.75rem;color:var(--muted);font-weight:400}
+.g-hour{grid-column:span 2;height:76px;display:flex;align-items:center;justify-content:center;background:rgba(110,231,183,.06);color:var(--accent);font-weight:700;font-size:1rem;border-left:1px solid rgba(255,255,255,.07);border-bottom:1px solid var(--border)}
+.g-hour.now{background:rgba(255,255,255,.16);color:#fff}
+.g-label{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-weight:700;font-size:1.1rem;background:rgba(110,231,183,.06);border-right:3px solid var(--accent);border-bottom:1px solid rgba(255,255,255,.07)}
+.g-label small{color:var(--accent);font-size:.82rem;font-weight:600}
+.g-cell{height:58px;border-right:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07)}
+.g-cell.nowh{background-color:rgba(255,255,255,.045)}
+.g-cell.off{background-color:rgba(251,113,133,.14);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M13 2 4 14h6l-1 8 9-12h-6z' fill='%23fb7185'/%3E%3Cpath d='M3 3l18 18' stroke='%23281a2a' stroke-width='3.5'/%3E%3Cpath d='M3 3l18 18' stroke='%23fb7185' stroke-width='1.6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:center;background-size:62% auto}
+.g-cell.off.nowh{background-color:rgba(251,113,133,.24)}
+.g-foot{grid-column:1/-1;padding:20px 28px;text-align:right;background:var(--card2);border-top:2px solid var(--border);font-weight:600;font-size:1.05rem}
+.g-foot b{color:var(--accent);font-size:1.35em;margin-left:12px}
 #toasts{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:99;align-items:center;width:max-content;max-width:92vw}
 .toast{background:#0b3b2e;color:#d1fae5;border:1px solid var(--accent-d);padding:10px 18px;border-radius:24px;box-shadow:0 6px 20px rgba(0,0,0,.4);animation:in .2s}
 .toast.err{background:#4c1d2b;color:#ffe4e6;border-color:var(--danger)}
@@ -199,7 +200,7 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
   <div class="dlg-body"><h3 style="margin-top:0">Визуализация отключений</h3>
     <div id="chartHost"></div></div>
   <div class="dlg-foot">
-    <span class="muted hide-sm" style="margin-right:auto;font-size:.8rem">Светлая рамка — текущие полчаса.</span>
+    <span class="muted hide-sm" style="margin-right:auto;font-size:.8rem">Подсвечен текущий час.</span>
     <button id="copyPngBtn" class="flat">Копировать</button>
     <button id="closeModalBtn" class="flat">Закрыть</button>
     <button id="downloadPngBtn">⬇ Скачать PNG</button>
@@ -655,13 +656,13 @@ function buildModel(text, nextDay) {
 }
 function renderChart() {
   const m = state.model; if (!m) return;
-  const t = nowKyiv(), isToday = m.date === t.date, nowH = Math.floor(t.sec / 3600), nowSlot = isToday ? Math.floor(t.sec / 1800) : -1;
+  const t = nowKyiv(), isToday = m.date === t.date, nowH = isToday ? Math.floor(t.sec / 3600) : -1;
   let h = `<div class="chart"><div class="c-grid"><div class="g-corner"><span class="date">${esc(m.date.slice(0, 5))}</span>${m.time ? `<span class="upd">обновлено в ${esc(m.time)}</span>` : ''}</div>`;
-  for (let i = 0; i < 24; i++) h += `<div class="g-hour${isToday && i === nowH ? ' now' : ''}">${pad2(i)}:00</div>`;
+  for (let i = 0; i < 24; i++) h += `<div class="g-hour${i === nowH ? ' now' : ''}">${pad2(i)}:00</div>`;
   for (const r of m.rows) {
     h += `<div class="g-label"><span>${esc(r.name)}</span><small>(${hmFull(r.total)})</small></div>`;
     const off = slotsOff(r.iv);
-    for (let i = 0; i < 48; i++) h += `<div class="g-cell${off[i] ? ' off' : ''}${i === nowSlot ? ' nowc' : ''}"></div>`;
+    for (let i = 0; i < 48; i++) h += `<div class="g-cell${off[i] ? ' off' : ''}${(i >> 1) === nowH ? ' nowh' : ''}"></div>`;
   }
   const total = m.rows.reduce((a, r) => a + r.total, 0);
   h += `<div class="g-foot">Всего времени отсутствия света (сумма по группам):<b>${hmFull(total)}</b></div></div></div>`;
@@ -689,7 +690,7 @@ function drawCanvas(m) {
   const c = document.createElement('canvas'); c.width = W * S; c.height = H * S;
   const g = c.getContext('2d'); g.scale(S, S);
   const FONT = '"Segoe UI",Roboto,Arial,sans-serif', LINE = 'rgba(255,255,255,0.07)';
-  const t = nowKyiv(), isToday = m.date === t.date, nowSlot = isToday ? Math.floor(t.sec / 1800) : -1;
+  const t = nowKyiv(), isToday = m.date === t.date, nowH = isToday ? Math.floor(t.sec / 3600) : -1;
   g.fillStyle = '#0f1724'; g.fillRect(0, 0, W, H);
   g.fillStyle = 'rgba(110,231,183,0.06)'; g.fillRect(0, 0, W, HH);
   g.textBaseline = 'middle'; g.textAlign = 'center';
@@ -697,7 +698,7 @@ function drawCanvas(m) {
   if (m.time) { g.fillStyle = '#94a3b8'; g.font = `400 15px ${FONT}`; g.fillText('обновлено в ' + m.time, LW / 2, 60); }
   for (let hh = 0; hh < 24; hh++) {
     const x = LW + hh * 2 * CW;
-    if (isToday && hh === Math.floor(t.sec / 3600)) { g.fillStyle = 'rgba(255,255,255,0.18)'; g.fillRect(x, 0, 2 * CW, HH); }
+    if (hh === nowH) { g.fillStyle = 'rgba(255,255,255,0.16)'; g.fillRect(x, 0, 2 * CW, HH); }
     g.fillStyle = '#6ee7b7'; g.font = `700 20px ${FONT}`; g.fillText(pad2(hh) + ':00', x + CW, HH / 2);
   }
   m.rows.forEach((r, k) => {
@@ -706,9 +707,10 @@ function drawCanvas(m) {
     g.textAlign = 'left'; g.fillStyle = '#e6eef6'; g.font = `700 24px ${FONT}`; g.fillText(r.name, 20, y + RH / 2);
     g.textAlign = 'right'; g.fillStyle = '#6ee7b7'; g.font = `600 17px ${FONT}`; g.fillText(`(${hmFull(r.total)})`, LW - 18, y + RH / 2);
     for (let i = 0; i < 48; i++) {
+      const x = LW + i * CW, cur = (i >> 1) === nowH;
+      if (cur) { g.fillStyle = 'rgba(255,255,255,0.045)'; g.fillRect(x, y, CW, RH); }
       if (!off[i]) continue;
-      const x = LW + i * CW;
-      g.fillStyle = 'rgba(251,113,133,0.14)'; g.fillRect(x, y, CW, RH);
+      g.fillStyle = cur ? 'rgba(251,113,133,0.24)' : 'rgba(251,113,133,0.14)'; g.fillRect(x, y, CW, RH);
       drawBolt(g, x + CW / 2, y + RH / 2, 20);
     }
   });
@@ -717,7 +719,6 @@ function drawCanvas(m) {
   for (let k = 0; k <= m.rows.length; k++) { const y = HH + k * RH; g.moveTo(0, y); g.lineTo(W, y); }
   g.stroke();
   g.fillStyle = '#6ee7b7'; g.fillRect(LW - 3, HH, 3, m.rows.length * RH);
-  if (nowSlot >= 0) { g.strokeStyle = 'rgba(255,255,255,0.6)'; g.lineWidth = 1.5; g.strokeRect(LW + nowSlot * CW, HH, CW, m.rows.length * RH); }
   g.fillStyle = '#162032'; g.fillRect(0, H - FH, W, FH);
   g.strokeStyle = 'rgba(255,255,255,0.12)'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, H - FH); g.lineTo(W, H - FH); g.stroke();
   const val = hmFull(m.rows.reduce((a, r) => a + r.total, 0));
