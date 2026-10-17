@@ -1,1072 +1,763 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Менеджер графиков света</title>
-  
-  <!-- Materialize CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-  <!-- Material Icons -->
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <!-- HTML2Canvas -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- Tone.js (Звуковая библиотека) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-
-  <style>
-    /* --- OVERRIDES FOR DARK THEME --- */
-    :root {
-      --bg: #0f1724;
-      --card-bg: #1e293b;
-      --text-main: #e6eef6;
-      --text-muted: #94a3b8;
-      --accent: #6ee7b7; /* Teal-ish green */
-      --accent-dark: #059669;
-      --danger: #fb7185;
-      --border: rgba(255,255,255,0.1);
-    }
-
-    body {
-      background-color: var(--bg);
-      color: var(--text-main);
-      font-family: 'Inter', sans-serif;
-    }
-
-    /* Navbar / Header styling */
-    nav {
-      background-color: transparent;
-      box-shadow: none;
-      margin-top: 20px;
-      margin-bottom: 20px;
-    }
-    nav .brand-logo {
-      font-size: 1.5rem;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    /* Cards */
-    .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-    }
-    .card-content {
-      padding: 20px;
-    }
-
-    /* Inputs & Textareas (Dark Mode overrides) */
-    .input-field input[type=text], 
-    .input-field textarea.materialize-textarea {
-      color: var(--text-main);
-      border-bottom: 1px solid var(--border);
-    }
-    .input-field input[type=text]:focus, 
-    .input-field textarea.materialize-textarea:focus {
-      border-bottom: 1px solid var(--accent);
-      box-shadow: 0 1px 0 0 var(--accent);
-    }
-    .input-field label {
-      color: var(--text-muted);
-    }
-    .input-field input[type=text]:focus + label, 
-    .input-field textarea.materialize-textarea:focus + label {
-      color: var(--accent);
-    }
-
-    /* Checkboxes */
-    [type="checkbox"] + span:not(.lever) {
-      color: var(--text-main);
-    }
-    [type="checkbox"]:checked + span:not(.lever):before {
-      border-right: 2px solid var(--accent);
-      border-bottom: 2px solid var(--accent);
-    }
-
-    /* Tabs */
-    .tabs {
-      background-color: transparent;
-      border-bottom: 1px solid var(--border);
-    }
-    .tabs .tab a {
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-    .tabs .tab a:hover, .tabs .tab a.active {
-      color: var(--accent);
-      background-color: rgba(110, 231, 183, 0.05);
-    }
-    .tabs .indicator {
-      background-color: var(--accent);
-    }
-
-    /* Buttons */
-    .btn, .btn-large {
-      background-color: var(--accent);
-      color: #0f1724;
-      font-weight: 700;
-    }
-    .btn:hover, .btn-large:hover {
-      background-color: #34d399;
-    }
-    .btn-flat {
-      color: var(--text-main);
-    }
-    .btn:disabled {
-      background-color: #334155 !important;
-      color: #64748b !important;
-    }
-
-    /* Chips (Tags) */
-    .chip {
-      background-color: rgba(255,255,255,0.1);
-      color: var(--text-main);
-    }
-    .chip.added {
-      background-color: rgba(110, 231, 183, 0.15);
-      color: var(--accent);
-    }
-    .chip.removed {
-      background-color: rgba(251, 113, 133, 0.15);
-      color: var(--danger);
-    }
-
-    /* Result Row (Comparator) */
-    .diff-row {
-      background: rgba(0,0,0,0.2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-bottom: 10px;
-      padding: 10px 15px;
-    }
-    .diff-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    details {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px dashed var(--border);
-    }
-    summary {
-      color: var(--text-muted);
-      cursor: pointer;
-      outline: none;
-    }
-
-    /* --- MODAL STYLING (VISUALIZER) --- */
-    .modal {
-      background-color: var(--card-bg);
-      color: var(--text-main);
-      max-height: 90%;
-      width: 95%; /* Wider modal for chart */
-      max-width: 1400px;
-      border-radius: 12px;
-    }
-    .modal .modal-footer {
-      background-color: #162032;
-      border-top: 1px solid var(--border);
-    }
-    /* Fix scrollbar in modal */
-    .modal-content {
-      padding: 24px;
-    }
-
-    /* --- CHART GRID STYLES --- */
-    .chart-scroll-wrapper {
-      overflow-x: auto;
-      padding-bottom: 10px;
-      /* Custom Scrollbar */
-      scrollbar-width: thin;
-      scrollbar-color: var(--accent) var(--bg);
-    }
-    .chart-scroll-wrapper::-webkit-scrollbar {
-      height: 8px;
-    }
-    .chart-scroll-wrapper::-webkit-scrollbar-track {
-      background: var(--bg);
-    }
-    .chart-scroll-wrapper::-webkit-scrollbar-thumb {
-      background-color: var(--accent);
-      border-radius: 4px;
-    }
-
-    #chart-grid {
-      display: grid;
-      /* 1st col (label): 180px, then 48 slots */
-      grid-template-columns: 180px repeat(48, minmax(20px, 1fr));
-      background-color: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      min-width: 1200px; /* Force scroll on mobile */
-    }
-
-    .grid-cell {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-bottom: 1px solid var(--border);
-      border-right: 1px solid var(--border);
-      font-size: 12px;
-      height: 45px;
-      color: var(--text-muted);
-      position: relative;
-    }
-
-    /* Header Cells (Time) */
-    .header-cell {
-      background-color: rgba(110,231,183,0.05);
-      color: var(--accent);
-      font-weight: bold;
-      grid-column: span 2; /* 1 hour = 2 slots */
-    }
-
-    /* Corner Cell (Date) */
-    .corner-cell {
-      color: var(--accent);
-      font-family: 'Inter', sans-serif;
-      border-right: none;
-      padding: 0 10px;
-      justify-content: center; 
-      background-color: rgba(110,231,183,0.05);
-    }
-    .date-display {
-      font-size: 1.4rem;
-      font-weight: 800;
-      letter-spacing: 1px;
-      text-shadow: 0 0 10px rgba(110, 231, 183, 0.3);
-    }
-
-    /* Label Cells (Groups) */
-    .label-cell {
-      background-color: rgba(110,231,183,0.05);
-      color: var(--text-main);
-      font-weight: 600;
-      justify-content: space-between; /* Space between name and time */
-      padding: 0 12px;
-      text-align: left;
-      border-right: 2px solid var(--accent); /* Separator */
-      white-space: nowrap;
-    }
-    .label-cell span.total-time {
-      font-size: 0.85em;
-      color: var(--accent);
-      opacity: 0.9;
-      margin-left: 8px;
-    }
-
-    /* Data Cells */
-    .data-cell.off {
-      background-color: rgba(251, 113, 133, 0.15);
-      color: var(--danger);
-    }
-    /* Remove last borders */
-    .grid-cell:nth-child(49n+1) { border-right: none; } /* Logic adjusted for grid structure */
-    
-    /* FOOTER TOTAL ROW */
-    .grid-footer {
-      grid-column: 1 / -1; /* Span ALL columns */
-      background-color: rgba(255,255,255,0.03);
-      color: var(--text-main);
-      padding: 12px 20px;
-      font-weight: 600;
-      border-top: 2px solid var(--border);
-      text-align: right;
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 10px;
-    }
-    .grid-footer strong {
-      color: var(--accent);
-      font-size: 1.1em;
-    }
-
-    /* Move Button Styling */
-    .move-btn-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 10px 0;
-    }
-    .btn-move {
-      border: 1px solid var(--border);
-      background: transparent;
-      box-shadow: none;
-      color: var(--accent);
-    }
-    .btn-move:hover {
-      background: rgba(110, 231, 183, 0.1);
-      box-shadow: 0 0 10px rgba(110, 231, 183, 0.2);
-    }
-
-    /* Utilities */
-    .hidden { display: none !important; }
-    .mt-2 { margin-top: 1rem; }
-    .mb-2 { margin-bottom: 1rem; }
-    
-    .helper-text { color: var(--text-muted); font-size: 0.9rem; margin-top: -10px; margin-bottom: 20px; display: block;}
-    
-    /* Auto-update status */
-    #update-status {
-        text-align: right;
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        margin-top: -15px;
-        margin-bottom: 15px;
-        padding-right: 15px;
-    }
-
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Графики света</title>
+<meta name="theme-color" content="#0f1724">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Свет">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root{--bg:#0f1724;--card:#1e293b;--card2:#162032;--text:#e6eef6;--muted:#94a3b8;--accent:#6ee7b7;--accent-d:#059669;--danger:#fb7185;--warn:#fbbf24;--border:rgba(255,255,255,.1)}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 Inter,"Segoe UI",Roboto,system-ui,sans-serif;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.container{max-width:1100px;margin:0 auto;padding:12px 14px 40px}
+.top{display:flex;align-items:center;justify-content:space-between;margin:10px 0 4px}
+.brand{display:flex;align-items:center;gap:10px;font-size:1.2rem;font-weight:700}
+.brand svg{width:26px;height:26px;fill:var(--accent)}
+#update-status{text-align:right;font-size:.8rem;color:var(--muted);margin-bottom:10px;min-height:1.2em}
+button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:9px 16px;background:var(--accent);color:#0f1724;font-weight:700;transition:.15s}
+button:hover{filter:brightness(1.08)}
+button:disabled{background:#334155;color:#64748b;cursor:default}
+button.flat{background:transparent;color:var(--text);font-weight:600}
+button.flat:hover{background:rgba(255,255,255,.07)}
+button.ghost{background:transparent;border:1px solid var(--border);color:var(--accent)}
+button.small{padding:5px 10px;font-size:.85rem}
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:14px;gap:2px;overflow-x:auto}
+.tabs button{flex:1;background:transparent;color:var(--muted);border-radius:8px 8px 0 0;border-bottom:3px solid transparent;white-space:nowrap}
+.tabs button.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(110,231,183,.06)}
+.pane{display:none}.pane.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px}
+.card h3{margin:0 0 10px;font-size:1.05rem}
+.row-between{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:stretch}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}.hide-sm{display:none!important}}
+label.field{display:flex;flex-direction:column;gap:4px;color:var(--muted);font-size:.85rem}
+textarea,select{width:100%;background:rgba(0,0,0,.2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font:inherit;outline:none}
+textarea{min-height:150px;resize:vertical;font-family:Consolas,monospace;font-size:.9rem}
+textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+select{width:auto;min-width:90px}
+.chk{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.chk input{accent-color:var(--accent);width:18px;height:18px}
+.muted{color:var(--muted)}
+.mid{display:flex;align-items:center;justify-content:center}
+.btn-round{width:52px;height:52px;border-radius:50%;padding:0;font-size:22px;background:transparent;border:1px solid var(--border);color:var(--accent)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.spacer{flex:1}
+.chip{display:inline-block;padding:3px 11px;border-radius:16px;font-size:.82rem;margin:2px 4px 2px 0;background:rgba(255,255,255,.1)}
+.chip.add{background:rgba(251,113,133,.15);color:var(--danger)}
+.chip.rem{background:rgba(110,231,183,.15);color:var(--accent)}
+.chip.btn{cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text)}
+.chip.btn:hover,.chip.btn.cur{border-color:var(--accent);color:var(--accent)}
+.diff-row{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;padding:10px 14px}
+.diff-row.changed{border-left:3px solid var(--warn)}
+.diff-row.new{border-left:3px solid var(--danger)}
+.diff-row.gone{border-left:3px solid var(--accent)}
+.diff-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.diff-head b{min-width:40px}
+.badge{font-size:.72rem;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.1);color:var(--muted)}
+.badge.changed{background:rgba(251,191,36,.15);color:var(--warn)}
+.pos{color:var(--danger)}.neg{color:var(--accent)}
+details{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+summary{color:var(--muted);cursor:pointer;outline:none}
+.summary-box{display:flex;gap:14px;flex-wrap:wrap;padding:10px 14px;border-radius:8px;background:rgba(110,231,183,.06);margin-bottom:12px}
+.empty{text-align:center;padding:28px;opacity:.55}
+/* live */
+.st{display:flex;align-items:center;gap:14px;margin:6px 0 4px}
+.dot{width:16px;height:16px;border-radius:50%;flex:none}
+.st.on .dot{background:var(--accent);box-shadow:0 0 14px var(--accent)}
+.st.off .dot{background:var(--danger);box-shadow:0 0 14px var(--danger)}
+.st .big{font-size:1.7rem;font-weight:800}
+.st.on .big{color:var(--accent)}.st.off .big{color:var(--danger)}
+.sub{font-size:1.02rem;margin-bottom:10px}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}
+.stat{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:.88rem}
+.stat b{color:var(--accent)}
+.tl-wrap{margin:8px 0 22px}
+.tl-title{font-size:.8rem;color:var(--muted);margin-bottom:4px}
+.tl-bar{position:relative;height:26px;border-radius:6px;overflow:hidden;border:1px solid var(--border);background:rgba(110,231,183,.12);background-image:linear-gradient(to right,rgba(255,255,255,.12) 1px,transparent 1px);background-size:calc(100%/24) 100%}
+.tl-bar i{position:absolute;top:0;bottom:0;background:rgba(251,113,133,.85)}
+.tl-bar b.nowline{position:absolute;top:-2px;bottom:-2px;width:2px;background:#fff;box-shadow:0 0 6px #fff;z-index:3}
+.tl-hours{position:relative;height:14px;font-size:.7rem;color:var(--muted)}
+.tl-hours span{position:absolute;transform:translateX(-50%)}
+.tl-hours span:first-child{transform:none}.tl-hours span:last-child{transform:translateX(-100%)}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.seg button{border-radius:0;background:transparent;color:var(--muted);padding:6px 14px}
+.seg button.active{background:var(--accent);color:#0f1724}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+th{color:var(--muted);font-weight:600;font-size:.8rem}
+tr.q{cursor:pointer}tr.q:hover{background:rgba(255,255,255,.04)}
+tr.mine{background:rgba(110,231,183,.09)}
+tr.mine td:first-child{border-left:3px solid var(--accent)}
+.sdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.sdot.on{background:var(--accent)}.sdot.off{background:var(--danger)}
+/* chart */
+dialog{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:12px;width:96%;max-width:1400px;padding:0;max-height:92vh}
+dialog::backdrop{background:rgba(0,0,0,.65)}
+.dlg-body{padding:20px;overflow:auto;max-height:calc(92vh - 70px)}
+.dlg-foot{display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:12px 20px;background:var(--card2);border-top:1px solid var(--border);flex-wrap:wrap}
+.chart{min-width:1100px;border:1px solid var(--border);border-radius:8px;background:var(--bg);overflow:hidden}
+.c-row{display:grid;grid-template-columns:200px 1fr;height:46px;border-bottom:1px solid var(--border)}
+.c-label{display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-weight:600;background:rgba(110,231,183,.05);border-right:2px solid var(--accent)}
+.c-label .tot{color:var(--accent);font-size:.82rem;font-weight:500}
+.c-track{position:relative;background-image:linear-gradient(to right,rgba(255,255,255,.1) 1px,transparent 1px);background-size:calc(100%/24) 100%}
+.c-bar{position:absolute;top:6px;bottom:6px;background:rgba(251,113,133,.8);border-radius:4px;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap}
+.c-now{position:absolute;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 6px #fff;z-index:2}
+.c-head{height:58px}
+.c-head .c-label{flex-direction:column;justify-content:center;align-items:center;color:var(--accent)}
+.c-head .date{font-size:1.3rem;font-weight:800;letter-spacing:1px;text-shadow:0 0 10px rgba(110,231,183,.3)}
+.c-head .upd{font-size:.72rem;color:var(--muted);font-weight:400}
+.hours{display:grid;grid-template-columns:repeat(24,1fr);background:rgba(110,231,183,.05)}
+.hours span{display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:700;font-size:.8rem;border-right:1px solid var(--border)}
+.hours span.now{background:rgba(255,255,255,.18);color:#fff}
+.c-foot{padding:12px 18px;text-align:right;color:var(--muted);background:rgba(255,255,255,.03)}
+.c-foot b{color:var(--accent)}
+#toasts{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:99;align-items:center;width:max-content;max-width:92vw}
+.toast{background:#0b3b2e;color:#d1fae5;border:1px solid var(--accent-d);padding:10px 18px;border-radius:24px;box-shadow:0 6px 20px rgba(0,0,0,.4);animation:in .2s}
+.toast.err{background:#4c1d2b;color:#ffe4e6;border-color:var(--danger)}
+@keyframes in{from{opacity:0;transform:translateY(10px)}}
+</style>
 </head>
 <body>
+<div class="container">
+  <div class="top">
+    <div class="brand"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg><span>Графики света</span></div>
+    <button id="installBtn" class="ghost small" hidden>⬇ Установить</button>
+  </div>
+  <div id="update-status">Проверка обновлений...</div>
 
-  <div class="container">
-    
-    <!-- HEADER -->
-    <nav>
-      <div class="nav-wrapper">
-        <a href="#" class="brand-logo">
-          <i class="material-icons" style="color: var(--accent)">bolt</i>
-          <span style="font-size: 1.2rem; font-weight: 600;">Графики Света</span>
-        </a>
-      </div>
-    </nav>
-    <div id="update-status">Проверка обновлений...</div>
-
-    <!-- TABS -->
-    <div class="row">
-      <div class="col s12">
-        <ul class="tabs">
-          <li class="tab col s6"><a class="active" href="#comparator">Сравнение</a></li>
-          <li class="tab col s6"><a href="#visualizer">Визуализатор</a></li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- VIEW 1: COMPARATOR -->
-    <div id="comparator" class="col s12">
-      <div class="card">
-        <div class="card-content">
-          <div class="row" style="display: flex; flex-wrap: wrap; align-items: center;">
-            <!-- Old Input -->
-            <div class="input-field col s12 m5">
-              <textarea id="old" class="materialize-textarea" placeholder="1.1: 00:00-04:00"></textarea>
-              <label for="old">Старый график (предыдущий)</label>
-            </div>
-
-            <!-- Move Button (Interactive compare_arrows) -->
-            <div class="col s12 m2 move-btn-container">
-              <button id="moveDataBtn" class="btn-floating btn-large btn-move waves-effect" title="Перенести Новый в Старый">
-                <i class="material-icons">compare_arrows</i>
-              </button>
-            </div>
-
-            <!-- New Input -->
-            <div class="input-field col s12 m5">
-              <textarea id="new" class="materialize-textarea" placeholder="1.1: 00:00-03:00&#10;Или новый формат:&#10;Черга 1.1: з 00:00 до 03:00"></textarea>
-              <label for="new">Новый график (актуальный)</label>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col s12 m6">
-               <label>
-                <input type="checkbox" id="onlyChanges" />
-                <span style="color: var(--text-main)">Показать только изменения</span>
-              </label>
-            </div>
-            <!-- SOUND TOGGLE -->
-            <div class="col s12 m6 right-align">
-               <label>
-                <input type="checkbox" id="soundEnabled" checked />
-                <span style="color: var(--accent); font-weight: bold;">🔊 Звук при обновлении</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="row" style="margin-top: 20px;">
-            <div class="col s12">
-              <button id="compareBtn" class="btn waves-effect waves-light">Сравнить и Перенести</button>
-              <button id="clearBtn" class="btn-flat waves-effect">Очистить</button>
-              
-              <div class="right hide-on-small-only">
-                 <!-- Hidden file input -->
-                 <input type="file" id="jsonInput" accept=".json" style="display:none">
-                 <button id="importJsonBtn" class="btn-small btn-flat waves-effect"><i class="material-icons left">file_upload</i>Импорт JSON</button>
-                 <button id="copyJsonBtn" class="btn-small btn-flat waves-effect"><i class="material-icons left">content_copy</i>JSON</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Results Area -->
-          <div id="resultArea" class="mt-2">
-            <!-- Dynamic content here -->
-            <div class="center-align" style="padding: 30px; opacity: 0.5">
-              <i class="material-icons" style="font-size: 3rem;">analytics</i>
-              <p>Вставьте данные и нажмите "Сравнить"</p>
-            </div>
-          </div>
-          
-        </div>
-      </div>
-    </div>
-
-    <!-- VIEW 2: VISUALIZER -->
-    <div id="visualizer" class="col s12">
-      <div class="card">
-        <div class="card-content">
-          <span class="card-title">Генератор графика</span>
-          <span class="helper-text">Вставьте расписание (одна группа на строку). Поддерживаются форматы с тире, запятыми, словами "з", "до".</span>
-
-          <div class="input-field">
-            <textarea id="vizInput" class="materialize-textarea" style="min-height: 150px;" placeholder="Черга 1.1: з 00:00 до 02:00, з 15:00 до 20:00&#10;1.2: 02:00 – 06:00"></textarea>
-            <label for="vizInput">Данные графика</label>
-          </div>
-
-          <div class="row" style="margin-bottom: 0;">
-             <div class="col s12 mb-2">
-               <label>
-                <input type="checkbox" id="nextDayCheck" />
-                <span>График на завтра (следующий день)</span>
-              </label>
-             </div>
-          </div>
-
-          <div class="row">
-            <div class="col s12">
-              <button id="generateVizBtn" class="btn btn-large waves-effect waves-light" style="width: 100%">
-                <i class="material-icons left">bar_chart</i>
-                Построить график
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-  </div> <!-- .container -->
-
-  <!-- MODAL: CHART RESULT -->
-  <div id="chartModal" class="modal bottom-sheet-on-mobile">
-    <div class="modal-content">
-      <h5 class="mb-2">Визуализация отключений</h5>
-      
-      <!-- Wrapper for horizontal scrolling -->
-      <div class="chart-scroll-wrapper" id="chartWrapper">
-        <div id="chart-grid">
-          <!-- Grid will be injected here -->
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <span class="left hide-on-small-only" style="padding: 10px; color: var(--text-muted); font-size: 0.8rem;">
-        * Время указано в заголовках колонок
-      </span>
-      <a href="#!" class="modal-close btn-flat waves-effect">Закрыть</a>
-      <button id="downloadPngBtn" class="btn waves-effect waves-light">
-        <i class="material-icons left">download</i>Скачать
-      </button>
-    </div>
+  <div class="tabs" role="tablist">
+    <button data-tab="my" class="active">⚡ Моя очередь</button>
+    <button data-tab="compare">Сравнение</button>
+    <button data-tab="viz">Визуализатор</button>
   </div>
 
-  <!-- JS: Materialize + App Logic -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-  
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Init Materialize Components
-      M.AutoInit();
-      
-      // --- ЭЛЕМЕНТЫ ---
-      const compareBtn = document.getElementById('compareBtn');
-      const moveDataBtn = document.getElementById('moveDataBtn');
-      const clearBtn = document.getElementById('clearBtn');
-      const copyJsonBtn = document.getElementById('copyJsonBtn');
-      const importJsonBtn = document.getElementById('importJsonBtn');
-      const jsonInput = document.getElementById('jsonInput');
+  <!-- MY QUEUE -->
+  <section id="tab-my" class="pane active">
+    <div class="card">
+      <div class="row-between">
+        <label class="field">Моя очередь<select id="mySel"></select></label>
+        <div class="row-between" style="gap:16px">
+          <label class="chk"><input type="checkbox" id="notifyOn"><span>🔔 Уведомления</span></label>
+          <label class="field" style="flex-direction:row;align-items:center;gap:6px">за
+            <select id="leadSel"><option value="0">—</option><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="30">30</option><option value="60">60</option></select> мин до события</label>
+        </div>
+      </div>
+      <div id="liveCard"></div>
+    </div>
+    <div class="card">
+      <div class="row-between" style="margin-bottom:8px"><h3 style="margin:0">Итоги за сутки по очередям</h3>
+        <div class="seg" id="daySeg"><button data-day="today" class="active">Сегодня</button><button data-day="tomorrow">Завтра</button></div></div>
+      <div id="sumInfo" class="muted" style="font-size:.82rem;margin-bottom:6px"></div>
+      <div class="table-wrap"><table id="sumTable"></table></div>
+    </div>
+  </section>
 
-      const oldInput = document.getElementById('old');
-      const newInput = document.getElementById('new');
-      const resultArea = document.getElementById('resultArea');
-      const onlyChangesCheck = document.getElementById('onlyChanges');
-      const updateStatus = document.getElementById('update-status');
-      
-      const soundEnabledCheck = document.getElementById('soundEnabled');
+  <!-- COMPARE -->
+  <section id="tab-compare" class="pane">
+    <div class="card">
+      <div class="grid2">
+        <label class="field">Старый график (предыдущий)<textarea id="old" placeholder="1.1: 00:00-04:00"></textarea></label>
+        <div class="mid hide-sm"><button id="moveDataBtn" class="btn-round" title="Перенести Новый в Старый">⇄</button></div>
+        <label class="field">Новый график (актуальный)<textarea id="new" placeholder="1.1: 00:00-03:00&#10;Черга 1.1: з 00:00 до 03:00"></textarea></label>
+      </div>
+      <div id="versions" style="margin-top:12px"></div>
+      <div class="row-between" style="margin-top:12px">
+        <label class="chk"><input type="checkbox" id="onlyChanges"><span>Показать только изменения</span></label>
+        <label class="chk"><input type="checkbox" id="soundEnabled" checked><span style="color:var(--accent);font-weight:700">🔊 Звук при обновлении</span></label>
+      </div>
+      <div class="actions">
+        <button id="compareBtn">Сравнить и Перенести</button>
+        <button id="clearBtn" class="flat">Очистить</button>
+        <span class="spacer"></span>
+        <input type="file" id="jsonInput" accept=".json" hidden>
+        <button id="importJsonBtn" class="flat small">⬆ Импорт JSON</button>
+        <button id="copyJsonBtn" class="flat small">⧉ JSON</button>
+      </div>
+      <div id="resultArea" style="margin-top:16px"><div class="empty">Вставьте данные и нажмите «Сравнить»</div></div>
+    </div>
+  </section>
 
-      const generateVizBtn = document.getElementById('generateVizBtn');
-      const vizInput = document.getElementById('vizInput');
-      const nextDayCheck = document.getElementById('nextDayCheck');
-      const chartModalEl = document.getElementById('chartModal');
-      const chartGrid = document.getElementById('chart-grid');
-      const downloadPngBtn = document.getElementById('downloadPngBtn');
+  <!-- VISUALIZER -->
+  <section id="tab-viz" class="pane">
+    <div class="card">
+      <h3>Генератор графика</h3>
+      <div class="muted" style="font-size:.88rem;margin-bottom:8px">Одна очередь на строку. Форматы: «1.1: 00:00-02:00, 15:00-20:00», «Черга 1.1: з 00:00 до 02:00». Заголовок «=== 17.10.2026 · 14:32 ===» задаёт дату и время обновления.</div>
+      <textarea id="vizInput" style="min-height:170px" placeholder="Черга 1.1: з 00:00 до 02:00, з 15:00 до 20:00&#10;1.2: 02:00 – 06:00"></textarea>
+      <div style="margin:12px 0"><label class="chk"><input type="checkbox" id="nextDayCheck"><span>График на завтра (следующий день)</span></label></div>
+      <button id="generateVizBtn" style="width:100%;padding:13px">📊 Построить график</button>
+    </div>
+  </section>
+</div>
 
-      const chartModalInstance = M.Modal.getInstance(chartModalEl);
+<dialog id="chartModal">
+  <div class="dlg-body"><h3 style="margin-top:0">Визуализация отключений</h3>
+    <div id="chartHost"></div></div>
+  <div class="dlg-foot">
+    <span class="muted hide-sm" style="margin-right:auto;font-size:.8rem">Красное — нет света. Белая линия — сейчас.</span>
+    <button id="copyPngBtn" class="flat">Копировать</button>
+    <button id="closeModalBtn" class="flat">Закрыть</button>
+    <button id="downloadPngBtn">⬇ Скачать PNG</button>
+  </div>
+</dialog>
+<div id="toasts"></div>
 
-      // --- SOUND SYSTEM (Tone.js) ---
-      let synth = null;
-      let audioEnabled = false;
+<script>
+// <core>
+const TZ = 'Europe/Kyiv';
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad2 = n => String(n).padStart(2, '0');
+const fmt = m => `${pad2(Math.floor(m / 60))}:${pad2(m % 60)}`;
+const natural = (a, b) => a.localeCompare(b, undefined, {numeric: true});
+const strs = iv => iv.map(([s, e]) => `${fmt(s)}-${fmt(e)}`);
+const sum = iv => iv.reduce((a, [s, e]) => a + (e - s), 0);
+function hm(min) {
+  min = Math.round(Math.abs(min));
+  const h = Math.floor(min / 60), m = min % 60;
+  if (!h && !m) return '0ч';
+  return (h ? h + 'ч' : '') + (h && m ? ' ' : '') + (m ? m + 'м' : '');
+}
+function dur(sec) {
+  sec = Math.max(0, Math.round(sec));
+  const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
+  if (h) return `${h}ч ${m}м`;
+  if (m >= 10) return `${m}м`;
+  return `${m}м ${s}с`;
+}
 
-      // Tone.js требует взаимодействия пользователя для запуска AudioContext
-      async function initAudio() {
-        if (!audioEnabled) {
-          try {
-            await Tone.start();
-            // Простой полифонический синтезатор
-            synth = new Tone.PolySynth(Tone.Synth).toDestination();
-            synth.volume.value = -8; // Немного тише
-            audioEnabled = true;
-            console.log("Audio initialized");
-          } catch(e) {
-            console.error("Audio init failed", e);
-          }
+const kyivFmt = new Intl.DateTimeFormat('en-GB', {timeZone: TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'});
+function kyivParts(d = new Date()) { const p = {}; for (const x of kyivFmt.formatToParts(d)) p[x.type] = x.value; return p; }
+function nowKyiv() { const p = kyivParts(); return {date: `${p.day}.${p.month}.${p.year}`, sec: (+p.hour) * 3600 + (+p.minute) * 60 + (+p.second)}; }
+function addDays(ds, n) {
+  const [d, m, y] = ds.split('.').map(Number), t = new Date(Date.UTC(y, m - 1, d + n));
+  return `${pad2(t.getUTCDate())}.${pad2(t.getUTCMonth() + 1)}.${t.getUTCFullYear()}`;
+}
+const dateNum = ds => { const [d, m, y] = (ds || '').split('.').map(Number); return d ? Date.UTC(y, m - 1, d) : 0; };
+function isoHM(iso) { if (!iso) return ''; const d = new Date(iso); if (isNaN(d)) return ''; const p = kyivParts(d); return `${p.hour}:${p.minute}`; }
+function isoDM(iso) { if (!iso) return ''; const d = new Date(iso); if (isNaN(d)) return ''; const p = kyivParts(d); return `${p.day}.${p.month}`; }
+
+const HEADER_RE = /^=+\s*(\d{1,2}\.\d{1,2}\.\d{4})(?:\s*[·|,]\s*(\d{1,2}:\d{2}))?\s*=+$/;
+const LINE_RE = /^(?:Черг[аи]|Група)?\s*(\d{1,2}(?:\.\d)?)\s*[:.]\s*(.+)$/i;
+const RANGE_RE = /(\d{1,2}):(\d{2})\s*(?:[-–—]|до)\s*(\d{1,2}):(\d{2})/gi;
+
+function mergeIv(list) {
+  const a = list.filter(x => x[1] > x[0]).sort((p, q) => p[0] - q[0]), out = [];
+  for (const iv of a) {
+    const l = out[out.length - 1];
+    if (l && iv[0] <= l[1]) l[1] = Math.max(l[1], iv[1]); else out.push([iv[0], iv[1]]);
+  }
+  return out;
+}
+function parseRanges(str) {
+  const res = [];
+  for (const m of str.matchAll(RANGE_RE)) {
+    let s = Number(m[1]) * 60 + Number(m[2]), e = Number(m[3]) * 60 + Number(m[4]);
+    if (Number(m[2]) > 59 || Number(m[4]) > 59 || s > 1440 || e > 1440) continue;
+    if (e === 0 && s > 0) e = 1440;
+    if (e < s) res.push([s, 1440], [0, e]); else if (e > s) res.push([s, e]);
+  }
+  return res;
+}
+function parseText(text) {
+  const out = {date: null, time: null, queues: new Map()};
+  const tmp = new Map();
+  for (let line of String(text || '').split(/\r?\n/)) {
+    line = line.trim();
+    if (!line) continue;
+    const h = line.match(HEADER_RE);
+    if (h) { out.date = h[1].replace(/^(\d)\./, '0$1.').replace(/\.(\d)\./, '.0$1.'); out.time = h[2] || null; continue; }
+    const m = line.match(LINE_RE);
+    if (!m) continue;
+    const iv = parseRanges(m[2]);
+    if (!iv.length) continue;
+    tmp.set(m[1], (tmp.get(m[1]) || []).concat(iv));
+  }
+  for (const k of [...tmp.keys()].sort(natural)) out.queues.set(k, mergeIv(tmp.get(k)));
+  return out;
+}
+function formatDay(date, iso, queues) {
+  const t = isoHM(iso);
+  let s = `=== ${date}${t ? ' · ' + t : ''} ===\n`;
+  for (const q of Object.keys(queues || {}).sort(natural)) s += `${q}: ${queues[q]}\n`;
+  return s.trim();
+}
+function dayModel(day) {
+  const p = parseText(formatDay(day.date, day.published_at, day.queues));
+  return {date: day.date, time: isoHM(day.published_at), queues: p.queues, versions: day.versions || []};
+}
+function stats(iv) {
+  const m = mergeIv(iv.map(x => [...x]));
+  const off = m.reduce((a, [s, e]) => a + e - s, 0);
+  let prev = 0, maxOn = 0, maxOff = 0;
+  for (const [s, e] of m) { maxOn = Math.max(maxOn, s - prev); maxOff = Math.max(maxOff, e - s); prev = e; }
+  maxOn = Math.max(maxOn, 1440 - prev);
+  return {off, on: 1440 - off, count: m.length, maxOn, maxOff};
+}
+function compareQueues(oldQ, newQ) {
+  const names = [...new Set([...oldQ.keys(), ...newQ.keys()])].sort(natural);
+  return names.map(name => {
+    const a = oldQ.get(name) || [], b = newQ.get(name) || [], as = strs(a), bs = strs(b);
+    const removed = as.filter(x => !bs.includes(x)), added = bs.filter(x => !as.includes(x));
+    const status = !oldQ.has(name) ? 'new' : !newQ.has(name) ? 'gone' : (added.length || removed.length) ? 'changed' : 'same';
+    return {name, status, added, removed, as, bs, ta: sum(a), tb: sum(b)};
+  });
+}
+// Живое состояние очереди: dayMap — Map(dateStr -> {queues: Map})
+function computeLive(dayMap, q, t) {
+  const today = dayMap.get(t.date), tomorrow = dayMap.get(addDays(t.date, 1));
+  if (!q || !today || !today.queues.has(q)) return {t, q, none: true, today, tomorrow};
+  const ivT = today.queues.get(q);
+  const hasTomorrow = !!(tomorrow && tomorrow.queues.has(q));
+  const ivN = hasTomorrow ? tomorrow.queues.get(q).map(([s, e]) => [s + 1440, e + 1440]) : [];
+  const all = mergeIv([...ivT.map(x => [...x]), ...ivN]), nowM = t.sec / 60;
+  const cur = all.find(([s, e]) => nowM >= s && nowM < e);
+  let next = null;
+  if (cur) next = {type: 'on', at: cur[1]};
+  else { const n = all.find(([s]) => s > nowM); if (n) next = {type: 'off', at: n[0]}; }
+  if (next) next.diffSec = next.at * 60 - t.sec;
+  const open = !!(next && next.type === 'on' && next.at >= 1440 && !hasTomorrow);
+  return {t, q, none: false, today, tomorrow, ivT, ivN: hasTomorrow ? tomorrow.queues.get(q) : null, hasTomorrow, off: !!cur, next, open};
+}
+const atLabel = at => at >= 1440 ? `${fmt(at - 1440)} (завтра)` : fmt(at);
+// </core>
+
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const store = {
+  get(n, d = null) { try { let v = localStorage.getItem('lumina_' + n); if (v === null) v = localStorage.getItem('svet_' + n); return v === null ? d : v; } catch { return d; } },
+  set(n, v) { try { localStorage.setItem('lumina_' + n, v); } catch {} }
+};
+
+const oldInput = $('#old'), newInput = $('#new'), vizInput = $('#vizInput'), resultArea = $('#resultArea');
+const onlyChanges = $('#onlyChanges'), soundCheck = $('#soundEnabled'), updateStatus = $('#update-status');
+const mySel = $('#mySel'), notifyOn = $('#notifyOn'), leadSel = $('#leadSel'), liveCard = $('#liveCard');
+const sumTable = $('#sumTable'), sumInfo = $('#sumInfo'), chartModal = $('#chartModal'), chartHost = $('#chartHost');
+
+const state = {days: [], dayMap: new Map(), sumDay: 'today', model: null, lastCheck: null};
+
+// ---------- toast ----------
+function toast(msg, err = false, ms = 5000) {
+  const el = document.createElement('div');
+  el.className = 'toast' + (err ? ' err' : '');
+  el.textContent = msg;
+  $('#toasts').appendChild(el);
+  setTimeout(() => el.remove(), ms);
+}
+
+// ---------- audio ----------
+let actx = null;
+function initAudio() {
+  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch {} }
+  if (actx && actx.state === 'suspended') actx.resume();
+}
+['click', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, initAudio, {once: true, passive: true}));
+function playSound() {
+  if (!soundCheck.checked || !actx) return;
+  const t0 = actx.currentTime;
+  [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
+    const o = actx.createOscillator(), g = actx.createGain(), t = t0 + i * 0.1;
+    o.type = 'triangle'; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + (i === 3 ? 0.5 : 0.18));
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + 0.6);
+  });
+}
+let titleTimer = null;
+function flashTitle() {
+  if (titleTimer) return;
+  const orig = document.title; let on = false;
+  titleTimer = setInterval(() => { document.title = on ? orig : '🔔 ОБНОВЛЕНИЕ!'; on = !on; }, 1000);
+  window.addEventListener('focus', () => { clearInterval(titleTimer); titleTimer = null; document.title = orig; }, {once: true});
+}
+
+// ---------- notifications ----------
+async function notify(title, body, tag) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const opts = {body, icon: 'icon.svg', badge: 'icon.svg', tag, renotify: true, vibrate: [120, 60, 120]};
+  try {
+    const reg = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : null;
+    if (reg) await reg.showNotification(title, opts); else new Notification(title, opts);
+  } catch {}
+}
+notifyOn.addEventListener('change', async () => {
+  if (notifyOn.checked) {
+    if (!('Notification' in window)) { toast('Браузер не поддерживает уведомления', true); notifyOn.checked = false; }
+    else if (Notification.permission !== 'granted') {
+      const p = await Notification.requestPermission();
+      if (p !== 'granted') { toast('Разрешение на уведомления не выдано', true); notifyOn.checked = false; }
+    }
+    if (notifyOn.checked) toast('Уведомления включены. Страница/приложение должны быть открыты.');
+  }
+  store.set('notify', notifyOn.checked);
+});
+leadSel.addEventListener('change', () => store.set('lead', leadSel.value));
+
+// ---------- day map ----------
+function rebuildDayMap() {
+  const map = new Map();
+  for (const d of state.days) map.set(d.date, dayModel(d));
+  const nt = parseText(newInput.value);
+  if (nt.queues.size) {
+    const key = nt.date || nowKyiv().date;
+    if (!map.has(key)) map.set(key, {date: key, time: nt.time || '', queues: nt.queues, versions: []});
+  }
+  state.dayMap = map;
+  const names = new Set();
+  map.forEach(d => d.queues.forEach((_, k) => names.add(k)));
+  const list = [...names].sort(natural), cur = mySel.value || store.get('myQueue', '');
+  mySel.innerHTML = '<option value="">— выбрать —</option>' + list.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  if (list.includes(cur)) mySel.value = cur;
+}
+mySel.addEventListener('change', () => { store.set('myQueue', mySel.value); renderTables(); renderLive(); });
+
+// ---------- timeline / live ----------
+function tlHtml(iv, title, nowSec) {
+  const bars = (iv || []).map(([s, e]) => `<i style="left:${s / 14.4}%;width:${(e - s) / 14.4}%" title="${fmt(s)}–${fmt(e)}"></i>`).join('');
+  const now = nowSec != null ? `<b class="nowline" style="left:${nowSec / 864}%"></b>` : '';
+  const hrs = [0, 3, 6, 9, 12, 15, 18, 21, 24].map(h => `<span style="left:${h / 24 * 100}%">${h}</span>`).join('');
+  return `<div class="tl-wrap"><div class="tl-title">${title}</div><div class="tl-bar">${bars}${now}</div><div class="tl-hours">${hrs}</div></div>`;
+}
+function renderLive() {
+  const t = nowKyiv(), L = computeLive(state.dayMap, mySel.value, t);
+  if (!mySel.value) { liveCard.innerHTML = '<div class="empty">Выберите свою очередь, чтобы видеть статус света и получать уведомления</div>'; return L; }
+  if (L.none) {
+    liveCard.innerHTML = `<div class="empty">Нет графика на сегодня (${t.date}) для очереди ${esc(mySel.value)}.<br>Дождитесь обновления или вставьте график на вкладке «Сравнение».</div>`;
+    return L;
+  }
+  const st = stats(L.ivT);
+  let sub;
+  if (L.next && L.next.type === 'on') {
+    sub = L.open ? 'Отключение до конца суток — график на завтра ещё не опубликован'
+      : `Включение в <b>${atLabel(L.next.at)}</b> · через ${dur(L.next.diffSec)}`;
+  } else if (L.next) sub = `Следующее отключение в <b>${atLabel(L.next.at)}</b> · через ${dur(L.next.diffSec)}`;
+  else sub = L.hasTomorrow ? 'Отключений больше нет до конца завтрашнего дня' : 'Больше отключений сегодня нет';
+  const upd = L.today.time ? `График на сегодня обновлён в ${esc(L.today.time)}` : '';
+  liveCard.innerHTML = `
+    <div class="st ${L.off ? 'off' : 'on'}"><span class="dot"></span><span class="big">${L.off ? 'Света нет' : 'Свет есть'}</span></div>
+    <div class="sub">${sub}</div>
+    <div class="stats"><span class="stat">Без света сегодня: <b>${hm(st.off)}</b></span><span class="stat">Со светом: <b>${hm(st.on)}</b></span><span class="stat">Отключений: <b>${st.count}</b></span>${upd ? `<span class="stat">${upd}</span>` : ''}</div>
+    ${tlHtml(L.ivT, 'Сегодня, ' + t.date, t.sec)}
+    ${L.ivN ? tlHtml(L.ivN, 'Завтра, ' + addDays(t.date, 1) + (L.tomorrow.time ? ' · обновлено в ' + esc(L.tomorrow.time) : ''), null) : ''}`;
+  return L;
+}
+const fired = new Set();
+function checkEvents(L) {
+  if (!notifyOn.checked || !L || L.none || !L.next || L.open) return;
+  const lead = Number(leadSel.value);
+  if (!lead) return;
+  const mins = L.next.diffSec / 60;
+  if (mins <= 0 || mins > lead) return;
+  const key = `${L.t.date}|${L.next.at}|${L.next.type}`;
+  if (fired.has(key)) return;
+  fired.add(key);
+  const title = L.next.type === 'off' ? `⚡ Скоро отключение (${L.q})` : `💡 Скоро включение (${L.q})`;
+  const body = `${L.next.type === 'off' ? 'Отключение' : 'Включение'} в ${atLabel(L.next.at)} — через ${dur(L.next.diffSec)}`;
+  notify(title, body, 'ev-' + key); toast(title + ': ' + body, false, 9000); playSound();
+}
+
+// ---------- summary table ----------
+function renderTables() {
+  const t = nowKyiv(), key = state.sumDay === 'today' ? t.date : addDays(t.date, 1), day = state.dayMap.get(key);
+  if (!day) { sumInfo.textContent = ''; sumTable.innerHTML = `<tr><td class="muted">Нет графика на ${key}</td></tr>`; return; }
+  sumInfo.textContent = `Дата: ${day.date}${day.time ? ' · обновлено в ' + day.time : ''}`;
+  const isToday = state.sumDay === 'today', nowM = t.sec / 60;
+  let rows = '';
+  day.queues.forEach((iv, name) => {
+    const s = stats(iv);
+    let nxt = '—', dot = '';
+    if (isToday) {
+      const cur = iv.find(([a, b]) => nowM >= a && nowM < b);
+      if (cur) { nxt = `включение в ${fmt(cur[1])}`; dot = '<span class="sdot off"></span>'; }
+      else { const n = iv.find(([a]) => a > nowM); nxt = n ? `отключение в ${fmt(n[0])}` : 'больше нет'; dot = '<span class="sdot on"></span>'; }
+    }
+    rows += `<tr class="q ${name === mySel.value ? 'mine' : ''}" data-q="${esc(name)}"><td>${dot}<b>${esc(name)}</b></td><td>${hm(s.off)}</td><td>${hm(s.on)}</td><td>${s.count}</td><td>${hm(s.maxOff)}</td><td>${hm(s.maxOn)}</td><td>${nxt}</td></tr>`;
+  });
+  sumTable.innerHTML = `<thead><tr><th>Очередь</th><th>Без света</th><th>Со светом</th><th>Отключений</th><th>Макс. без света</th><th>Макс. со светом</th><th>Дальше</th></tr></thead><tbody>${rows}</tbody>`;
+}
+sumTable.addEventListener('click', e => {
+  const tr = e.target.closest('tr.q'); if (!tr) return;
+  mySel.value = tr.dataset.q; store.set('myQueue', mySel.value); renderTables(); renderLive();
+});
+$('#daySeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.sumDay = b.dataset.day; $$('#daySeg button').forEach(x => x.classList.toggle('active', x === b)); renderTables();
+});
+
+// ---------- compare ----------
+const autosize = el => { el.style.height = 'auto'; el.style.height = Math.max(150, el.scrollHeight) + 'px'; };
+function signed(min) { return (min > 0 ? '+' : min < 0 ? '−' : '') + hm(min); }
+function renderCompare() {
+  const o = parseText(oldInput.value), n = parseText(newInput.value);
+  if (!o.queues.size && !n.queues.size) {
+    resultArea.innerHTML = '<div class="empty">Не удалось распознать данные. Формат: «1.1: 00:00-04:00»</div>'; return false;
+  }
+  const rows = compareQueues(o.queues, n.queues);
+  const changed = rows.filter(r => r.status !== 'same');
+  const delta = rows.reduce((a, r) => a + (r.tb - r.ta), 0);
+  const meta = x => `${x.date || '—'}${x.time ? ' · ' + x.time : ''}`;
+  let html = `<div class="summary-box"><span>Старый: <b>${esc(meta(o))}</b></span><span>Новый: <b>${esc(meta(n))}</b></span><span>Изменено очередей: <b>${changed.length}</b> из ${rows.length}</span><span>Итого отключений: <b class="${delta > 0 ? 'pos' : 'neg'}">${delta ? signed(delta) : 'без изменений'}</b></span></div>
+  <div class="muted" style="font-size:.8rem;margin-bottom:8px"><span class="chip add">+ новое отключение</span><span class="chip rem">− отключение убрано</span></div>`;
+  const labels = {same: 'без изменений', changed: 'изменено', new: 'новая очередь', gone: 'нет в новом'};
+  for (const r of rows) {
+    if (onlyChanges.checked && r.status === 'same') continue;
+    const d = r.tb - r.ta;
+    html += `<div class="diff-row ${r.status}"><div class="diff-head"><b>${esc(r.name)}</b><span class="badge ${r.status}">${labels[r.status]}</span>
+      <span class="muted">${hm(r.ta)} → ${hm(r.tb)}${d ? ` <span class="${d > 0 ? 'pos' : 'neg'}">(${signed(d)})</span>` : ''}</span></div>
+      ${r.added.length || r.removed.length ? `<div style="margin-top:6px">${r.added.map(x => `<span class="chip add">+ ${x}</span>`).join('')}${r.removed.map(x => `<span class="chip rem">− ${x}</span>`).join('')}</div>` : ''}
+      <details><summary>Подробнее</summary><div class="muted">Было: ${r.as.length ? r.as.join(', ') : '—'}</div><div>Стало: ${r.bs.length ? r.bs.join(', ') : '—'}</div></details></div>`;
+  }
+  resultArea.innerHTML = html;
+  return {o, n, rows};
+}
+function saveFields() { store.set('old', oldInput.value); store.set('new', newInput.value); store.set('viz', vizInput.value); }
+function moveNewToOld() { oldInput.value = newInput.value; store.set('old', oldInput.value); autosize(oldInput); }
+$('#compareBtn').addEventListener('click', () => {
+  if (renderCompare()) { moveNewToOld(); toast('Сравнено. Новый график перенесён в Старый'); }
+});
+$('#moveDataBtn').addEventListener('click', () => { moveNewToOld(); toast('Новый → Старый'); });
+$('#clearBtn').addEventListener('click', () => {
+  oldInput.value = newInput.value = ''; saveFields(); rebuildDayMap();
+  resultArea.innerHTML = '<div class="empty">Вставьте данные и нажмите «Сравнить»</div>'; autosize(oldInput); autosize(newInput);
+});
+onlyChanges.addEventListener('change', () => renderCompare());
+oldInput.addEventListener('input', () => { store.set('old', oldInput.value); autosize(oldInput); });
+newInput.addEventListener('input', () => { store.set('new', newInput.value); autosize(newInput); rebuildDayMap(); renderTables(); });
+vizInput.addEventListener('input', () => store.set('viz', vizInput.value));
+soundCheck.addEventListener('change', () => { store.set('sound_enabled', soundCheck.checked); if (soundCheck.checked) initAudio(); });
+
+function renderVersions() {
+  const box = $('#versions');
+  const latest = [...state.days].sort((a, b) => dateNum(b.date) - dateNum(a.date))[0];
+  if (!latest || !latest.versions || latest.versions.length < 2) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="muted" style="font-size:.82rem;margin-bottom:4px">Версии графика на ${esc(latest.date)} (нажмите, чтобы сравнить с текущей):</div>` +
+    latest.versions.map((v, i) => `<button class="chip btn ${i === 0 ? 'cur' : ''}" data-i="${i}">${esc(isoHM(v.published_at) || '??:??')}${i === 0 ? ' · текущая' : ''}</button>`).join('');
+  box.onclick = e => {
+    const b = e.target.closest('button'); if (!b || b.dataset.i === '0') return;
+    const v = latest.versions[+b.dataset.i];
+    oldInput.value = formatDay(latest.date, v.published_at, v.queues);
+    newInput.value = formatDay(latest.date, latest.versions[0].published_at, latest.versions[0].queues);
+    saveFields(); autosize(oldInput); autosize(newInput); renderCompare();
+  };
+}
+
+// ---------- JSON data ----------
+function setStatus(extra = '') {
+  const latest = [...state.days].sort((a, b) => dateNum(b.date) - dateNum(a.date))[0];
+  let s = '';
+  if (latest) s += `График на ${latest.date}${latest.published_at ? ` обновлён ${isoDM(latest.published_at)} в ${isoHM(latest.published_at)}` : ''}`;
+  if (state.lastCheck) s += `${s ? ' · ' : ''}проверено ${state.lastCheck}`;
+  updateStatus.innerHTML = esc(s || 'Ожидание данных...') + (extra ? ` <span style="color:var(--warn)">${esc(extra)}</span>` : '');
+}
+function processJsonData(data, isAuto) {
+  if (!Array.isArray(data) || !data.length) return false;
+  state.days = data;
+  const sorted = [...data].sort((a, b) => dateNum(b.date) - dateNum(a.date));
+  const latest = sorted[0], latestText = formatDay(latest.date, latest.published_at, latest.queues);
+  let prevText = '';
+  if (latest.versions && latest.versions.length > 1) prevText = formatDay(latest.date, latest.versions[1].published_at, latest.versions[1].queues);
+  else if (sorted.length > 1) prevText = formatDay(sorted[1].date, sorted[1].published_at, sorted[1].queues);
+
+  const saved = store.get('new', '');
+  let changed = false;
+  if (latestText && latestText !== saved) {
+    changed = true;
+    const oldText = prevText || saved;
+    if (oldText) { oldInput.value = oldText; store.set('old', oldText); }
+    newInput.value = latestText; vizInput.value = latestText;
+    store.set('new', latestText); store.set('viz', latestText);
+  } else {
+    if (!newInput.value && latestText) newInput.value = latestText;
+    if (!vizInput.value && latestText) vizInput.value = latestText;
+  }
+  [oldInput, newInput].forEach(autosize);
+  rebuildDayMap(); renderVersions(); renderTables(); renderLive(); setStatus();
+
+  if (changed) {
+    renderCompare();
+    if (isAuto && saved) {
+      playSound(); flashTitle();
+      const t = isoHM(latest.published_at);
+      toast(`Получен новый график${t ? ' (обновлён в ' + t + ')' : ''}!`, false, 7000);
+      const q = mySel.value;
+      if (q && notifyOn.checked) {
+        const o = parseText(oldInput.value).queues.get(q) || [], n = parseText(newInput.value).queues.get(q) || [];
+        const a = strs(n).filter(x => !strs(o).includes(x)), r = strs(o).filter(x => !strs(n).includes(x));
+        if (a.length || r.length) {
+          notify(`График изменился (очередь ${q})`, [a.length ? '+ ' + a.join(', ') : '', r.length ? '− ' + r.join(', ') : ''].filter(Boolean).join('\n'), 'sched-' + q);
         }
       }
-
-      // Запускаем инициализацию при первом клике в любом месте
-      document.body.addEventListener('click', initAudio, { once: true });
-
-      function playNotificationSound() {
-        if (!soundEnabledCheck.checked || !audioEnabled || !synth) return;
-        
-        const now = Tone.now();
-        // Играем мажорное арпеджио (приятный дзынь)
-        synth.triggerAttackRelease("C5", "16n", now);
-        synth.triggerAttackRelease("E5", "16n", now + 0.1);
-        synth.triggerAttackRelease("G5", "16n", now + 0.2);
-        synth.triggerAttackRelease("C6", "8n", now + 0.3);
-      }
-
-      // Мигание заголовка вкладки
-      let titleInterval = null;
-      function startFlashingTitle() {
-        if (titleInterval) return;
-        const originalTitle = document.title;
-        let isAlert = false;
-        titleInterval = setInterval(() => {
-          document.title = isAlert ? "🔔 ОБНОВЛЕНИЕ!" : originalTitle;
-          isAlert = !isAlert;
-        }, 1000);
-
-        // Сброс при фокусе на окно
-        window.addEventListener('focus', () => {
-          clearInterval(titleInterval);
-          titleInterval = null;
-          document.title = originalTitle;
-        }, { once: true });
-      }
-
-
-      // --- ЛОКАЛЬНОЕ ХРАНИЛИЩЕ ---
-      function loadFromStorage() {
-        if (localStorage.getItem('svet_old')) oldInput.value = localStorage.getItem('svet_old');
-        if (localStorage.getItem('svet_new')) newInput.value = localStorage.getItem('svet_new');
-        if (localStorage.getItem('svet_viz')) vizInput.value = localStorage.getItem('svet_viz');
-        
-        // Звук
-        const savedSound = localStorage.getItem('svet_sound_enabled');
-        if(savedSound !== null) soundEnabledCheck.checked = (savedSound === 'true');
-
-        M.updateTextFields();
-        M.textareaAutoResize(oldInput);
-        M.textareaAutoResize(newInput);
-        M.textareaAutoResize(vizInput);
-      }
-
-      oldInput.addEventListener('input', () => localStorage.setItem('svet_old', oldInput.value));
-      newInput.addEventListener('input', () => localStorage.setItem('svet_new', newInput.value));
-      vizInput.addEventListener('input', () => localStorage.setItem('svet_viz', vizInput.value));
-      
-      soundEnabledCheck.addEventListener('change', () => {
-         localStorage.setItem('svet_sound_enabled', soundEnabledCheck.checked);
-         // Если включили галочку, сразу попробуем инициализировать аудио (вдруг пользователь только кликнул)
-         if(soundEnabledCheck.checked) initAudio(); 
-      });
-      
-      loadFromStorage();
-      
-      // --- HELPER: PARSE DATE ---
-      function parseDateStr(str) {
-         if(!str) return 0;
-         const parts = str.split('.');
-         if(parts.length < 3) return 0;
-         return new Date(parts[2], parts[1]-1, parts[0]).getTime();
-      }
-
-      // --- HELPER: FORMAT SINGLE DAY ---
-      function formatSingleDay(day) {
-         if (!day || !day.queues) return '';
-         let resultText = `=== ${day.date} ===\n`;
-         // Сортировка по ключам 1.1, 1.2
-         Object.keys(day.queues).sort().forEach(q => {
-              resultText += `${q}: ${day.queues[q]}\n`;
-         });
-         return resultText.trim();
-      }
-
-      // --- PROCESS DATA ---
-      // isAutoUpdate = true, если вызвано таймером (для звука)
-      function processJsonData(dataArray, isAutoUpdate = false) {
-          if (!dataArray || !Array.isArray(dataArray) || dataArray.length === 0) return false;
-
-          const sortedDays = [...dataArray].sort((a, b) => {
-              return parseDateStr(b.date) - parseDateStr(a.date);
-          });
-
-          const latestDay = sortedDays[0];
-          const latestText = formatSingleDay(latestDay);
-
-          let previousText = '';
-          if (sortedDays.length > 1) {
-              previousText = formatSingleDay(sortedDays[1]);
-          }
-
-          // Проверка на изменения
-          const currentSavedNew = localStorage.getItem('svet_new') || '';
-          
-          let dataChanged = false;
-
-          if (latestText && latestText !== currentSavedNew) {
-              // ЕСТЬ ИЗМЕНЕНИЯ!
-              dataChanged = true;
-
-              // Сдвигаем старое
-              if (previousText) {
-                   localStorage.setItem('svet_old', previousText);
-                   oldInput.value = previousText;
-              } else if (currentSavedNew) {
-                   // Если нет явного "предыдущего" в json, берем то что было в поле New
-                   localStorage.setItem('svet_old', currentSavedNew);
-                   oldInput.value = currentSavedNew;
-              }
-
-              // Записываем новое
-              localStorage.setItem('svet_new', latestText);
-              newInput.value = latestText;
-              
-              // Обновляем визуализатор
-              localStorage.setItem('svet_viz', latestText);
-              vizInput.value = latestText;
-          } else {
-              // Данные те же, но проверим пустые поля
-              if (!newInput.value && latestText) newInput.value = latestText;
-              if (!vizInput.value && latestText) vizInput.value = latestText;
-          }
-
-          M.updateTextFields();
-          M.textareaAutoResize(oldInput);
-          M.textareaAutoResize(newInput);
-          M.textareaAutoResize(vizInput);
-
-          // Уведомления (только если это авто-обновление и данные изменились)
-          if (isAutoUpdate && dataChanged) {
-              playNotificationSound();
-              startFlashingTitle();
-              M.toast({html: 'Получен новый график!', classes: 'green rounded', displayLength: 6000});
-          }
-
-          return true;
-      }
-
-      // --- AUTO UPDATE ---
-      const JSON_URL = 'schedule.json'; 
-
-      async function checkForUpdates() {
-          if (window.location.protocol === 'file:') {
-               updateStatus.innerHTML = '<span style="color:var(--text-muted)">Локальный режим (без авто-обновления)</span>';
-               return;
-          }
-
-          try {
-              const res = await fetch(JSON_URL + '?t=' + Date.now()); 
-              if (!res.ok) throw new Error("Файл не найден");
-              const jsonData = await res.json();
-              
-              // Сохраняем "сырую" версию для проверки, чтобы не дергать логику зря
-              const rawStr = JSON.stringify(jsonData);
-              const lastRaw = localStorage.getItem('svet_last_raw_json');
-              
-              if (rawStr !== lastRaw) {
-                  // Данные изменились на сервере
-                  const success = processJsonData(jsonData, true); // true = включить уведомления
-                  if (success) {
-                      localStorage.setItem('svet_last_raw_json', rawStr);
-                      updateStatus.innerHTML = '<span style="color:var(--accent)">✅ Обновлено только что</span>';
-                  }
-              } else {
-                  updateStatus.innerHTML = '<span style="color:var(--text-muted)">Данные актуальны</span>';
-                  // Все равно заполним поля если они пусты
-                  if(!newInput.value) processJsonData(jsonData, false);
-              }
-
-          } catch (e) {
-              console.log("Auto-update info: " + e.message);
-              updateStatus.innerHTML = '<span style="color:var(--text-muted)">Ожидание данных...</span>';
-          }
-      }
-
-      // Запускаем проверку при старте
-      checkForUpdates();
-      // И каждые 60 секунд
-      setInterval(checkForUpdates, 60000);
-
-      // --- MANUAL JSON IMPORT ---
-      importJsonBtn.addEventListener('click', () => {
-          jsonInput.click();
-      });
-
-      jsonInput.addEventListener('change', (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-
-          const reader = new FileReader();
-          reader.onload = function(evt) {
-              try {
-                  const jsonData = JSON.parse(evt.target.result);
-                  // При ручном импорте уведомление не нужно (false)
-                  const success = processJsonData(jsonData, false); 
-                  
-                  if (success) {
-                      M.toast({html: 'Файл успешно загружен!', classes: 'green'});
-                  } else {
-                      M.toast({html: 'Файл пуст или некорректный формат', classes: 'red'});
-                  }
-              } catch (err) {
-                  console.error(err);
-                  M.toast({html: 'Ошибка чтения JSON', classes: 'red'});
-              }
-              jsonInput.value = '';
-          };
-          reader.readAsText(file);
-      });
-
-
-      // --- ПАРСИНГ ---
-      const pad = (t) => {
-        const [h,m] = t.split(':');
-        return h.padStart(2,'0') + ':' + m;
-      };
-
-      function parseScheduleLine(line) {
-        line = line.trim();
-        if (!line) return null;
-        if (line.startsWith('===')) return null; 
-
-        // Ищем 1.1: или Черга 1.1:
-        // Поддержка точки и двоеточия как разделителя
-        const match = line.match(/^(?:Черга|Група|Черги)?\s*(\d(?:\.\d)?)\s*[:\.]\s*(.+)/i);
-        if (!match) return null;
-
-        const name = match[1];
-        const timePart = match[2];
-        
-        const ranges = [];
-        const globalIntervalPattern = /(\d{1,2}:\d{2})\s*(?:[-–—]|до)\s*(\d{1,2}:\d{2})/gi;
-        
-        let m;
-        while ((m = globalIntervalPattern.exec(timePart)) !== null) {
-            ranges.push({
-                startStr: pad(m[1]),
-                endStr: pad(m[2]),
-                raw: m[0]
-            });
-        }
-
-        return { name, ranges };
-      }
-
-      function normalizeIntervals(arr){
-        const mapped = arr.map(a => ({s: a[0], e: a[1], str: a[0]+"-"+a[1]}));
-        mapped.sort((x,y) => timeToMin(x.s) - timeToMin(y.s));
-        const uniq = [];
-        for(const it of mapped){
-          if(!uniq.length || uniq[uniq.length-1].str !== it.str) uniq.push(it);
-        }
-        return uniq.map(x => x.str);
-      }
-
-      function timeToMin(t){
-        const [h,m] = t.split(':').map(Number);
-        return h*60 + m;
-      }
-
-      function parseTimeMinutes(str) {
-        if(str === '24:00') return 1440;
-        const [h, m] = str.split(':').map(Number);
-        return h*60 + m;
-      }
-
-      function compareSets(oldArr, newArr){
-        const oldSet = new Set(oldArr);
-        const newSet = new Set(newArr);
-        const removed = [...oldSet].filter(x => !newSet.has(x));
-        const added = [...newSet].filter(x => !oldSet.has(x));
-        removed.sort((a,b) => timeToMin(a.split('-')[0]) - timeToMin(b.split('-')[0]));
-        added.sort((a,b) => timeToMin(a.split('-')[0]) - timeToMin(b.split('-')[0]));
-        return {removed, added};
-      }
-
-      function escapeHtml(s){ 
-        return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); 
-      }
-
-      // --- ЛОГИКА КОМПАРАТОРА ---
-      
-      moveDataBtn.addEventListener('click', () => {
-        if (!newInput.value.trim()) {
-           M.toast({html: 'Поле "Новый график" пустое', classes: 'rounded'});
-           return;
-        }
-        oldInput.value = newInput.value;
-        newInput.value = '';
-        localStorage.setItem('svet_old', oldInput.value);
-        localStorage.setItem('svet_new', '');
-        M.updateTextFields();
-        M.textareaAutoResize(oldInput);
-        M.textareaAutoResize(newInput);
-        M.toast({html: 'Данные перенесены в Старый график'});
-      });
-
-      function parseBlock(text){
-        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-        const data = {};
-        
-        for(const line of lines){
-          const parsed = parseScheduleLine(line);
-          if(!parsed) continue;
-          const intervals = parsed.ranges.map(r => [r.startStr, r.endStr]);
-          data[parsed.name] = normalizeIntervals(intervals);
-        }
-        return data;
-      }
-
-      compareBtn.addEventListener('click', () => {
-        const dOld = parseBlock(oldInput.value);
-        const dNew = parseBlock(newInput.value);
-        
-        if (newInput.value.trim()) {
-            vizInput.value = newInput.value;
-            localStorage.setItem('svet_viz', vizInput.value);
-            M.textareaAutoResize(vizInput);
-            M.updateTextFields();
-        }
-
-        const keys = Array.from(new Set([...Object.keys(dOld), ...Object.keys(dNew)])).sort();
-        
-        resultArea.innerHTML = '';
-        const onlyDiff = onlyChangesCheck.checked;
-        let hasContent = false;
-        
-        const summaryJson = {};
-
-        keys.forEach(key => {
-          const oldA = dOld[key] || [];
-          const newA = dNew[key] || [];
-          const diff = compareSets(oldA, newA);
-          summaryJson[key] = {old: oldA, new: newA, changes: diff};
-
-          if(onlyDiff && !diff.removed.length && !diff.added.length) return;
-          hasContent = true;
-
-          const div = document.createElement('div');
-          div.className = 'diff-row';
-          
-          let html = `
-            <div class="diff-header">
-              <div>
-                <span style="font-weight:bold; font-size:1.1rem">${escapeHtml(key)}</span>
-                <span class="grey-text text-lighten-1" style="font-size:0.85rem; margin-left:10px">
-                   ${newA.length ? newA.length + ' интервалов' : 'Пусто'}
-                </span>
-              </div>
-              <div style="text-align:right">
-                ${diff.removed.map(r => `<span class="chip removed">-${r}</span>`).join('')}
-                ${diff.added.map(a => `<span class="chip added">+${a}</span>`).join('')}
-              </div>
-            </div>
-            <details>
-              <summary>Подробнее</summary>
-              <pre style="white-space:pre-wrap; font-family:monospace; font-size:0.9rem; margin-top:5px; color:#ccc">Старое: ${oldA.join(', ') || '—'}\nНовое:  ${newA.join(', ') || '—'}</pre>
-            </details>
-          `;
-          div.innerHTML = html;
-          resultArea.appendChild(div);
-        });
-
-        if(!hasContent) {
-          resultArea.innerHTML = '<div class="center-align muted">Нет изменений или данных</div>';
-        }
-        resultArea.dataset.json = JSON.stringify(summaryJson, null, 2);
-      });
-
-      clearBtn.addEventListener('click', ()=>{
-        oldInput.value = ''; newInput.value = ''; resultArea.innerHTML = '';
-        localStorage.removeItem('svet_old');
-        localStorage.removeItem('svet_new');
-        M.textareaAutoResize(oldInput);
-        M.textareaAutoResize(newInput);
-      });
-
-      copyJsonBtn.addEventListener('click', ()=>{
-        const txt = resultArea.dataset.json || '{}';
-        navigator.clipboard.writeText(txt).then(()=> M.toast({html: 'JSON скопирован'}));
-      });
-
-
-      // --- ЛОГИКА ВИЗУАЛИЗАТОРА (MODAL) ---
-
-      function mergeIntervals(ranges) {
-        if(!ranges.length) return [];
-        ranges.sort((a,b) => a.start - b.start);
-        const result = [];
-        let curr = {...ranges[0]};
-        for(let i=1; i<ranges.length; i++){
-          if(ranges[i].start <= curr.end) {
-            curr.end = Math.max(curr.end, ranges[i].end);
-          } else {
-            result.push(curr);
-            curr = {...ranges[i]};
-          }
-        }
-        result.push(curr);
-        return result;
-      }
-
-      function fmtDuration(mins) {
-        const h = Math.floor(mins/60);
-        const m = mins % 60;
-        let s = '';
-        if(h > 0) s += h + 'ч ';
-        if(m > 0) s += m + 'мин';
-        return s.trim() || '0мин';
-      }
-      
-      function getChartDate() {
-        const now = new Date();
-        if (nextDayCheck.checked) {
-          now.setDate(now.getDate() + 1);
-        }
-        const day = String(now.getDate()).padStart(2, '0');
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        return `${day}.${month}`;
-      }
-
-      function generateChart() {
-        const text = vizInput.value;
-        const lines = text.trim().split('\n');
-        const data = [];
-
-        for(const line of lines){
-          const parsed = parseScheduleLine(line);
-          if(!parsed) continue;
-          
-          const ranges = parsed.ranges.map(r => ({
-              start: parseTimeMinutes(r.startStr),
-              end: parseTimeMinutes(r.endStr)
-          }));
-          
-          const merged = mergeIntervals(ranges);
-          const totalMins = merged.reduce((acc, r) => acc + (r.end - r.start), 0);
-          
-          data.push({
-            group: parsed.name,
-            ranges: merged,
-            totalMinsNumeric: totalMins,
-            totalStr: fmtDuration(totalMins)
-          });
-        }
-
-        if(!data.length) {
-          M.toast({html: 'Нет данных для отображения', classes: 'red'});
-          return;
-        }
-
-        const dateStr = getChartDate();
-        renderGrid(data, dateStr);
-        chartModalInstance.open();
-      }
-
-      function renderGrid(data, dateStr) {
-        chartGrid.innerHTML = '';
-        
-        // 1. Заголовок
-        const corner = document.createElement('div');
-        corner.className = 'grid-cell corner-cell';
-        corner.innerHTML = `<span class="date-display">${dateStr}</span>`; 
-        chartGrid.appendChild(corner);
-
-        // 2. Часы
-        for(let h=0; h<24; h++){
-          const cell = document.createElement('div');
-          cell.className = 'grid-cell header-cell';
-          cell.textContent = h.toString().padStart(2,'0') + ':00';
-          chartGrid.appendChild(cell);
-        }
-
-        // 3. Данные
-        data.forEach(item => {
-          const label = document.createElement('div');
-          label.className = 'grid-cell label-cell';
-          label.innerHTML = `
-            <span>${escapeHtml(item.group)}</span>
-            <span class="total-time">(${item.totalStr})</span>
-          `;
-          chartGrid.appendChild(label);
-
-          for(let i=0; i<48; i++){
-            const start = i*30;
-            const end = (i+1)*30;
-            const isOff = item.ranges.some(r => start < r.end && end > r.start);
-            
-            const cell = document.createElement('div');
-            cell.className = `grid-cell data-cell ${isOff ? 'off' : ''}`;
-            if(isOff) {
-              cell.innerHTML = `<i class="material-icons" style="font-size:14px">flash_off</i>`;
-            }
-            chartGrid.appendChild(cell);
-          }
-        });
-
-        // 4. ИТОГО
-        const grandTotalMins = data.reduce((acc, item) => acc + item.totalMinsNumeric, 0);
-        const footerRow = document.createElement('div');
-        footerRow.className = 'grid-footer';
-        footerRow.innerHTML = `Всего времени отсутствия света (сумма по группам): <strong>${fmtDuration(grandTotalMins)}</strong>`;
-        chartGrid.appendChild(footerRow);
-      }
-
-      // --- СКАЧИВАНИЕ ---
-      downloadPngBtn.addEventListener('click', function() {
-        const el = document.getElementById('chart-grid');
-        const originalText = this.innerHTML;
-        this.innerHTML = 'Генерация...';
-        this.disabled = true;
-
-        html2canvas(el, {
-          backgroundColor: '#0f1724',
-          scale: 2 
-        }).then(canvas => {
-          const link = document.createElement('a');
-          link.download = `svet-chart-${getChartDate()}.png`; 
-          link.href = canvas.toDataURL();
-          link.click();
-        }).catch(err => {
-          console.error(err);
-          M.toast({html: 'Ошибка сохранения', classes: 'red'});
-        }).finally(() => {
-          this.innerHTML = originalText;
-          this.disabled = false;
-        });
-      });
-
-      generateVizBtn.addEventListener('click', generateChart);
+    }
+  }
+  return true;
+}
+const JSON_URL = 'schedule.json';
+async function checkForUpdates() {
+  if (location.protocol === 'file:') { updateStatus.textContent = 'Локальный режим (без авто-обновления)'; return; }
+  try {
+    const res = await fetch(JSON_URL + '?t=' + Date.now(), {cache: 'no-store'});
+    if (!res.ok) throw new Error('schedule.json не найден');
+    const data = await res.json(), raw = JSON.stringify(data), last = store.get('last_raw_json');
+    const p = kyivParts(); state.lastCheck = `${p.hour}:${p.minute}:${p.second}`;
+    if (raw !== last) { if (processJsonData(data, true)) store.set('last_raw_json', raw); }
+    else { state.days = data; if (!newInput.value) processJsonData(data, false); rebuildDayMap(); renderVersions(); setStatus(); }
+  } catch (e) {
+    setStatus(state.days.length ? 'нет сети — показан сохранённый график' : 'ожидание данных');
+  }
+}
+$('#importJsonBtn').addEventListener('click', () => $('#jsonInput').click());
+$('#jsonInput').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try { toast(processJsonData(JSON.parse(ev.target.result), false) ? 'Файл успешно загружен!' : 'Файл пуст или неверный формат', false); }
+    catch { toast('Ошибка чтения JSON', true); }
+    e.target.value = '';
+  };
+  r.readAsText(f);
+});
+$('#copyJsonBtn').addEventListener('click', async () => {
+  const p = parseText(newInput.value);
+  if (!p.queues.size) return toast('Нет данных в поле «Новый»', true);
+  const queues = {};
+  p.queues.forEach((iv, k) => queues[k] = iv.map(([s, e]) => `${fmt(s)} - ${fmt(e)}`).join(', '));
+  const json = JSON.stringify([{date: p.date || nowKyiv().date, queues}], null, 2);
+  try { await navigator.clipboard.writeText(json); toast('JSON скопирован'); } catch { toast('Не удалось скопировать', true); }
+});
+
+// ---------- visualizer ----------
+function buildModel(text, nextDay) {
+  const p = parseText(text), t = nowKyiv();
+  const date = nextDay ? addDays(t.date, 1) : (p.date || t.date);
+  const rows = [...p.queues].map(([name, iv]) => ({name, iv, total: sum(iv)}));
+  return {date, time: p.time, rows};
+}
+function renderChart() {
+  const m = state.model; if (!m) return;
+  const t = nowKyiv(), isToday = m.date === t.date, nowH = Math.floor(t.sec / 3600);
+  const nowLine = isToday ? `<div class="c-now" style="left:${t.sec / 864}%"></div>` : '';
+  let h = `<div class="chart"><div class="c-row c-head"><div class="c-label"><span class="date">${esc(m.date.slice(0, 5))}</span>${m.time ? `<span class="upd">обновлено в ${esc(m.time)}</span>` : ''}</div>
+    <div class="hours">${Array.from({length: 24}, (_, i) => `<span class="${isToday && i === nowH ? 'now' : ''}">${pad2(i)}</span>`).join('')}</div></div>`;
+  for (const r of m.rows) {
+    const bars = r.iv.map(([s, e]) => `<div class="c-bar" style="left:${s / 14.4}%;width:${(e - s) / 14.4}%" title="${fmt(s)}–${fmt(e)}">${(e - s) >= 120 ? fmt(s) + '–' + fmt(e) : ''}</div>`).join('');
+    h += `<div class="c-row"><div class="c-label"><span>${esc(r.name)}</span><span class="tot">${hm(r.total)}</span></div><div class="c-track">${bars}${nowLine}</div></div>`;
+  }
+  const avg = m.rows.length ? m.rows.reduce((a, r) => a + r.total, 0) / m.rows.length : 0;
+  const mx = m.rows.reduce((a, r) => r.total > a.total ? r : a, {total: -1, name: '—'});
+  h += `<div class="c-foot">Очередей: <b>${m.rows.length}</b> · В среднем без света: <b>${hm(avg)}</b> · Максимум: <b>${esc(mx.name)}</b> (${hm(Math.max(mx.total, 0))})</div></div>`;
+  chartHost.innerHTML = `<div style="overflow-x:auto">${h}</div>`;
+}
+$('#generateVizBtn').addEventListener('click', () => {
+  const m = buildModel(vizInput.value, $('#nextDayCheck').checked);
+  if (!m.rows.length) return toast('Не удалось распознать график', true);
+  state.model = m; renderChart(); chartModal.showModal();
+});
+$('#closeModalBtn').addEventListener('click', () => chartModal.close());
+chartModal.addEventListener('click', e => { if (e.target === chartModal) chartModal.close(); });
+
+function drawCanvas(m) {
+  const S = 2, LW = 230, HW = 1440, W = LW + HW, HH = 84, RH = 52, FH = 64, H = HH + m.rows.length * RH + FH;
+  const c = document.createElement('canvas'); c.width = W * S; c.height = H * S;
+  const g = c.getContext('2d'); g.scale(S, S);
+  const css = getComputedStyle(document.documentElement), v = n => css.getPropertyValue(n).trim();
+  const FONT = '"Segoe UI",Roboto,Arial,sans-serif';
+  const t = nowKyiv(), isToday = m.date === t.date;
+  g.fillStyle = v('--bg'); g.fillRect(0, 0, W, H);
+  g.fillStyle = 'rgba(110,231,183,0.06)'; g.fillRect(0, 0, W, HH);
+  g.textBaseline = 'middle'; g.textAlign = 'center';
+  g.fillStyle = v('--accent'); g.font = `800 32px ${FONT}`; g.fillText(m.date.slice(0, 5), LW / 2, m.time ? 34 : 42);
+  if (m.time) { g.fillStyle = v('--muted'); g.font = `400 15px ${FONT}`; g.fillText('обновлено в ' + m.time, LW / 2, 64); }
+  for (let i = 0; i < 24; i++) {
+    const x = LW + i * HW / 24;
+    if (isToday && i === Math.floor(t.sec / 3600)) { g.fillStyle = 'rgba(255,255,255,0.18)'; g.fillRect(x, 0, HW / 24, HH); }
+    g.fillStyle = v('--accent'); g.font = `700 18px ${FONT}`; g.fillText(pad2(i), x + HW / 48, HH / 2);
+  }
+  m.rows.forEach((r, k) => {
+    const y = HH + k * RH;
+    g.fillStyle = 'rgba(110,231,183,0.05)'; g.fillRect(0, y, LW, RH);
+    g.textAlign = 'left'; g.fillStyle = v('--text'); g.font = `600 20px ${FONT}`; g.fillText(r.name, 16, y + RH / 2);
+    g.textAlign = 'right'; g.fillStyle = v('--accent'); g.font = `500 16px ${FONT}`; g.fillText(hm(r.total), LW - 16, y + RH / 2);
+    r.iv.forEach(([s, e]) => {
+      const x = LW + s / 1440 * HW, w = (e - s) / 1440 * HW;
+      g.fillStyle = 'rgba(251,113,133,0.85)'; g.fillRect(x, y + 7, w, RH - 14);
+      if (w > 110) { g.fillStyle = '#fff'; g.textAlign = 'center'; g.font = `500 14px ${FONT}`; g.fillText(`${fmt(s)}–${fmt(e)}`, x + w / 2, y + RH / 2); }
     });
-  </script>
+    g.strokeStyle = 'rgba(255,255,255,0.1)'; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(0, y + RH); g.lineTo(W, y + RH); g.stroke();
+  });
+  g.strokeStyle = 'rgba(255,255,255,0.1)'; g.beginPath();
+  for (let i = 0; i <= 24; i++) { const x = LW + i * HW / 24; g.moveTo(x, 0); g.lineTo(x, H - FH); }
+  g.stroke();
+  g.strokeStyle = v('--accent'); g.lineWidth = 2; g.beginPath(); g.moveTo(LW, 0); g.lineTo(LW, H - FH); g.stroke();
+  if (isToday) { const x = LW + t.sec / 86400 * HW; g.strokeStyle = '#fff'; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H - FH); g.stroke(); }
+  const avg = m.rows.length ? m.rows.reduce((a, r) => a + r.total, 0) / m.rows.length : 0;
+  g.textAlign = 'right'; g.fillStyle = v('--muted'); g.font = `500 18px ${FONT}`;
+  g.fillText(`Очередей: ${m.rows.length} · В среднем без света: ${hm(avg)}`, W - 20, H - FH / 2);
+  return c;
+}
+$('#downloadPngBtn').addEventListener('click', () => {
+  if (!state.model) return;
+  drawCanvas(state.model).toBlob(b => {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+    a.download = `svet_${state.model.date.replace(/\./g, '-')}.png`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  }, 'image/png');
+});
+$('#copyPngBtn').addEventListener('click', () => {
+  if (!state.model || !window.ClipboardItem) return toast('Копирование картинки не поддерживается', true);
+  drawCanvas(state.model).toBlob(async b => {
+    try { await navigator.clipboard.write([new ClipboardItem({'image/png': b})]); toast('Картинка скопирована'); }
+    catch { toast('Не удалось скопировать картинку', true); }
+  }, 'image/png');
+});
+
+// ---------- tabs ----------
+function showTab(name) {
+  $$('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  $$('.pane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+  store.set('tab', name);
+  if (name === 'compare') [oldInput, newInput].forEach(autosize);
+}
+$('.tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); });
+
+// ---------- PWA ----------
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; $('#installBtn').hidden = false; });
+$('#installBtn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; $('#installBtn').hidden = true;
+});
+window.addEventListener('appinstalled', () => { $('#installBtn').hidden = true; toast('Приложение установлено'); });
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+
+// ---------- init ----------
+oldInput.value = store.get('old', ''); newInput.value = store.get('new', ''); vizInput.value = store.get('viz', '');
+const ss = store.get('sound_enabled'); if (ss !== null) soundCheck.checked = ss === 'true';
+notifyOn.checked = store.get('notify') === 'true' && 'Notification' in window && Notification.permission === 'granted';
+leadSel.value = store.get('lead', '15');
+try { const raw = store.get('last_raw_json'); if (raw) { const d = JSON.parse(raw); if (Array.isArray(d)) state.days = d; } } catch {}
+rebuildDayMap(); renderVersions(); renderTables(); renderLive(); setStatus();
+[oldInput, newInput].forEach(autosize);
+showTab(store.get('tab', 'my'));
+
+checkForUpdates();
+setInterval(checkForUpdates, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { checkForUpdates(); renderTables(); } });
+let tick = 0;
+setInterval(() => {
+  tick++;
+  const L = renderLive(); checkEvents(L);
+  if (tick % 30 === 0) { renderTables(); if (chartModal.open) renderChart(); }
+}, 1000);
+})();
+</script>
 </body>
 </html>

@@ -2,38 +2,43 @@ name: Update Light Schedule
 
 on:
   schedule:
-    # Запуск каждые 30 минут
     - cron: '*/30 * * * *'
-  workflow_dispatch: # Кнопка для ручного запуска
+  workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: schedule-update
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 5
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.12'
+          cache: pip
 
       - name: Install dependencies
-        run: |
-          pip install requests beautifulsoup4
+        run: pip install requests beautifulsoup4
 
-      - name: Run Scraper
-        # Убедитесь, что scraper.py лежит в корне репозитория!
+      - name: Run scraper
         run: python scraper.py
 
-      - name: Commit and Push if changes
+      - name: Commit and push if changed
         run: |
-          git config --global user.name 'GitHub Action'
-          git config --global user.email 'action@github.com'
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add schedule.json
-          # Команда ниже сделает коммит ТОЛЬКО если файл изменился, иначе пропустит шаг без ошибки
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update schedule" && git push)
+          if git diff --cached --quiet; then
+            echo "Нет изменений"
+          else
+            git commit -m "Auto-update schedule"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push
+          fi
