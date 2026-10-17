@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 env:
-  TARGET_BRANCH: improve-lumina
+  TARGET_BRANCH: main
 
 concurrency:
   group: schedule-update
