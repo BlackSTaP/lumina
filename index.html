@@ -103,22 +103,20 @@ dialog{background:var(--card);color:var(--text);border:1px solid var(--border);b
 dialog::backdrop{background:rgba(0,0,0,.65)}
 .dlg-body{padding:20px;overflow:auto;max-height:calc(92vh - 70px)}
 .dlg-foot{display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:12px 20px;background:var(--card2);border-top:1px solid var(--border);flex-wrap:wrap}
-.chart{min-width:1100px;border:1px solid var(--border);border-radius:8px;background:var(--bg);overflow:hidden}
-.c-row{display:grid;grid-template-columns:200px 1fr;height:46px;border-bottom:1px solid var(--border)}
-.c-label{display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-weight:600;background:rgba(110,231,183,.05);border-right:2px solid var(--accent)}
-.c-label .tot{color:var(--accent);font-size:.82rem;font-weight:500}
-.c-track{position:relative;background-image:linear-gradient(to right,rgba(255,255,255,.1) 1px,transparent 1px);background-size:calc(100%/24) 100%}
-.c-bar{position:absolute;top:5px;bottom:5px;border-radius:3px;background-color:rgba(251,113,133,.18);border:1px solid rgba(251,113,133,.35);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M13 2 4 14h6l-1 8 9-12h-6z' fill='%23fb7185'/%3E%3Cpath d='M3 3l18 18' stroke='%231e293b' stroke-width='3.5'/%3E%3Cpath d='M3 3l18 18' stroke='%23fb7185' stroke-width='1.6'/%3E%3C/svg%3E");background-repeat:repeat-x;background-position:left center;background-size:calc(100% / var(--n)) 62%}
-.c-now{position:absolute;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 6px #fff;z-index:2}
-.c-head{height:58px}
-.c-head .c-label{flex-direction:column;justify-content:center;align-items:center;color:var(--accent)}
-.c-head .date{font-size:1.3rem;font-weight:800;letter-spacing:1px;text-shadow:0 0 10px rgba(110,231,183,.3)}
-.c-head .upd{font-size:.72rem;color:var(--muted);font-weight:400}
-.hours{display:grid;grid-template-columns:repeat(24,1fr);background:rgba(110,231,183,.05)}
-.hours span{display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:700;font-size:.8rem;border-right:1px solid var(--border)}
-.hours span.now{background:rgba(255,255,255,.18);color:#fff}
-.c-foot{padding:14px 20px;text-align:right;color:var(--text);font-weight:600;background:rgba(255,255,255,.03);border-top:1px solid var(--border)}
-.c-foot b{color:var(--accent);font-size:1.25em;margin-left:6px}
+.chart{min-width:1290px;border:1px solid var(--border);border-radius:8px;background:#0f1724;overflow:hidden}
+.c-grid{display:grid;grid-template-columns:230px repeat(48,minmax(22px,1fr))}
+.g-corner{height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(110,231,183,.06);border-bottom:1px solid var(--border);color:var(--accent)}
+.g-corner .date{font-size:1.7rem;font-weight:800;letter-spacing:1px;text-shadow:0 0 10px rgba(110,231,183,.3)}
+.g-corner .upd{font-size:.72rem;color:var(--muted);font-weight:400}
+.g-hour{grid-column:span 2;height:64px;display:flex;align-items:center;justify-content:center;background:rgba(110,231,183,.06);color:var(--accent);font-weight:700;font-size:.85rem;border-left:1px solid rgba(255,255,255,.07);border-bottom:1px solid var(--border)}
+.g-hour.now{background:rgba(255,255,255,.18);color:#fff}
+.g-label{height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-weight:700;background:rgba(110,231,183,.06);border-right:3px solid var(--accent);border-bottom:1px solid rgba(255,255,255,.07)}
+.g-label small{color:var(--accent);font-size:.78rem;font-weight:600}
+.g-cell{height:46px;border-right:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07)}
+.g-cell.off{background-color:rgba(251,113,133,.14);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M13 2 4 14h6l-1 8 9-12h-6z' fill='%23fb7185'/%3E%3Cpath d='M3 3l18 18' stroke='%23281a2a' stroke-width='3.5'/%3E%3Cpath d='M3 3l18 18' stroke='%23fb7185' stroke-width='1.6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:center;background-size:58% auto}
+.g-cell.nowc{box-shadow:inset 0 0 0 1px rgba(255,255,255,.55)}
+.g-foot{grid-column:1/-1;padding:16px 24px;text-align:right;background:var(--card2);border-top:2px solid var(--border);font-weight:600}
+.g-foot b{color:var(--accent);font-size:1.3em;margin-left:10px}
 #toasts{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:99;align-items:center;width:max-content;max-width:92vw}
 .toast{background:#0b3b2e;color:#d1fae5;border:1px solid var(--accent-d);padding:10px 18px;border-radius:24px;box-shadow:0 6px 20px rgba(0,0,0,.4);animation:in .2s}
 .toast.err{background:#4c1d2b;color:#ffe4e6;border-color:var(--danger)}
@@ -201,7 +199,7 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
   <div class="dlg-body"><h3 style="margin-top:0">Визуализация отключений</h3>
     <div id="chartHost"></div></div>
   <div class="dlg-foot">
-    <span class="muted hide-sm" style="margin-right:auto;font-size:.8rem">Красное — нет света. Белая линия — сейчас.</span>
+    <span class="muted hide-sm" style="margin-right:auto;font-size:.8rem">Светлая рамка — текущие полчаса.</span>
     <button id="copyPngBtn" class="flat">Копировать</button>
     <button id="closeModalBtn" class="flat">Закрыть</button>
     <button id="downloadPngBtn">⬇ Скачать PNG</button>
@@ -223,6 +221,20 @@ function hm(min) {
   const h = Math.floor(min / 60), m = min % 60;
   if (!h && !m) return '0ч';
   return (h ? h + 'ч' : '') + (h && m ? ' ' : '') + (m ? m + 'м' : '');
+}
+function hmFull(min) {
+  min = Math.round(Math.abs(min));
+  const h = Math.floor(min / 60), m = min % 60;
+  if (!h && !m) return '0ч';
+  return (h ? h + 'ч' : '') + (h && m ? ' ' : '') + (m ? m + 'мин' : '');
+}
+function slotsOff(iv) {
+  const a = new Array(48).fill(false);
+  for (const [s, e] of iv) for (let i = 0; i < 48; i++) {
+    const o = Math.min(e, i * 30 + 30) - Math.max(s, i * 30);
+    if (o >= 15 || (o > 0 && o === e - s)) a[i] = true;
+  }
+  return a;
 }
 function dur(sec) {
   sec = Math.max(0, Math.round(sec));
@@ -643,16 +655,16 @@ function buildModel(text, nextDay) {
 }
 function renderChart() {
   const m = state.model; if (!m) return;
-  const t = nowKyiv(), isToday = m.date === t.date, nowH = Math.floor(t.sec / 3600);
-  const nowLine = isToday ? `<div class="c-now" style="left:${t.sec / 864}%"></div>` : '';
-  let h = `<div class="chart"><div class="c-row c-head"><div class="c-label"><span class="date">${esc(m.date.slice(0, 5))}</span>${m.time ? `<span class="upd">обновлено в ${esc(m.time)}</span>` : ''}</div>
-    <div class="hours">${Array.from({length: 24}, (_, i) => `<span class="${isToday && i === nowH ? 'now' : ''}">${pad2(i)}</span>`).join('')}</div></div>`;
+  const t = nowKyiv(), isToday = m.date === t.date, nowH = Math.floor(t.sec / 3600), nowSlot = isToday ? Math.floor(t.sec / 1800) : -1;
+  let h = `<div class="chart"><div class="c-grid"><div class="g-corner"><span class="date">${esc(m.date.slice(0, 5))}</span>${m.time ? `<span class="upd">обновлено в ${esc(m.time)}</span>` : ''}</div>`;
+  for (let i = 0; i < 24; i++) h += `<div class="g-hour${isToday && i === nowH ? ' now' : ''}">${pad2(i)}:00</div>`;
   for (const r of m.rows) {
-    const bars = r.iv.map(([s, e]) => `<div class="c-bar" style="left:${s / 14.4}%;width:${(e - s) / 14.4}%;--n:${Math.max(1, Math.round((e - s) / 30))}" title="${fmt(s)}–${fmt(e)}"></div>`).join('');
-    h += `<div class="c-row"><div class="c-label"><span>${esc(r.name)}</span><span class="tot">${hm(r.total)}</span></div><div class="c-track">${bars}${nowLine}</div></div>`;
+    h += `<div class="g-label"><span>${esc(r.name)}</span><small>(${hmFull(r.total)})</small></div>`;
+    const off = slotsOff(r.iv);
+    for (let i = 0; i < 48; i++) h += `<div class="g-cell${off[i] ? ' off' : ''}${i === nowSlot ? ' nowc' : ''}"></div>`;
   }
   const total = m.rows.reduce((a, r) => a + r.total, 0);
-  h += `<div class="c-foot">Всего времени отсутствия света (сумма по группам):<b>${hm(total)}</b></div></div>`;
+  h += `<div class="g-foot">Всего времени отсутствия света (сумма по группам):<b>${hmFull(total)}</b></div></div></div>`;
   chartHost.innerHTML = `<div style="overflow-x:auto">${h}</div>`;
 }
 $('#generateVizBtn').addEventListener('click', () => {
@@ -668,51 +680,50 @@ function drawBolt(g, cx, cy, size) {
   const k = size / 24;
   g.save(); g.translate(cx - size / 2, cy - size / 2); g.scale(k, k);
   g.fillStyle = '#fb7185'; g.fill(BOLT);
-  g.lineCap = 'round'; g.strokeStyle = '#1e293b'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(3, 3); g.lineTo(21, 21); g.stroke();
+  g.lineCap = 'round'; g.strokeStyle = '#281a2a'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(3, 3); g.lineTo(21, 21); g.stroke();
   g.strokeStyle = '#fb7185'; g.lineWidth = 1.6; g.stroke();
   g.restore();
 }
 function drawCanvas(m) {
-  const S = 2, LW = 230, HW = 1440, W = LW + HW, HH = 84, RH = 52, FH = 64, H = HH + m.rows.length * RH + FH;
+  const S = 2, LW = 250, CW = 34, W = LW + 48 * CW, HH = 76, RH = 66, FH = 76, H = HH + m.rows.length * RH + FH;
   const c = document.createElement('canvas'); c.width = W * S; c.height = H * S;
   const g = c.getContext('2d'); g.scale(S, S);
-  const css = getComputedStyle(document.documentElement), v = n => css.getPropertyValue(n).trim();
-  const FONT = '"Segoe UI",Roboto,Arial,sans-serif';
-  const t = nowKyiv(), isToday = m.date === t.date;
-  g.fillStyle = v('--bg'); g.fillRect(0, 0, W, H);
+  const FONT = '"Segoe UI",Roboto,Arial,sans-serif', LINE = 'rgba(255,255,255,0.07)';
+  const t = nowKyiv(), isToday = m.date === t.date, nowSlot = isToday ? Math.floor(t.sec / 1800) : -1;
+  g.fillStyle = '#0f1724'; g.fillRect(0, 0, W, H);
   g.fillStyle = 'rgba(110,231,183,0.06)'; g.fillRect(0, 0, W, HH);
   g.textBaseline = 'middle'; g.textAlign = 'center';
-  g.fillStyle = v('--accent'); g.font = `800 32px ${FONT}`; g.fillText(m.date.slice(0, 5), LW / 2, m.time ? 34 : 42);
-  if (m.time) { g.fillStyle = v('--muted'); g.font = `400 15px ${FONT}`; g.fillText('обновлено в ' + m.time, LW / 2, 64); }
-  for (let i = 0; i < 24; i++) {
-    const x = LW + i * HW / 24;
-    if (isToday && i === Math.floor(t.sec / 3600)) { g.fillStyle = 'rgba(255,255,255,0.18)'; g.fillRect(x, 0, HW / 24, HH); }
-    g.fillStyle = v('--accent'); g.font = `700 18px ${FONT}`; g.fillText(pad2(i), x + HW / 48, HH / 2);
+  g.fillStyle = '#6ee7b7'; g.font = `800 40px ${FONT}`; g.fillText(m.date.slice(0, 5), LW / 2, m.time ? 32 : HH / 2);
+  if (m.time) { g.fillStyle = '#94a3b8'; g.font = `400 15px ${FONT}`; g.fillText('обновлено в ' + m.time, LW / 2, 60); }
+  for (let hh = 0; hh < 24; hh++) {
+    const x = LW + hh * 2 * CW;
+    if (isToday && hh === Math.floor(t.sec / 3600)) { g.fillStyle = 'rgba(255,255,255,0.18)'; g.fillRect(x, 0, 2 * CW, HH); }
+    g.fillStyle = '#6ee7b7'; g.font = `700 20px ${FONT}`; g.fillText(pad2(hh) + ':00', x + CW, HH / 2);
   }
   m.rows.forEach((r, k) => {
-    const y = HH + k * RH;
-    g.fillStyle = 'rgba(110,231,183,0.05)'; g.fillRect(0, y, LW, RH);
-    g.textAlign = 'left'; g.fillStyle = v('--text'); g.font = `600 20px ${FONT}`; g.fillText(r.name, 16, y + RH / 2);
-    g.textAlign = 'right'; g.fillStyle = v('--accent'); g.font = `500 16px ${FONT}`; g.fillText(hm(r.total), LW - 16, y + RH / 2);
-    r.iv.forEach(([s, e]) => {
-      const x = LW + s / 1440 * HW, w = (e - s) / 1440 * HW;
-      g.fillStyle = 'rgba(251,113,133,0.18)'; g.fillRect(x, y + 5, w, RH - 10);
-      g.strokeStyle = 'rgba(251,113,133,0.35)'; g.lineWidth = 1; g.strokeRect(x + 0.5, y + 5.5, w - 1, RH - 11);
-      const n = Math.max(1, Math.round((e - s) / 30)), sw = w / n;
-      for (let i = 0; i < n; i++) drawBolt(g, x + (i + 0.5) * sw, y + RH / 2, 26);
-    });
-    g.strokeStyle = 'rgba(255,255,255,0.1)'; g.lineWidth = 1;
-    g.beginPath(); g.moveTo(0, y + RH); g.lineTo(W, y + RH); g.stroke();
+    const y = HH + k * RH, off = slotsOff(r.iv);
+    g.fillStyle = 'rgba(110,231,183,0.06)'; g.fillRect(0, y, LW, RH);
+    g.textAlign = 'left'; g.fillStyle = '#e6eef6'; g.font = `700 24px ${FONT}`; g.fillText(r.name, 20, y + RH / 2);
+    g.textAlign = 'right'; g.fillStyle = '#6ee7b7'; g.font = `600 17px ${FONT}`; g.fillText(`(${hmFull(r.total)})`, LW - 18, y + RH / 2);
+    for (let i = 0; i < 48; i++) {
+      if (!off[i]) continue;
+      const x = LW + i * CW;
+      g.fillStyle = 'rgba(251,113,133,0.14)'; g.fillRect(x, y, CW, RH);
+      drawBolt(g, x + CW / 2, y + RH / 2, 20);
+    }
   });
-  g.strokeStyle = 'rgba(255,255,255,0.1)'; g.beginPath();
-  for (let i = 0; i <= 24; i++) { const x = LW + i * HW / 24; g.moveTo(x, 0); g.lineTo(x, H - FH); }
+  g.strokeStyle = LINE; g.lineWidth = 1; g.beginPath();
+  for (let i = 0; i <= 48; i++) { const x = LW + i * CW; g.moveTo(x, 0); g.lineTo(x, H - FH); }
+  for (let k = 0; k <= m.rows.length; k++) { const y = HH + k * RH; g.moveTo(0, y); g.lineTo(W, y); }
   g.stroke();
-  g.strokeStyle = v('--accent'); g.lineWidth = 2; g.beginPath(); g.moveTo(LW, 0); g.lineTo(LW, H - FH); g.stroke();
-  if (isToday) { const x = LW + t.sec / 86400 * HW; g.strokeStyle = '#fff'; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H - FH); g.stroke(); }
-  const total = m.rows.reduce((a, r) => a + r.total, 0), val = hm(total);
-  g.textAlign = 'right'; g.fillStyle = v('--accent'); g.font = `800 26px ${FONT}`; g.fillText(val, W - 24, H - FH / 2);
+  g.fillStyle = '#6ee7b7'; g.fillRect(LW - 3, HH, 3, m.rows.length * RH);
+  if (nowSlot >= 0) { g.strokeStyle = 'rgba(255,255,255,0.6)'; g.lineWidth = 1.5; g.strokeRect(LW + nowSlot * CW, HH, CW, m.rows.length * RH); }
+  g.fillStyle = '#162032'; g.fillRect(0, H - FH, W, FH);
+  g.strokeStyle = 'rgba(255,255,255,0.12)'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, H - FH); g.lineTo(W, H - FH); g.stroke();
+  const val = hmFull(m.rows.reduce((a, r) => a + r.total, 0));
+  g.textAlign = 'right'; g.fillStyle = '#6ee7b7'; g.font = `600 32px ${FONT}`; g.fillText(val, W - 28, H - FH / 2);
   const vw = g.measureText(val).width;
-  g.fillStyle = v('--text'); g.font = `600 20px ${FONT}`; g.fillText('Всего времени отсутствия света (сумма по группам):', W - 24 - vw - 12, H - FH / 2);
+  g.fillStyle = '#e6eef6'; g.font = `600 22px ${FONT}`; g.fillText('Всего времени отсутствия света (сумма по группам):', W - 28 - vw - 14, H - FH / 2);
   return c;
 }
 $('#downloadPngBtn').addEventListener('click', () => {
