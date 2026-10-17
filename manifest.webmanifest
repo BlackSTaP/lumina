@@ -1,0 +1,19 @@
+{
+  "name": "Графики света",
+  "short_name": "Свет",
+  "description": "Графики отключений света: сравнение, визуализатор, уведомления",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f1724",
+  "theme_color": "#0f1724",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
