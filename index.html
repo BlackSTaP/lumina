@@ -127,33 +127,33 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 @keyframes in{from{opacity:0;transform:translateY(10px)}}
 
 /* Моя очередь: локальная тема на существующих цветовых переменных */
-.mq-shell{padding:20px;overflow:hidden}
-.mq-toolbar{padding-bottom:16px;margin-bottom:18px;border-bottom:1px solid var(--border)}
-.mq-toolbar select{min-width:125px;font-weight:700}
-.mq-hero{position:relative;isolation:isolate;display:grid;grid-template-columns:92px minmax(0,1fr) minmax(180px,auto);align-items:center;gap:24px;padding:27px;border:1px solid var(--border);border-radius:23px;overflow:hidden;background:radial-gradient(ellipse at 5% 0%,rgba(110,231,183,.13),transparent 54%),linear-gradient(145deg,var(--card2),var(--card));box-shadow:0 16px 42px rgba(0,0,0,.16);animation:mqEnter .5s ease both}
-.mq-hero::before{content:"";position:absolute;inset:-120%;z-index:-1;pointer-events:none;background:linear-gradient(108deg,transparent 47%,rgba(255,255,255,.045) 50%,transparent 53%);animation:mqShimmer 11s linear infinite}
-.mq-hero.mq-off{background:radial-gradient(ellipse at 5% 0%,rgba(251,113,133,.14),transparent 54%),linear-gradient(145deg,var(--card2),var(--card))}
-.mq-hero.mq-transition{background:radial-gradient(ellipse at 5% 0%,rgba(251,191,36,.13),transparent 54%),linear-gradient(145deg,var(--card2),var(--card))}
-.mq-orb{position:relative;width:88px;height:88px;display:grid;place-items:center;flex:none;border-radius:50%;color:var(--accent);background:rgba(110,231,183,.1);box-shadow:inset 0 0 22px rgba(110,231,183,.09),0 0 28px rgba(110,231,183,.1);animation:mqBreathe 4s ease-in-out infinite}
-.mq-orb::before,.mq-orb::after{content:"";position:absolute;inset:-7px;border:1px dashed currentColor;border-radius:50%;opacity:.28;animation:mqOrbit 25s linear infinite}
-.mq-orb::after{inset:9px;border-style:solid;opacity:.1;animation-direction:reverse;animation-duration:15s}
-.mq-orb svg{width:42px;height:42px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 8px currentColor)}
-.mq-off .mq-orb{color:var(--danger);background:rgba(251,113,133,.1);box-shadow:0 0 28px rgba(251,113,133,.11)}
-.mq-transition .mq-orb{color:var(--warn);background:rgba(251,191,36,.1);box-shadow:0 0 28px rgba(251,191,36,.1)}
-.mq-overline{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;font-weight:800}
-.mq-overline svg,.mq-label svg,.mq-note svg{width:17px;height:17px;flex:none}
-.mq-title{font-size:clamp(1.45rem,3vw,2rem);line-height:1.12;letter-spacing:-.035em;margin:7px 0;color:var(--accent);font-weight:850}
-.mq-off .mq-title{color:var(--danger)}.mq-transition .mq-title{color:var(--warn)}
-.mq-lead{color:var(--muted);font-size:.92rem;max-width:440px;margin:0}
-.mq-state-pill{display:inline-flex;align-items:center;gap:7px;padding:5px 10px;border:1px solid var(--border);border-radius:99px;font-size:.76rem;color:var(--text);margin-top:13px;background:rgba(0,0,0,.11)}
-.mq-state-pill i{display:block;height:7px;width:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 9px var(--accent);animation:mqPulse 2s ease-in-out infinite}
-.mq-off .mq-state-pill i{background:var(--danger);box-shadow:0 0 9px var(--danger)}
-.mq-transition .mq-state-pill i{background:var(--warn);box-shadow:0 0 9px var(--warn)}
-.mq-countbox{padding:16px 20px;border:1px solid var(--border);background:rgba(0,0,0,.17);border-radius:16px;min-width:204px}
-.mq-count-label{color:var(--muted);font-size:.82rem}
-.mq-count{font-size:clamp(1.5rem,2.6vw,2.05rem);font-weight:850;font-variant-numeric:tabular-nums;letter-spacing:.03em;line-height:1.4;margin:6px 0 3px}
-.mq-count-foot{font-size:.8rem;color:var(--accent);font-variant-numeric:tabular-nums}
-.mq-off .mq-count-foot{color:var(--danger)}.mq-transition .mq-count-foot{color:var(--warn)}
+#tab-my{--accent:#dbc6ff;--card:#202337;--card2:#191d30;--muted:#b6b6cb;--border:#3b3e56}
+.mq-shell{padding:0;border:0;background:transparent}
+.mq-toolbar{display:flex;align-items:center;gap:14px;margin:22px 0 16px}
+.mq-toolbar .mq-intro{margin-right:auto}
+.mq-toolbar select{background:#272b41;color:#faf4ff;border-radius:12px;min-height:42px}
+.mq-prefs{position:relative;margin:0;padding:0;border:0;align-self:flex-end}.mq-prefs summary{cursor:pointer;color:#ded3f0;padding:10px 13px;border:1px solid var(--border);border-radius:12px;list-style:none}
+.mq-prefs summary::-webkit-details-marker{display:none}.mq-prefs summary svg{width:17px;height:17px;vertical-align:-3px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:1.6}
+.mq-prefs-panel{position:absolute;right:0;z-index:5;min-width:235px;padding:16px;display:grid;gap:13px;background:#262a40;border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 30px #0b0e2280}
+.mq-prefs-panel .field{flex-direction:row;align-items:center;gap:8px}.mq-prefs-panel #leadSel{min-width:64px}
+.mq-hero{--sky:#433858;--light:#ffe0a5;position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;min-height:285px;border:1px solid #665a78;border-radius:24px;background:linear-gradient(110deg,#201e34 9%,#302b49 45%,var(--sky));color:#fcf7f2}
+.mq-hero.mq-off{--sky:#2b344d;--light:#d1ceef}.mq-hero.mq-transition{--sky:#59405a}.mq-hero.mq-quiet{--sky:#3b3552}
+.mq-city{position:absolute;z-index:-1;right:0;bottom:0;width:62%;height:100%;pointer-events:none;mask-image:linear-gradient(to right,transparent,#000 18%)}
+.city-lamps{opacity:.92}.mq-off .city-lamps,.mq-off .city-reflections{opacity:.10}.mq-quiet .city-lamps{opacity:.45}
+.city-reflections{animation:mqRipple 6s ease-in-out infinite alternate;transform-origin:65% 82%}
+.mq-transition .city-lamps{animation:mqLamplight 4s ease-in-out infinite alternate}
+@keyframes mqRipple{to{transform:scaleX(1.025);opacity:.62}}
+@keyframes mqLamplight{from{opacity:.35}to{opacity:.9}}
+.mq-copy{padding:clamp(22px,3.5vw,42px);width:55%;max-width:610px}
+.mq-overline{display:flex;gap:9px;align-items:center;font:650 .71rem/1.5 ui-monospace,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:#ded0e7}
+.mq-overline:before{content:"";width:20px;height:2px;background:var(--light)}
+.mq-title{margin:12px 0 9px;max-width:18ch;font-size:clamp(2rem,4.1vw,3.65rem);line-height:1.01;letter-spacing:-.055em;font-weight:650;text-wrap:balance}
+.mq-lead{margin:0;color:#ddd4e4;font-size:.94rem;max-width:34ch}
+.mq-countbox{display:flex;align-items:baseline;flex-wrap:wrap;gap:3px 10px;margin-top:20px;padding-left:12px;border-left:2px solid var(--light)}
+.mq-shell .mq-title{font-size:clamp(2rem,4.1vw,3.65rem);margin:12px 0 9px}.mq-count-label{font-size:.82rem;color:#e5dbed}.mq-count{color:var(--light);font-size:1.3rem;font-variant-numeric:tabular-nums;font-weight:700}.mq-count-foot{flex-basis:100%;color:#d5c9e0;font-size:.78rem}
+.mq-dashboard{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(240px,1fr);gap:14px;margin:14px 0}
+.mq-panel{min-width:0;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:clamp(16px,2.3vw,25px)}
+.mq-panel h3{font-size:1.25rem;margin:5px 0 17px;letter-spacing:-.025em}
 .mq-section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:24px 0 12px}
 .mq-section-title{display:flex;align-items:center;gap:9px;font-weight:800;font-size:1.05rem}
 .mq-section-title svg{width:20px;height:20px;color:var(--accent)}
@@ -181,37 +181,28 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 .mq-swatch{display:inline-block;width:10px;height:10px;border-radius:3px}
 .mq-swatch.mq-lit{background:rgba(110,231,183,.7)}.mq-swatch.mq-changing{background:rgba(251,191,36,.65)}.mq-swatch.mq-dark{background:var(--danger)}
 .mq-schedule{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
-.mq-slot{padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:rgba(0,0,0,.1);font-size:.84rem;animation:mqEnter .4s ease both}
+.mq-slot{margin:0;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:rgba(0,0,0,.1);font-size:.84rem;animation:mqEnter .4s ease both}
 .mq-slot-head{display:flex;justify-content:space-between;gap:8px;font-weight:750;margin-bottom:7px}
 .mq-slot-forecast svg{display:inline-block;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;vertical-align:-2px;margin-right:4px}
 .mq-slot-forecast{font-variant-numeric:tabular-nums;color:var(--accent);line-height:1.8}
 .mq-slot-forecast b{color:var(--danger)}.mq-slot-small{color:var(--muted);font-size:.78rem;margin-top:4px}
 .mq-slot.mq-slot-active{border-color:rgba(251,191,36,.55);background:rgba(251,191,36,.045)}
 .mq-note{display:flex;align-items:flex-start;gap:9px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.02);padding:11px 13px;margin-top:16px;color:var(--muted);font-size:.82rem}
-.mq-note svg{color:var(--warn);margin-top:1px}
+.mq-note svg{width:17px;height:17px;flex:none;color:var(--warn);margin-top:1px}
 .mq-original{border-top:1px solid var(--border);margin-top:20px;padding-top:12px}
 .mq-original summary{font-size:.85rem;color:var(--muted);font-weight:700;cursor:pointer}
 .mq-original[open] summary{margin-bottom:14px}
 .mq-original .stats{margin:12px 0}
 .mq-empty{border:1px dashed var(--border);border-radius:18px;display:flex;align-items:center;justify-content:center;gap:16px;min-height:130px;padding:24px;text-align:left;background:var(--card2);color:var(--muted)}
 .mq-empty svg{width:40px;height:40px;flex:none;stroke:var(--accent);fill:none;stroke-width:1.5}
-@keyframes mqBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.055)}}
-@keyframes mqOrbit{to{transform:rotate(360deg)}}
-@keyframes mqPulse{0%,100%{opacity:.65;transform:scale(1)}50%{opacity:1;transform:scale(1.35)}}
-@keyframes mqShimmer{0%{transform:translateX(-38%)}100%{transform:translateX(38%)}}
-@keyframes mqEnter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@media(max-width:760px){.mq-hero{grid-template-columns:70px minmax(0,1fr);gap:14px;padding:22px}.mq-orb{width:66px;height:66px}.mq-orb svg{width:32px;height:32px}.mq-countbox{grid-column:1/-1;min-width:0}.mq-grid{grid-template-columns:1fr}.mq-shell{padding:14px}}
-@media(max-width:420px){.mq-hero{grid-template-columns:1fr;text-align:center;justify-items:center}.mq-overline{justify-content:center}.mq-countbox{width:100%}.mq-state-pill{justify-content:center}.mq-legend{gap:9px}.mq-toolbar{gap:14px}}
-@media(prefers-reduced-motion:reduce){.mq-hero,.mq-hero::before,.mq-orb,.mq-orb::before,.mq-orb::after,.mq-state-pill i,.mq-tile,.mq-slot{animation:none!important}.mq-now,.mq-tile{transition:none!important}}
-
+@keyframes mqEnter{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 .mq-kicker{font:700 .67rem/1.5 ui-monospace,Consolas,monospace;letter-spacing:.15em;color:var(--accent)}
 .mq-heading{margin:.1em 0;font-size:clamp(1.4rem,3vw,2rem);line-height:1.2;letter-spacing:-.045em}
-.mq-toolbar{justify-content:flex-start}.mq-toolbar>.row-between{margin-left:auto}.mq-toolbar #leadSel{min-width:4em}
-.mq-atlas{padding:clamp(14px,2.5vw,26px);background:linear-gradient(155deg,#1b2d3e,var(--card2) 65%)}
+.mq-atlas{padding:clamp(16px,2.5vw,26px);border-radius:20px;background:var(--card)}
 .mq-atlas .seg{border-radius:12px;padding:3px;gap:2px;background:#111d2c}.mq-atlas .seg button{border-radius:8px;min-height:36px}
 .mq-viewbar{padding:12px 0;margin:8px 0 4px;border-top:1px solid var(--border)}
 .mq-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,246px),1fr));align-items:start;gap:12px}
-.mq-qcard{--signal:var(--accent);min-width:0;border:1px solid var(--border);border-radius:16px;background:linear-gradient(135deg,#1d3040,#172333 80%);transition:border-color .2s,box-shadow .2s}
+.mq-qcard{margin:0;padding:0;--signal:var(--accent);min-width:0;border:1px solid var(--border);border-radius:16px;background:linear-gradient(135deg,#1d3040,#172333 80%);transition:border-color .2s,box-shadow .2s}
 .mq-qcard[data-tone="off"]{--signal:var(--danger)}.mq-qcard[data-tone="plan"]{--signal:#a5cafa}
 .mq-qcard.mine{border-color:var(--accent)}.mq-qcard[open]{box-shadow:0 9px 22px #09131c50}
 .mq-qcard summary{cursor:pointer;list-style:none;padding:16px}.mq-qcard summary::-webkit-details-marker{display:none}
@@ -221,7 +212,7 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 .mq-slot .mq-breakdown{border-top:1px solid var(--border);margin-top:10px;padding-top:8px;animation:mqEnter .23s ease-out}
 .mq-qtop,.mq-qmeta,.mq-qstatus,.mq-pick{display:flex;align-items:center;gap:8px}
 .mq-qtop,.mq-qmeta{justify-content:space-between}.mq-qtop strong{font-size:1.2rem;letter-spacing:-.025em}
-.mq-qcard svg,.mq-hero svg,.mq-section-title svg,.mq-note svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.mq-qcard svg,.mq-section-title svg,.mq-note svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .mq-qcard svg{width:17px;height:17px;flex:none}.mq-chevron{margin-left:auto;color:var(--muted);transition:transform .2s}.mq-qcard[open] .mq-chevron{transform:rotate(180deg)}
 .mq-qstatus{color:var(--signal);font-size:.82rem;margin:10px 0 14px}.mq-qmeta{font-size:.74rem;color:var(--muted);margin-top:6px}
 .mq-mini{height:8px;border-radius:4px;overflow:hidden;position:relative;background:#3a927f}.mq-mini i{position:absolute;height:100%;background:repeating-linear-gradient(120deg,#dc8997 0 3px,#ae6475 3px 5px)}
@@ -229,10 +220,16 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 .mq-pick{font-size:.82rem;min-height:40px}.mq-pin{color:var(--accent)}.mq-qcard.mine .mq-pick{color:var(--accent);background:#263e42}
 .mq-atlas [hidden]{display:none}.mq-cards>.mq-empty{grid-column:1/-1}
 #tab-my :is(summary,button):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.mq-orb .mq-wire{stroke-dasharray:60;animation:mqCurrent 3s ease-in-out infinite}.mq-off .mq-wire{animation:none;opacity:.35}
-@keyframes mqCurrent{0%,100%{stroke-dashoffset:0;opacity:1}50%{stroke-dashoffset:24;opacity:.5}}
+.mq-dashboard .mq-section-head{margin:18px 0 9px}.mq-dashboard .mq-timeline{padding:0;background:transparent;border:0}
+.mq-dashboard .mq-grid{grid-template-columns:minmax(0,1fr);gap:0}.mq-dashboard .mq-tile{padding:14px 0;border:0;border-top:1px solid var(--border);border-radius:0;background:transparent;box-shadow:none;animation:none;transform:none}
+.mq-dashboard .mq-tile-time{font-size:1.35rem}.mq-dashboard .mq-return .mq-tile-time,.mq-dashboard .mq-return .mq-tile-icon{color:#94e0ce}
+.mq-dashboard .mq-slot{background:#26283c}.mq-dashboard .mq-track{height:25px;background:#468d83}.mq-dashboard .mq-legend{gap:6px 13px}
+.mq-dashboard .mq-schedule{grid-template-columns:repeat(auto-fit,minmax(min(100%,185px),1fr))}
+.mq-qcard{background:#24273b}.mq-qtop strong{font-weight:650}.mq-qcard[data-tone="on"]{--signal:#9ae2c9}.mq-qstatus{color:var(--signal)}
+.mq-atlas .seg{background:#181b2c}.mq-kicker{color:#cab2f2}.mq-atlas .mq-heading,.mq-toolbar .mq-heading{font-weight:650}
 @media(hover:hover){.mq-qcard:hover{border-color:var(--signal)}}
-@media(max-width:650px){.mq-toolbar>.row-between{margin-left:0;width:100%}.mq-toolbar .field{flex-wrap:wrap}.mq-toolbar{justify-content:space-between}.mq-atlas .seg button{min-height:42px}.mq-hero{gap:18px}}
+@media(max-width:760px){.mq-dashboard{grid-template-columns:minmax(0,1fr)}.mq-toolbar{flex-wrap:wrap}.mq-title{font-size:clamp(2rem,6vw,3rem)}}
+@media(max-width:540px){.mq-toolbar{gap:9px}.mq-toolbar .mq-intro{flex-basis:100%}.mq-prefs{margin-left:auto}.mq-city{height:170px;width:100%;mask-image:linear-gradient(to bottom,transparent,#000 24%)}.mq-hero{align-items:flex-start;min-height:0;border-radius:20px}.mq-copy{width:100%;max-width:none;padding:22px 20px 154px}.mq-title{max-width:17ch}.mq-countbox{margin-top:15px}.mq-atlas .seg button{min-height:42px}.mq-panel .mq-legend{font-size:.73rem}}
 @media(prefers-reduced-motion:reduce){#tab-my *,#tab-my *::before,#tab-my *::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -259,13 +256,12 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
   <section id="tab-my" class="pane active">
     <div class="card mq-shell">
       <div class="row-between mq-toolbar">
-        <div><div class="mq-kicker">LUMINA / ЭНЕРГОМОНИТОР</div><h2 class="mq-heading">Моя очередь</h2></div>
-        <label class="field">Номер очереди<select id="mySel"></select></label>
-        <div class="row-between" style="gap:16px">
-          <label class="chk"><input type="checkbox" id="notifyOn"><span>Уведомления</span></label>
-          <label class="field" style="flex-direction:row;align-items:center;gap:6px">за
-            <select id="leadSel"><option value="0">—</option><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="30">30</option><option value="60">60</option></select> мин до прогнозного окна</label>
-        </div>
+        <div class="mq-intro"><div class="mq-kicker">LUMINA</div><h2 class="mq-heading">Моя очередь</h2></div>
+        <label class="field"><span class="mq-muted">Очередь</span><select id="mySel"></select></label>
+        <details class="mq-prefs"><summary><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15h14l-2-3V9a5 5 0 0 0-10 0v3l-2 3Zm5 3a2 2 0 0 0 4 0"/></svg>Напоминания</summary>
+          <div class="mq-prefs-panel"><label class="chk"><input type="checkbox" id="notifyOn"><span>Уведомлять о смене</span></label>
+          <label class="field">За <select id="leadSel"><option value="0">—</option><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="30">30</option><option value="60">60</option></select> мин до окна</label></div>
+        </details>
       </div>
       <div id="liveCard"></div>
     </div>
@@ -629,7 +625,6 @@ function tlHtml(iv, title, nowSec) {
 }
 // Custom SVGs use only existing theme colors.
 const MQ_ICONS = {
-  grid:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="m16 4-7 24m7-24 7 24M12 12h8M10 19h12m-9-7 8 7-11 8m9-15-8 7 11 8"/><path class="mq-wire" d="M2 10q6 4 11-1l3-5 3 5q5 5 11 1M2 17q4 3 9 0m10 0q5 3 9 0"/></svg>',
   pin:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 3 9 0-1 6 3 4v2H6v-2l3-4-1-6Zm4 12v6"/></svg>',
   chevron:'<svg class="mq-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
   bulb:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6m-5 3h4m-5-5c0-1.7-.8-2.1-1.8-3.5a6 6 0 1 1 9.6 0C15.8 13.9 15 14.3 15 16H9Z"/></svg>',
@@ -640,6 +635,35 @@ const MQ_ICONS = {
   spark:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2Zm7 13 .7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7L19 15Z"/></svg>'
 };
 let myQueueRenderKey = '';
+// One decorative print of the riverfront. The hero's forecast class controls its lights.
+const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" viewBox="0 0 680 320" preserveAspectRatio="xMaxYMax meet" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="city-haze"><stop stop-color="#c590ca" stop-opacity=".67"/><stop offset="1" stop-color="#624b92" stop-opacity="0"/></radialGradient>
+    <linearGradient id="city-water" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#413756"/><stop offset="1" stop-color="#171d36"/></linearGradient>
+    <pattern id="city-windows" width="13" height="14" patternUnits="userSpaceOnUse"><path d="M3 3h5v6H3z" fill="#ffd78e"/><path d="M3 3h1v6H3z" fill="#cf9779"/></pattern>
+  </defs>
+  <ellipse cx="460" cy="143" rx="260" ry="169" fill="url(#city-haze)"/>
+  <g fill="#eee2fb"><circle cx="118" cy="88" r="1.4"/><circle cx="229" cy="61" r="1"/><circle cx="336" cy="88" r="1.5"/><circle cx="416" cy="38" r="1"/><circle cx="589" cy="77" r="1.8"/><circle cx="625" cy="30" r="1"/><path d="m377 47 1.1 3.8 3.9 1-3.9 1.1-1.1 4-1-4-4-1.1 4-1z"/></g>
+  <g fill="#ffe6bb"><circle cx="507" cy="73" r="51" opacity=".045"/><circle cx="507" cy="73" r="39" opacity=".075"/><circle cx="507" cy="73" r="25"/></g>
+  <path d="M0 207q64-32 119-19t101-6q55-36 125-14t117-13q60-32 119-14t99-17v111H0z" fill="#65577c"/>
+  <path d="M0 222v-15h43v-19h26v11h30v-22h29v31h39v-54h12v-9h6v9h14v44h21v-16h42v21h23v-39h24v-9h6v9h13v43h32v-26h30v14h42v-37h26v42h35v-18h23v18h28v-30h41v19h29v-38h25v18h41v60H0z" fill="#4a476c"/>
+  <g fill="#333651">
+    <path d="M282 234v-47l9-5h51v52z"/><path d="M347 234v-75l47-5 11 9v71z"/>
+    <path d="M418 234v-91l34-8 14 9v90z"/><path d="M473 234v-62h44l11 8v54z"/>
+    <path d="M540 234v-106h8v-7h23v7h8v106z"/><path d="M589 234v-68h58v68z"/>
+  </g>
+  <g class="city-lamps" fill="url(#city-windows)"><path d="M291 194h42v31h-42zM353 166h38v58h-38zM425 149h24v73h-24zM480 180h32v44h-32zM548 135h24v85h-24zM595 172h43v47h-43z"/></g>
+  <g fill="#292d49"><path d="M0 229q87-22 172-9t146-6q62-5 109 8t120-7q76-21 133-10v37H0z"/></g>
+  <path d="M0 236q160-10 327-4t353-5v93H0z" fill="url(#city-water)"/>
+  <g class="city-reflections" fill="none" stroke="#ffd38d" stroke-linecap="round"><path opacity=".65" d="M350 241h32m39 4h30m89-9h21m33 4h29m-108 9h19"/><path opacity=".4" d="M344 248h20m61 6h17m94-9h29m-6 12h9m30-9h22"/><path opacity=".24" d="M365 257h15m45 7h20m89 2h17m64-7h16m-45 16h26"/></g>
+  <g fill="none" stroke="#83809d" opacity=".45"><path d="M100 257h91m-68 7h29m90-20h49m-84 35h112m24-4h17m69 13h76m70 8h59m-251 12h124"/></g>
+  <g stroke="#171c35" stroke-linejoin="round"><path d="m15 245 427-30" stroke-width="7"/><path d="m15 240 427-30" stroke="#b09cba" stroke-width="1.6"/>
+    <path d="m152 248 21-115 9-1 14 113m-27-60 18-2m-20 17 22-2" fill="none" stroke-width="5"/>
+    <path d="m40 239 134-105m-90 102 90-99m-52 97 53-94m7-6 153 84m-108 10-45-90m94 86-93-87" fill="none" stroke="#b4a7c5" stroke-width="1.4"/>
+    <path d="m155 265 3-32 9-1-3 33zm156-12 2-34h6l-1 35z" fill="#23273e"/></g>
+  <g class="city-lamps" fill="#ffdb8b"><circle cx="96" cy="232" r="2"/><circle cx="139" cy="229" r="2"/><circle cx="218" cy="223" r="2"/><circle cx="261" cy="220" r="2"/><circle cx="304" cy="217" r="2"/></g>
+  <path d="M0 286q67-18 128-7t106 16q90 19 149 25H0zm680-21q-45 11-83 33t-74 22h157z" fill="#171a31"/>
+</svg>`;
 let liveContext = '';
 function mqTime(min) {
   const day = Math.floor(min / 1440);
@@ -656,10 +680,10 @@ function mqForecastForLive(L) {
   return myQueueForecast([...today, ...tomorrow], L.t.sec / 60);
 }
 function mqStatus(phase) {
-  if (phase === 'off') return {cls:'mq-off',title:'Вероятно, света нет',description:'Ориентировочное состояние по времени отключений'};
-  if (phase === 'transition-off') return {cls:'mq-transition',title:'Возможное отключение',description:'Сейчас идет расчетное окно отключения'};
-  if (phase === 'transition-on') return {cls:'mq-transition',title:'Ожидается включение',description:'Сейчас идет расчетное окно включения'};
-  return {cls:'mq-on',title:'Вероятно, свет есть',description:'Ориентировочное состояние по времени отключений'};
+  if (phase === 'off') return {cls:'mq-off',title:'Вероятно, света нет'};
+  if (phase === 'transition-off') return {cls:'mq-transition',title:'Возможное отключение'};
+  if (phase === 'transition-on') return {cls:'mq-transition',title:'Ожидается включение'};
+  return {cls:'mq-on',title:'Вероятно, свет есть'};
 }
 function mqBar(iv, day, nowSec) {
   const parts = [];
@@ -730,9 +754,10 @@ function renderLive() {
     const key = mySel.value+'|'+t.date+'|'+(L.none?'missing':'empty');
     if (myQueueRenderKey !== key) {
       myQueueRenderKey = key;
-      liveCard.innerHTML = '<div class="mq-empty">'+MQ_ICONS.bulb+'<span>'+
-        (!mySel.value ? 'Выберите свою очередь, чтобы увидеть прогноз и график.' :
-          'График на '+esc(t.date)+' для очереди '+esc(mySel.value)+' пока не опубликован.')+'</span></div>';
+      liveCard.innerHTML = '<div class="mq-hero mq-quiet">'+riverfront+'<div class="mq-copy"><div class="mq-overline">Персональный график</div>'+
+        '<h3 class="mq-title">'+(!mySel.value ? 'Когда будет свет?' : 'Ждём расписание')+'</h3><p class="mq-lead">'+
+        (!mySel.value ? 'Выберите свою очередь в списке выше или на карточке ниже.' :
+          'Для очереди '+esc(mySel.value)+' на '+esc(t.date)+' график пока не опубликован.')+'</p></div></div>';
     }
     return L;
   }
@@ -751,25 +776,18 @@ function renderLive() {
     const officialStats = stats(L.ivT);
     liveCard.innerHTML =
       '<div class="mq-hero '+status.cls+'" role="status" aria-live="off">'+
-        '<div class="mq-orb">'+MQ_ICONS.grid+'</div>'+
-        '<div><div class="mq-overline">'+MQ_ICONS.spark+' ОЧЕРЕДЬ '+esc(L.q)+' · ПРОГНОЗ</div>'+
-          '<div class="mq-title">'+status.title+'</div><p class="mq-lead">'+status.description+'</p>'+
-          '<span class="mq-state-pill"><i></i> По киевскому времени</span></div>'+
-        '<div class="mq-countbox"><div class="mq-count-label">'+eventLabel+'</div>'+
-          '<div class="mq-count" data-mq-count>'+count[0]+'</div>'+
-          '<div class="mq-count-foot" data-mq-count-foot>'+count[1]+'</div></div>'+
-      '</div>'+
-      '<div class="mq-section-head"><div class="mq-section-title">'+MQ_ICONS.clock+' Ближайшие события</div>'+
-      '<div class="mq-muted">Окна ориентировочные, не фактические</div></div>'+
-      '<div class="mq-grid">'+mqEventCard(model.nextOff,'off')+mqEventCard(model.nextOn,'on')+'</div>'+
-      '<div class="mq-section-head"><div class="mq-section-title">'+MQ_ICONS.calendar+' Сегодня · '+esc(t.date)+'</div>'+
-      '<div class="mq-muted">Таймлайн с учетом погрешности'+up+'</div></div>'+
-      mqBar(model.intervals,0,t.sec)+
-      '<div class="mq-section-head"><div class="mq-section-title">'+MQ_ICONS.bolt+' Интервалы дня</div></div>'+
-      mqScheduleSlots(model,0)+
-      (L.ivN ? '<div class="mq-section-head"><div class="mq-section-title">'+MQ_ICONS.calendar+' Завтра · '+esc(addDays(t.date,1))+'</div></div>'+
-          mqBar(model.intervals,1,null)+mqScheduleSlots(model,1) : '')+
-      '<div class="mq-note">'+MQ_ICONS.info+' <span>Расчет на основе наблюдаемого смещения: отключение обычно позже на 14–18 минут, включение раньше на 20–30 минут. Это не датчик электроэнергии и не гарантия. Официальный график, сравнение и визуализатор не изменены.</span></div>'+
+        riverfront+'<div class="mq-copy"><div class="mq-overline">Очередь '+esc(L.q)+' · Прогноз</div>'+
+          '<h3 class="mq-title">'+status.title+'</h3><p class="mq-lead">'+esc(t.date)+' · Киевское время</p>'+
+          '<div class="mq-countbox"><span class="mq-count-label">'+eventLabel+'</span>'+
+          '<b class="mq-count" data-mq-count>'+count[0]+'</b>'+
+          '<span class="mq-count-foot" data-mq-count-foot>'+count[1]+'</span></div></div></div>'+
+      '<div class="mq-dashboard"><section class="mq-panel"><div class="mq-kicker">РАСПИСАНИЕ · '+esc(t.date)+'</div><h3>Сегодня</h3>'+
+        mqBar(model.intervals,0,t.sec)+
+        '<div class="mq-section-head"><b>Интервалы отключений</b></div>'+mqScheduleSlots(model,0)+
+        (L.ivN ? '<div class="mq-section-head"><b>Завтра · '+esc(addDays(t.date,1))+'</b></div>'+mqBar(model.intervals,1,null)+mqScheduleSlots(model,1) : '')+'</section>'+
+      '<section class="mq-panel"><div class="mq-kicker">ПРОГНОЗ'+up+'</div><h3>Ближайшие события</h3>'+
+        '<div class="mq-grid">'+mqEventCard(model.nextOff,'off')+mqEventCard(model.nextOn,'on')+'</div>'+
+        '<div class="mq-note">'+MQ_ICONS.info+' <span>Окна рассчитаны с учетом погрешности. Фактическое время переключения может отличаться.</span></div></section></div>'+
       '<details class="mq-original"><summary>Посмотреть исходный график без поправок</summary>'+
         '<div class="stats"><span class="stat">Без света сегодня: <b>'+hm(officialStats.off)+'</b></span>'+
         '<span class="stat">Со светом: <b>'+hm(officialStats.on)+'</b></span>'+
