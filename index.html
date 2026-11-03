@@ -143,16 +143,33 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 .city-circuit{opacity:clamp(0,calc(var(--power)*2.25 - var(--offset,0)),1)}
 .city-haze{opacity:calc(.20 + var(--power)*.8)}
 .city-stars{opacity:calc(1 - var(--power)*.65)}
-.city-cloud{animation:mqCloud 54s ease-in-out infinite alternate}
+.city-cloud{animation:mqCloud 13s ease-in-out infinite alternate}
 .city-ripples{transform-origin:65% 82%;animation:mqRipple 5s ease-in-out infinite alternate}
-.city-tram{animation:mqTram 22s linear infinite}
+.city-tram{animation:mqTram 9s -3s linear infinite}
+.city-car{animation:mqTram 6.5s -2s linear reverse infinite}
+.city-ferry{animation:mqCrossing 17s -8s linear infinite}
+.city-hull{transform-origin:32px 0;animation:mqSwell 1.8s ease-in-out infinite alternate}
+.city-wake{stroke-dasharray:7 4 3 4;animation:mqFoam .9s linear infinite}
+.city-current{stroke-dasharray:16 46 4 30;animation:mqFlow 4s linear infinite}
+.city-wave-far{animation-direction:reverse;animation-duration:6s}
+.city-moonpath{opacity:calc(.8 - var(--power)*.5)}
+.city-meteor{opacity:0;animation:mqMeteor 8s -2s linear infinite}
+.city-night-sky{opacity:calc(1 - var(--power))}
+.city-wire{display:none;fill:none;stroke:#ffdfa1;stroke-width:2.4;stroke-linecap:round;stroke-dasharray:8 170;animation:mqGridFlow 2s linear infinite}
+.mq-transition .city-wire{display:inline}.mq-hero[data-change="off"] .city-wire{animation-direction:reverse}
+@keyframes mqCrossing{from{transform:translate(710px,258px)}to{transform:translate(-90px,281px)}}
+@keyframes mqSwell{from{transform:translateY(-1.5px) rotate(-1.6deg)}to{transform:translateY(1.5px) rotate(1.6deg)}}
+@keyframes mqFoam{to{stroke-dashoffset:-18}}
+@keyframes mqFlow{to{stroke-dashoffset:-96}}
+@keyframes mqGridFlow{to{stroke-dashoffset:-178}}
+@keyframes mqMeteor{0%,13%,100%{opacity:0}1%{opacity:0;transform:translate(0,0)}3%{opacity:.9}12%{opacity:0;transform:translate(-130px,56px)}}
 .mq-quiet .city-tram{display:none}
 .city-beacon{animation:mqBeacon 6s ease-in-out infinite}
 @keyframes mqRipple{to{transform:scaleX(1.04) translateY(1px);opacity:.55}}
 @keyframes mqCloud{to{transform:translateX(-36px)}}
 @keyframes mqTram{from{transform:translate(0,0)}to{transform:translate(404px,-28.3px)}}
 @keyframes mqBeacon{0%,60%,100%{opacity:.22}80%{opacity:.9}}
-@media(prefers-reduced-motion:reduce){.city-tram{transform:translate(190px,-13.3px)}}
+@media(prefers-reduced-motion:reduce){.city-tram{transform:translate(190px,-13.3px)}.city-ferry{transform:translate(433px,266px)}}
 .mq-copy{padding:clamp(22px,3.5vw,42px);width:55%;max-width:610px}
 .mq-overline{display:flex;gap:9px;align-items:center;font:650 .71rem/1.5 ui-monospace,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:#ded0e7}
 .mq-overline:before{content:"";width:20px;height:2px;background:var(--light)}
@@ -238,6 +255,7 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 .mq-atlas .seg{background:#181b2c}.mq-kicker{color:#cab2f2}.mq-atlas .mq-heading,.mq-toolbar .mq-heading{font-weight:650}
 @media(hover:hover){.mq-qcard:hover{border-color:var(--signal)}}
 @media(max-width:760px){.mq-dashboard{grid-template-columns:minmax(0,1fr)}.mq-toolbar{flex-wrap:wrap}.mq-title{font-size:clamp(2rem,6vw,3rem)}}
+@media(min-width:541px) and (max-width:760px){.mq-hero{align-items:flex-start;min-height:300px}.mq-city{width:84%;height:84%;mask-image:linear-gradient(to right,transparent,#000 24%)}.mq-copy{width:65%;padding:23px 22px 124px}}
 @media(max-width:540px){.mq-toolbar{gap:9px}.mq-toolbar .mq-intro{flex-basis:100%}.mq-prefs{margin-left:auto}.mq-city{height:170px;width:100%;mask-image:linear-gradient(to bottom,transparent,#000 24%)}.mq-hero{align-items:flex-start;min-height:0;border-radius:20px}.mq-copy{width:100%;max-width:none;padding:22px 20px 154px}.mq-title{max-width:17ch}.mq-countbox{margin-top:15px}.mq-atlas .seg button{min-height:42px}.mq-panel .mq-legend{font-size:.73rem}}
 @media(prefers-reduced-motion:reduce){#tab-my *,#tab-my *::before,#tab-my *::after{animation:none!important;transition:none!important}}
 </style>
@@ -662,6 +680,7 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
   <g class="city-stars" fill="#e9dcff"><circle cx="282" cy="65" r="1.4"/><circle cx="360" cy="34" r="1.1"/><circle cx="394" cy="70" r="1.8"/><circle cx="429" cy="62" r="1"/><circle cx="551" cy="36" r="1.2"/><circle cx="609" cy="109" r="1.5"/><circle cx="650" cy="62" r="1"/></g>
   <g fill="#eee2fb"><circle cx="118" cy="88" r="1.4"/><circle cx="229" cy="61" r="1"/><circle cx="336" cy="88" r="1.5"/><circle cx="416" cy="38" r="1"/><circle cx="589" cy="77" r="1.8"/><circle cx="625" cy="30" r="1"/><path d="m377 47 1.1 3.8 3.9 1-3.9 1.1-1.1 4-1-4-4-1.1 4-1z"/></g>
   <g fill="#ffe6bb"><circle cx="507" cy="73" r="51" opacity=".045"/><circle cx="507" cy="73" r="39" opacity=".075"/><circle cx="507" cy="73" r="25"/></g>
+  <g class="city-night-sky"><g class="city-meteor"><path d="m454 46-39 16" stroke="#c7c2ed" stroke-width="1.3"/><circle cx="415" cy="62" r="1.9" fill="#f6efff"/></g></g>
   <path class="city-cloud" d="M475 89q18-8 34-4 17-11 37-5 12-5 29 2l21 5q-42 4-79 3z" fill="#a998bc" opacity=".24"/>
   <path d="M0 207q64-32 119-19t101-6q55-36 125-14t117-13q60-32 119-14t99-17v111H0z" fill="#65577c"/>
   <path d="M0 222v-15h43v-19h26v11h30v-22h29v31h39v-54h12v-9h6v9h14v44h21v-16h42v21h23v-39h24v-9h6v9h13v43h32v-26h30v14h42v-37h26v42h35v-18h23v18h28v-30h41v19h29v-38h25v18h41v60H0z" fill="#4a476c"/>
@@ -681,6 +700,11 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
   <circle class="city-beacon" cx="560" cy="120" r="1.3" fill="#ffd1b2"/>
   <g fill="#292d49"><path d="M0 229q87-22 172-9t146-6q62-5 109 8t120-7q76-21 133-10v37H0z"/></g>
   <path d="M0 236q160-10 327-4t353-5v93H0z" fill="url(#city-water)"/>
+  <g fill="none" stroke-linecap="round">
+    <path class="city-current city-wave-far" d="M118 249q47-5 89-2t107 0 113-3 130-2 120-3" stroke="#a19cbd" stroke-width="1.3" opacity=".65"/>
+    <path class="city-current" d="M40 284q75-8 148-3t143-4 135-5 147-4 77-2" stroke="#ada5c6" stroke-width="1.6" opacity=".65"/>
+    <g class="city-moonpath" stroke="#e7d7c9"><path class="city-current" d="M469 243h71m-81 6h95m-115 6h130m-140 9h149m-164 11h175" stroke-width="2"/></g>
+  </g>
   <g class="city-ripples" fill="none" stroke="#ffd38d" stroke-linecap="round">
     <g class="city-circuit" style="--offset:.26"><path opacity=".65" d="M350 241h32m39 4h30"/><path opacity=".32" d="M344 248h20m61 6h17m-60 3h15"/></g>
     <g class="city-circuit" style="--offset:1"><path opacity=".65" d="M540 236h21m33 4h29m-108 9h19"/><path opacity=".32" d="M536 245h29m-6 12h9m30-9h22m-34 18h16"/></g>
@@ -691,9 +715,25 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
     <path d="m40 239 134-105m-90 102 90-99m-52 97 53-94m7-6 153 84m-108 10-45-90m94 86-93-87" fill="none" stroke="#b4a7c5" stroke-width="1.4"/>
     <path d="m155 265 3-32 9-1-3 33zm156-12 2-34h6l-1 35z" fill="#23273e"/></g>
   <g clip-path="url(#city-road)" class="city-circuit" style="--offset:.92"><g class="city-tram"><g transform="translate(5 240) rotate(-4)">
-    <path d="M0 0v-5q0-2 2-2h22l3 4v3z" fill="#b794aa"/><path d="M3-5h4m2 0h4m2 0h4m2 0h3" stroke="#ffe9b6" stroke-width="2.2"/>
-    <path d="m26-3 13 2-12 1z" fill="#ffd896" opacity=".4"/></g></g></g>
+    <path d="M0 0v-6q0-2 3-2h34l5 5v3z" fill="#c39dad"/><path d="M3-5h5m2 0h5m2 0h5m2 0h5m2 0h5" stroke="#ffe9b6" stroke-width="3"/>
+    <path d="m41-3 21 2-20 1z" fill="#ffd896" opacity=".65"/></g></g></g>
+  <g clip-path="url(#city-road)"><g class="city-car"><g transform="translate(3 240) rotate(-4)">
+    <path d="m0-2-24 3 24-1z" fill="#f3e6be" opacity=".62"/><path d="m0 0 1-4 3-1 3-3h7l4 4 4 1v3z" fill="#8f92ae"/>
+    <path d="M7-5h6l-1-2H9z" fill="#cdf2ef"/><circle cx="1" cy="-2" r="1.5" fill="#fff2bd"/><circle cx="21" cy="-2" r="1.2" fill="#fa937c"/></g></g></g>
   ${bridgeLights}
+  <path class="city-wire" d="m17 242 425-30"/>
+  <g class="city-ferry">
+    <g class="city-wake" fill="none" stroke="#c9c6dd" stroke-linecap="round">
+      <path d="M48 4q25 2 60-1m-53 6q19 3 39 2" opacity=".75"/><path d="M55 12q16 3 31 3" opacity=".35"/>
+    </g>
+    <g class="city-hull">
+      <path d="M-8-4h72l-7 8H9z" fill="#24283f" stroke="#9cabc1" stroke-width="1.3"/>
+      <path d="M4-5 9-13h38l8 8z" fill="#afb0c0"/><path d="m11-12 3-6h25l6 6z" fill="#72778e"/>
+      <path d="M14-9h5m3 0h5m3 0h5m3 0h5" stroke="#ffe5ac" stroke-width="3"/>
+      <path d="M1-4h57" stroke="#ce8d83" stroke-width="2.4"/><path d="M32-18v-7l10 3-10 2" fill="#b58eaa" stroke="#aca1b9"/>
+      <circle cx="5" cy="-5" r="8" fill="url(#city-lantern)"/><circle cx="5" cy="-5" r="1.5" fill="#ffecab"/>
+    </g>
+  </g>
   <path d="M0 286q67-18 128-7t106 16q90 19 149 25H0zm680-21q-45 11-83 33t-74 22h157z" fill="#171a31"/>
 </svg>`;
 let liveContext = '';
@@ -828,7 +868,7 @@ function renderLive() {
     const count = mqCountdown(L,next);
     const officialStats = stats(L.ivT);
     liveCard.innerHTML =
-      '<div class="mq-hero '+status.cls+'" role="status" aria-live="off">'+
+      '<div class="mq-hero '+status.cls+'" data-change="'+(next ? next.kind : '')+'" role="status" aria-live="off">'+
         riverfront+'<div class="mq-copy"><div class="mq-overline">Очередь '+esc(L.q)+' · Прогноз</div>'+
           '<h3 class="mq-title">'+status.title+'</h3><p class="mq-lead">'+esc(t.date)+' · Киевское время</p>'+
           '<div class="mq-countbox"><span class="mq-count-label">'+eventLabel+'</span>'+
