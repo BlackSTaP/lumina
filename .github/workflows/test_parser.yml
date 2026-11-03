@@ -1,0 +1,23 @@
+name: Test schedule parser
+
+on:
+  pull_request:
+  push:
+    branches:
+      - fix/multiline-schedule-formats-20261103
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+      - name: Run parser tests
+        run: python -m unittest -v test_scraper
