@@ -436,6 +436,42 @@ function computeLive(dayMap, q, t) {
   return {t, q, none: false, today, tomorrow, ivT, ivN: hasTomorrow ? tomorrow.queues.get(q) : null, hasTomorrow, off: !!cur, next, open};
 }
 const atLabel = at => at >= 1440 ? `${fmt(at - 1440)} (завтра)` : fmt(at);
+
+// Estimate-only model for the first tab. Official schedule and data stay unchanged.
+const MYQ_VARIANCE = Object.freeze({offMin:14, offMax:18, onMin:20, onMax:30});
+function myQueueIntervals(iv) {
+  return (iv || []).map(([s, e]) => {
+    // Avoid contradictory forecast windows for unusually short planned interruptions.
+    const adjusted = e - s >= 60;
+    return {
+      start:s, end:e, adjusted,
+      off:adjusted ? [s + MYQ_VARIANCE.offMin, s + MYQ_VARIANCE.offMax] : [s, s],
+      on:adjusted ? [e - MYQ_VARIANCE.onMax, e - MYQ_VARIANCE.onMin] : [e, e]
+    };
+  });
+}
+function myQueueForecast(iv, nowM) {
+  const intervals = myQueueIntervals(iv);
+  const events = intervals.flatMap((slot, i) => [
+    {kind:'off', window:slot.off, slot, index:i},
+    {kind:'on', window:slot.on, slot, index:i}
+  ]).sort((a,b) => a.window[0] - b.window[0]);
+  const next = events.find(ev => nowM < ev.window[1] || nowM < ev.window[0]);
+  const nextOff = events.find(ev => ev.kind === 'off' && (nowM < ev.window[1] || nowM < ev.window[0]));
+  const nextOn = events.find(ev => ev.kind === 'on' && (nowM < ev.window[1] || nowM < ev.window[0]));
+  let phase = 'on';
+  for (const slot of intervals) {
+    if (nowM < slot.start || nowM >= slot.end) continue;
+    if (nowM < slot.off[0]) phase = 'on';
+    else if (slot.adjusted && nowM < slot.off[1]) phase = 'transition-off';
+    else if (nowM < slot.on[0]) phase = 'off';
+    else if (slot.adjusted && nowM < slot.on[1]) phase = 'transition-on';
+    else phase = 'on';
+    break;
+  }
+  return {intervals, events, next, nextOff, nextOn, phase};
+}
+
 // </core>
 
 (() => {
@@ -556,42 +592,165 @@ function tlHtml(iv, title, nowSec) {
   const hrs = [0, 3, 6, 9, 12, 15, 18, 21, 24].map(h => `<span style="left:${h / 24 * 100}%">${h}</span>`).join('');
   return `<div class="tl-wrap"><div class="tl-title">${title}</div><div class="tl-bar">${bars}${now}</div><div class="tl-hours">${hrs}</div></div>`;
 }
+// Custom SVGs use only existing theme colors.
+const MQ_ICONS = {
+  bulb:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6m-5 3h4m-5-5c0-1.7-.8-2.1-1.8-3.5a6 6 0 1 1 9.6 0C15.8 13.9 15 14.3 15 16H9Z"/></svg>',
+  bolt:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-9 12h7l-1 8L20 9h-7V2Z"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  info:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>',
+  calendar:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/></svg>',
+  spark:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2Zm7 13 .7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7L19 15Z"/></svg>'
+};
+let myQueueRenderKey = '';
+function mqTime(min) {
+  const day = Math.floor(min / 1440);
+  const clock = fmt(((min % 1440) + 1440) % 1440);
+  return clock + (day > 0 ? ' · завтра' : day < 0 ? ' · вчера' : '');
+}
+function mqWindow(window) {
+  if (!window) return '—';
+  return window[0] === window[1] ? mqTime(window[0]) : mqTime(window[0]) + '–' + mqTime(window[1]);
+}
+function mqForecastForLive(L) {
+  const today = L.ivT || [];
+  const tomorrow = L.ivN ? L.ivN.map(([s,e]) => [s+1440,e+1440]) : [];
+  return myQueueForecast([...today, ...tomorrow], L.t.sec / 60);
+}
+function mqStatus(phase) {
+  if (phase === 'off') return {cls:'mq-off',title:'Вероятно, света нет',description:'Ориентировочное состояние по времени отключений'};
+  if (phase === 'transition-off') return {cls:'mq-transition',title:'Возможное отключение',description:'Сейчас идет расчетное окно отключения'};
+  if (phase === 'transition-on') return {cls:'mq-transition',title:'Ожидается включение',description:'Сейчас идет расчетное окно включения'};
+  return {cls:'mq-on',title:'Вероятно, свет есть',description:'Ориентировочное состояние по времени отключений'};
+}
+function mqBar(iv, day, nowSec) {
+  const parts = [];
+  const start = day * 1440, end = start + 1440;
+  function add(a, b, cls) {
+    const left = Math.max(start, a), right = Math.min(end, b);
+    if (right > left) parts.push('<span class="'+cls+'" style="left:'+((left-start)/14.4)+'%;width:'+((right-left)/14.4)+'%"></span>');
+  }
+  for(const slot of iv) {
+    add(slot.off[0],slot.off[1],'mq-risk');
+    add(slot.off[1],slot.on[0],'mq-no-light');
+    add(slot.on[0],slot.on[1],'mq-risk');
+  }
+  const now = nowSec == null ? '' : '<span class="mq-now" data-mq-now style="left:'+(nowSec/864)+'%"></span>';
+  return '<div class="mq-timeline"><div class="mq-track">'+parts.join('')+now+'</div>'+
+    '<div class="mq-hours"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>'+
+    '<div class="mq-legend"><span><i class="mq-swatch mq-lit"></i> Свет возможен</span>'+
+    '<span><i class="mq-swatch mq-changing"></i> Переходное окно</span>'+
+    '<span><i class="mq-swatch mq-dark"></i> Вероятное отключение</span></div></div>';
+}
+function mqEventCard(ev, kind) {
+  const off = kind === 'off', title = off ? 'Отключение' : 'Включение';
+  const cls = off ? 'mq-tile' : 'mq-tile mq-return';
+  if(!ev) return '<div class="'+cls+'"><span class="mq-tile-icon">'+MQ_ICONS.clock+'</span><div>'+
+    '<div class="mq-label">Ближайшее '+title.toLowerCase()+'</div><div class="mq-tile-time">—</div>'+
+    '<div class="mq-tile-sub">Нет опубликованных событий</div></div></div>';
+  return '<div class="'+cls+'"><span class="mq-tile-icon">'+(off?MQ_ICONS.bolt:MQ_ICONS.bulb)+'</span><div>'+
+    '<div class="mq-label">'+title+' · расчетное окно</div>'+
+    '<div class="mq-tile-time">'+esc(mqWindow(ev.window))+'</div>'+
+    '<div class="mq-tile-sub">По графику: '+esc(mqTime(off ? ev.slot.start : ev.slot.end))+
+    (ev.slot.adjusted ? (off ? ' · позже на 14–18 мин' : ' · раньше на 20–30 мин') : ' · без поправки (короткий интервал)')+
+    '</div></div></div>';
+}
+function mqScheduleSlots(model, day) {
+  const filtered = model.intervals.filter(i => i.start >= day*1440 && i.start < (day+1)*1440);
+  if (!filtered.length) return '<div class="mq-muted">Интервалов отключения нет</div>';
+  return '<div class="mq-schedule">'+filtered.map((slot, i) => {
+    const active = model.next && model.next.slot === slot;
+    return '<div class="mq-slot'+(active?' mq-slot-active':'')+'"><div class="mq-slot-head"><span>Отключение '+(i+1)+'</span>'+
+      '<span class="mq-muted">'+esc(mqTime(slot.start))+'–'+esc(mqTime(slot.end))+'</span></div>'+
+      '<div class="mq-slot-forecast">'+MQ_ICONS.bolt+' Выключат: <b>'+esc(mqWindow(slot.off))+'</b></div>'+
+      '<div class="mq-slot-forecast">'+MQ_ICONS.bulb+' Включат: '+esc(mqWindow(slot.on))+'</div></div>';
+  }).join('')+'</div>';
+}
+function mqCountdown(L, ev) {
+  if (!ev) return ['Нет событий','До конца опубликованного графика'];
+  const t = L.t.sec, start = ev.window[0]*60, end = ev.window[1]*60;
+  if (t >= start && (t < end || start === end)) return ['Сейчас','Окно события уже началось'];
+  return [dur(start-t),'До начала расчетного окна'];
+}
+function updateMyQueueDynamic(L, model) {
+  const count = liveCard.querySelector('[data-mq-count]');
+  if (!count) return;
+  const [value,detail] = mqCountdown(L,model.next);
+  count.textContent = value;
+  const foot = liveCard.querySelector('[data-mq-count-foot]');
+  if (foot) foot.textContent = detail;
+  const marker = liveCard.querySelector('[data-mq-now]');
+  if (marker) marker.style.left = (L.t.sec / 864) + '%';
+}
 function renderLive() {
   const t = nowKyiv(), L = computeLive(state.dayMap, mySel.value, t);
-  if (!mySel.value) { liveCard.innerHTML = '<div class="empty">Выберите свою очередь, чтобы видеть статус света и получать уведомления</div>'; return L; }
-  if (L.none) {
-    liveCard.innerHTML = `<div class="empty">Нет графика на сегодня (${t.date}) для очереди ${esc(mySel.value)}.<br>Дождитесь обновления или вставьте график на вкладке «Сравнение».</div>`;
+  if (!mySel.value || L.none) {
+    const key = mySel.value+'|'+t.date+'|'+(L.none?'missing':'empty');
+    if (myQueueRenderKey !== key) {
+      myQueueRenderKey = key;
+      liveCard.innerHTML = '<div class="mq-empty">'+MQ_ICONS.bulb+'<span>'+
+        (!mySel.value ? 'Выберите свою очередь, чтобы увидеть прогноз и график.' :
+          'График на '+esc(t.date)+' для очереди '+esc(mySel.value)+' пока не опубликован.')+'</span></div>';
+    }
     return L;
   }
-  const st = stats(L.ivT);
-  let sub;
-  if (L.next && L.next.type === 'on') {
-    sub = L.open ? 'Отключение до конца суток — график на завтра ещё не опубликован'
-      : `Включение в <b>${atLabel(L.next.at)}</b> · через ${dur(L.next.diffSec)}`;
-  } else if (L.next) sub = `Следующее отключение в <b>${atLabel(L.next.at)}</b> · через ${dur(L.next.diffSec)}`;
-  else sub = L.hasTomorrow ? 'Отключений больше нет до конца завтрашнего дня' : 'Больше отключений сегодня нет';
-  const upd = L.today.time ? `График на сегодня обновлён в ${esc(L.today.time)}` : '';
-  liveCard.innerHTML = `
-    <div class="st ${L.off ? 'off' : 'on'}"><span class="dot"></span><span class="big">${L.off ? 'Света нет' : 'Свет есть'}</span></div>
-    <div class="sub">${sub}</div>
-    <div class="stats"><span class="stat">Без света сегодня: <b>${hm(st.off)}</b></span><span class="stat">Со светом: <b>${hm(st.on)}</b></span><span class="stat">Отключений: <b>${st.count}</b></span>${upd ? `<span class="stat">${upd}</span>` : ''}</div>
-    ${tlHtml(L.ivT, 'Сегодня, ' + t.date, t.sec)}
-    ${L.ivN ? tlHtml(L.ivN, 'Завтра, ' + addDays(t.date, 1) + (L.tomorrow.time ? ' · обновлено в ' + esc(L.tomorrow.time) : ''), null) : ''}`;
+  const model = mqForecastForLive(L), status = mqStatus(model.phase);
+  const slotData = JSON.stringify([L.ivT,L.ivN,L.today.time,L.tomorrow && L.tomorrow.time]);
+  const key = t.date+'|'+L.q+'|'+model.phase+'|'+slotData+'|'+(model.next ? model.next.kind+model.next.window.join('-') : 'none');
+  if (myQueueRenderKey !== key) {
+    myQueueRenderKey = key;
+    const up = L.today.time ? ' · обновлено '+esc(L.today.time) : '';
+    const next = model.next;
+    const eventLabel = next ? (next.kind === 'off' ? 'До отключения' : 'До включения') : 'На сегодня';
+    const count = mqCountdown(L,next);
+    const officialStats = stats(L.ivT);
+    liveCard.innerHTML =
+      '<div class="mq-hero '+status.cls+'" role="status" aria-live="off">'+
+        '<div class="mq-orb">'+(model.phase === 'off' || model.phase === 'transition-off' ? MQ_ICONS.bolt : MQ_ICONS.bulb)+'</div>'+
+        '<div><div class="mq-overline">'+MQ_ICONS.spark+' ОЧЕРЕДЬ '+esc(L.q)+' · ПРОГНОЗ</div>'+
+          '<div class="mq-title">'+status.title+'</div><p class="mq-lead">'+status.description+'</p>'+
+          '<span class="mq-state-pill"><i></i> Поправка учтена · прогноз</span></div>'+
+        '<div class="mq-countbox"><div class="mq-count-label">'+eventLabel+'</div>'+
+          '<div class="mq-count" data-mq-count>'+count[0]+'</div>'+
+          '<div class="mq-count-foot" data-mq-count-foot>'+count[1]+'</div></div>'+
+      '</div>'+
+      '<div class="mq-section-head"><div class="mq-section-title">'+MQ_ICONS.clock+' Ближайшие события</div>'+
+      '<div class="mq-muted">Окна ориентировочные, не фактические</div></div>'+
+      '<div class="mq-grid">'+mqEventCard(model.nextOff,'off')+mqEventCard(model.nextOn,'on')+'</div>'+
+      '<div class="mq-section-head"><div class="mq-section-title">'+MQ_ICONS.calendar+' Сегодня · '+esc(t.date)+'</div>'+
+      '<div class="mq-muted">Таймлайн с учетом погрешности'+up+'</div></div>'+
+      mqBar(model.intervals,0,t.sec)+
+      '<div class="mq-section-head"><div class="mq-section-title">'+MQ_ICONS.bolt+' Интервалы дня</div></div>'+
+      mqScheduleSlots(model,0)+
+      (L.ivN ? '<div class="mq-section-head"><div class="mq-section-title">'+MQ_ICONS.calendar+' Завтра · '+esc(addDays(t.date,1))+'</div></div>'+
+          mqBar(model.intervals,1,null)+mqScheduleSlots(model,1) : '')+
+      '<div class="mq-note">'+MQ_ICONS.info+' <span>Расчет на основе наблюдаемого смещения: отключение обычно позже на 14–18 минут, включение раньше на 20–30 минут. Это не датчик электроэнергии и не гарантия. Официальный график, сравнение и визуализатор не изменены.</span></div>'+
+      '<details class="mq-original"><summary>Посмотреть исходный график без поправок</summary>'+
+        '<div class="stats"><span class="stat">Без света сегодня: <b>'+hm(officialStats.off)+'</b></span>'+
+        '<span class="stat">Со светом: <b>'+hm(officialStats.on)+'</b></span>'+
+        '<span class="stat">Отключений: <b>'+officialStats.count+'</b></span></div>'+
+        tlHtml(L.ivT,'По официальному графику · сегодня',t.sec)+
+        (L.ivN ? tlHtml(L.ivN,'По официальному графику · завтра',null):'')+
+      '</details>';
+  }
+  updateMyQueueDynamic(L,model);
   return L;
 }
 const fired = new Set();
 function checkEvents(L) {
-  if (!notifyOn.checked || !L || L.none || !L.next || L.open) return;
+  if (!notifyOn.checked || !L || L.none) return;
   const lead = Number(leadSel.value);
   if (!lead) return;
-  const mins = L.next.diffSec / 60;
-  if (mins <= 0 || mins > lead) return;
-  const key = `${L.t.date}|${L.next.at}|${L.next.type}`;
+  const model = mqForecastForLive(L), ev = model.next;
+  if (!ev) return;
+  const until = ev.window[0]*60 - L.t.sec;
+  if (until <= 0 || until > lead*60) return;
+  const key = L.t.date+'|'+L.q+'|'+ev.kind+'|'+ev.window[0];
   if (fired.has(key)) return;
   fired.add(key);
-  const title = L.next.type === 'off' ? `⚡ Скоро отключение (${L.q})` : `💡 Скоро включение (${L.q})`;
-  const body = `${L.next.type === 'off' ? 'Отключение' : 'Включение'} в ${atLabel(L.next.at)} — через ${dur(L.next.diffSec)}`;
-  notify(title, body, 'ev-' + key); toast(title + ': ' + body, false, 9000); playSound();
+  const type = ev.kind === 'off' ? 'Отключение' : 'Включение';
+  const title = ev.kind === 'off' ? '⚡ Скоро отключение ('+L.q+')' : '💡 Скоро включение ('+L.q+')';
+  const body = type+' ожидается в '+mqWindow(ev.window)+' · примерно через '+dur(until);
+  notify(title,body,'mq-event-'+key); toast(title+': '+body,false,9000); playSound();
 }
 
 // ---------- summary table ----------
