@@ -9,6 +9,7 @@ assert.ok(script, 'inline script should exist');
 assert.doesNotThrow(() => new vm.Script(script[1]), 'full app JavaScript should compile');
 
 const core = script[1].split('// <core>')[1].split('// </core>')[0];
+const timeline = script[1].split('function tlHtml(')[1].split('const MQ_ICONS =')[0];
 const view = script[1].split('const MQ_ICONS =')[1].split('// ---------- summary table ----------')[0];
 const api = vm.runInNewContext(core + '\n;({myQueueIntervals, myQueueForecast, computeLive, stats, nowKyiv, mqTime:undefined})', {});
 const one = [[540, 780]];
@@ -49,7 +50,7 @@ globalThis.displayWindow=mqWindow([554,558]);
 globalThis.dayModel=computeLive(dayMap,'1.1',t);
 `;
 const sandbox = {};
-vm.runInNewContext(core + '\nconst MQ_ICONS =' + view + '\n' + mocks, sandbox);
+vm.runInNewContext(core + '\nfunction tlHtml(' + timeline + '\nconst MQ_ICONS =' + view + '\n' + mocks, sandbox);
 assert.match(sandbox.rendered, /09:14–09:18/);
 assert.match(sandbox.rendered, /12:30–12:40/);
 assert.match(sandbox.rendered, /По официальному графику/);
