@@ -5,7 +5,7 @@ import logging
 import re
 import sys
 import time
-from datetime import datetime, date, time as dtime
+from datetime import datetime, date, time as dtime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -20,15 +20,28 @@ KEEP_DAYS = 3
 MAX_VERSIONS = 12
 OUTPUT = Path("schedule.json")
 TZ = ZoneInfo("Europe/Kyiv")
-KEYWORDS = ("гпв", "графік", "графiк", "черги", "черга")
 
 MONTHS = {
     "січня": 1, "лютого": 2, "березня": 3, "квітня": 4, "травня": 5, "червня": 6,
     "липня": 7, "серпня": 8, "вересня": 9, "жовтня": 10, "листопада": 11, "грудня": 12,
 }
 DATE_RE = re.compile(r"(\d{1,2})\s+(" + "|".join(MONTHS) + r")", re.I)
-QUEUE_RE = re.compile(r"^(?:черг[аи]|група)?\s*(\d\.\d)\s*[:.\-–—]\s*(.+)$", re.I)
-RANGE_RE = re.compile(r"(\d{1,2}):(\d{2})\s*(?:[-–—]|до)\s*(\d{1,2}):(\d{2})", re.I)
+# Queue titles can have no times on the same line, and may be prefixed by emoji/bullets.
+QUEUE_RE = re.compile(
+    r"^[^\w\d]*(?:(?:черг[аи]|підчерг[аи]|група|группа|підгрупа|очеред[ьи])\s*)?"
+    r"([1-6])\s*[.,]\s*([12])"
+    r"(?:\s*[:：\-–—]\s*(.*)|\s+((?:з|с|від)\s+.*))?\s*$",
+    re.I,
+)
+RANGE_RE = re.compile(
+    r"(?<!\d)(\d{1,2})\s*[:.]\s*(\d{2})\s*(?:[-–—−]|до|по|to)\s*"
+    r"(\d{1,2})\s*[:.]\s*(\d{2})(?!\d)",
+    re.I,
+)
+RANGE_LINE_RE = re.compile(
+    r"^[^\w\d]*(?:(?:з|с|від)\s+)?\d{1,2}\s*[:.]\s*\d{2}", re.I,
+)
+NUMERIC_DATE_RE = re.compile(r"\b(\d{1,2})[./](\d{1,2})[./](20\d{2})\b")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("lumina")
@@ -64,9 +77,18 @@ def resolve_date(day: int, month: int, today: date):
 
 
 def format_ranges(raw: str) -> str:
+    """Normalize all supported time intervals into the existing schedule.json format."""
     ranges, seen = [], set()
     for h1, m1, h2, m2 in RANGE_RE.findall(raw):
-        a, b = f"{int(h1):02d}:{m1}", f"{int(h2):02d}:{m2}"
+        sh, sm, eh, em = map(int, (h1, m1, h2, m2))
+        if sh > 23 or eh > 24 or sm > 59 or em > 59 or (eh == 24 and em):
+            continue
+        start, end = sh * 60 + sm, eh * 60 + em
+        if end == 0 and start > 0:
+            end = 1440
+        if start == end:
+            continue
+        a, b = f"{start // 60:02d}:{start % 60:02d}", f"{end // 60:02d}:{end % 60:02d}"
         if (a, b) not in seen:
             seen.add((a, b))
             ranges.append((a, b))
@@ -74,27 +96,58 @@ def format_ranges(raw: str) -> str:
     return ", ".join(f"{a} - {b}" for a, b in ranges)
 
 
-def parse_post(text: str, today: date):
-    low = text.lower()
-    if not any(k in low for k in KEYWORDS):
-        return None
-    dm = DATE_RE.search(low)
-    if not dm:
-        return None
-    d = resolve_date(int(dm.group(1)), MONTHS[dm.group(2).lower()], today)
-    if not d:
-        return None
-    queues = {}
-    for line in text.splitlines():
-        m = QUEUE_RE.match(line.strip())
-        if not m:
+def parse_post(text: str, today: date, published_at: datetime | None = None):
+    """Read inline and multi-line queue formats; use publication date if no date is stated."""
+    text = text.replace("\u200b", "").replace("\ufeff", "")
+    sections: dict[str, list[str]] = {}
+    current_queue = None
+
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line:
             continue
-        times = format_ranges(re.sub(r"\(.*?\)", "", m.group(2)))
+
+        header = QUEUE_RE.match(line)
+        if header:
+            current_queue = f"{header.group(1)}.{header.group(2)}"
+            sections.setdefault(current_queue, [])
+            inline = header.group(3) or header.group(4) or ""
+            if inline:
+                sections[current_queue].append(inline)
+            continue
+
+        if current_queue and RANGE_LINE_RE.match(line):
+            sections[current_queue].append(line)
+        else:
+            current_queue = None
+
+    queues = {}
+    for queue, lines in sections.items():
+        times = format_ranges(" ".join(re.sub(r"\([^)]*\)", "", line) for line in lines))
         if times:
-            queues[m.group(1)] = times
+            queues[queue] = times
     if not queues:
         return None
+
+    reference_date = published_at.astimezone(TZ).date() if published_at else today
+    low = text.lower()
+    numeric = NUMERIC_DATE_RE.search(low)
+    written = DATE_RE.search(low)
+    if numeric:
+        try:
+            d = date(int(numeric.group(3)), int(numeric.group(2)), int(numeric.group(1)))
+        except ValueError:
+            return None
+    elif written:
+        d = resolve_date(int(written.group(1)), MONTHS[written.group(2).lower()], reference_date)
+    elif re.search(r"\b(?:завтра|завтрашн\w*)\b", low):
+        d = reference_date + timedelta(days=1)
+    else:
+        d = reference_date
+    if not d:
+        return None
     return d, dict(sorted(queues.items()))
+
 
 
 def post_datetime(wrap) -> datetime:
@@ -130,11 +183,12 @@ def scan_channel(session, today: date) -> dict:
             text_div = wrap.select_one(".tgme_widget_message_text")
             if not text_div:
                 continue
-            parsed = parse_post(element_text(text_div), today)
+            published_at = post_datetime(wrap)
+            parsed = parse_post(element_text(text_div), today, published_at)
             if not parsed:
                 continue
             d, queues = parsed
-            iso = post_datetime(wrap).isoformat()
+            iso = published_at.isoformat()
             found.setdefault(d, {})[iso] = queues
 
         # Нужен запас: ещё один день сверх KEEP_DAYS, чтобы собрать все версии свежих дат
