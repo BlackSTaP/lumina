@@ -58,4 +58,15 @@ assert.match(sandbox.rendered, /с учетом погрешности/);
 assert.match(sandbox.rendered, /class="mq-hero/);
 assert.equal(sandbox.dayModel.next.at, 780, 'official engine stays unchanged');
 assert.equal(sandbox.dayModel.off, true, 'original scheduled status stays unchanged');
+const cardFunction = script[1].slice(script[1].indexOf('function queueCard('), script[1].indexOf('function updateCards('));
+const cardApi = vm.runInNewContext(core + '\nconst MQ_ICONS =' + view + '\n' + cardFunction +
+  '\n;({card:(iv,minute)=>queueCard("1.1",iv,stats(iv),minute,true),mqScheduleSlots,myQueueForecast})', {});
+assert.match(cardApi.card(one,540), /data-tone="off"/);
+assert.match(cardApi.card(one,780), /data-tone="on"/);
+assert.match(cardApi.card(one,null), /План на завтра/);
+assert.match(cardApi.card([],0), /Отключений не запланировано/);
+assert.match(cardApi.card(one,600), /09:00–13:00/);
+const tomorrowSlots = cardApi.mqScheduleSlots(cardApi.myQueueForecast([[2820,2880]],500),1);
+assert.match(tomorrowSlots, /23:00–24:00/);
+assert.match(tomorrowSlots, /data-slot="2820-2880"/);
 console.log('My Queue regression tests passed');
