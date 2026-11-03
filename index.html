@@ -195,7 +195,7 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
   <section id="tab-viz" class="pane">
     <div class="card">
       <h3>Генератор графика</h3>
-      <div class="muted" style="font-size:.88rem;margin-bottom:8px">Одна очередь на строку. Форматы: «1.1: 00:00-02:00, 15:00-20:00», «Черга 1.1: з 00:00 до 02:00». Заголовок «=== 17.10.2026 · 14:32 ===» задаёт дату и время обновления.</div>
+      <div class="muted" style="font-size:.88rem;margin-bottom:8px">Поддерживаются очереди на одной или нескольких строках. Форматы: «1.1: 00:00-02:00, 15:00-20:00», «Черга 1.1: з 00:00 до 02:00». Заголовок «=== 17.10.2026 · 14:32 ===» задаёт дату и время обновления.</div>
       <textarea id="vizInput" style="min-height:170px" placeholder="Черга 1.1: з 00:00 до 02:00, з 15:00 до 20:00&#10;1.2: 02:00 – 06:00"></textarea>
       <div style="margin:12px 0"><label class="chk"><input type="checkbox" id="nextDayCheck"><span>График на завтра (следующий день)</span></label></div>
       <button id="generateVizBtn" style="width:100%;padding:13px">📊 Построить график</button>
@@ -264,8 +264,9 @@ function isoHM(iso) { if (!iso) return ''; const d = new Date(iso); if (isNaN(d)
 function isoDM(iso) { if (!iso) return ''; const d = new Date(iso); if (isNaN(d)) return ''; const p = kyivParts(d); return `${p.day}.${p.month}`; }
 
 const HEADER_RE = /^=+\s*(\d{1,2}\.\d{1,2}\.\d{4})(?:\s*[·|,]\s*(\d{1,2}:\d{2}))?\s*=+$/;
-const LINE_RE = /^(?:Черг[аи]|Група)?\s*(\d{1,2}(?:\.\d)?)\s*[:.]\s*(.+)$/i;
-const RANGE_RE = /(\d{1,2}):(\d{2})\s*(?:[-–—]|до)\s*(\d{1,2}):(\d{2})/gi;
+const LINE_RE = /^[^\w\d]*(?:(?:Черг[аи]|Підчерг[аи]|Група|Группа|Підгрупа|Очеред[ьи])\s*)?([1-6])\s*[.,]\s*([12])(?:\s*[:：\-–—]\s*(.*)|\s+((?:з|с|від)\s+.*))?\s*$/i;
+const RANGE_RE = /(\d{1,2})\s*[:.]\s*(\d{2})\s*(?:[-–—−]|до|по|to)\s*(\d{1,2})\s*[:.]\s*(\d{2})/gi;
+const RANGE_LINE_RE = /^[^\w\d]*(?:(?:з|с|від)\s+)?\d{1,2}\s*[:.]\s*\d{2}/i;
 
 function mergeIv(list) {
   const a = list.filter(x => x[1] > x[0]).sort((p, q) => p[0] - q[0]), out = [];
@@ -288,20 +289,31 @@ function parseRanges(str) {
 function parseText(text) {
   const out = {date: null, time: null, queues: new Map()};
   const tmp = new Map();
-  for (let line of String(text || '').split(/\r?\n/)) {
+  let currentQueue = null;
+  for (let line of String(text || '').replace(/[\u200b\ufeff]/g, '').split(/\r?\n/)) {
     line = line.trim();
     if (!line) continue;
     const h = line.match(HEADER_RE);
-    if (h) { out.date = h[1].replace(/^(\d)\./, '0$1.').replace(/\.(\d)\./, '.0$1.'); out.time = h[2] || null; continue; }
+    if (h) { out.date = h[1].replace(/^(\d)\./, '0$1.').replace(/\.(\d)\./, '.0$1.'); out.time = h[2] || null; currentQueue = null; continue; }
     const m = line.match(LINE_RE);
-    if (!m) continue;
-    const iv = parseRanges(m[2]);
-    if (!iv.length) continue;
-    tmp.set(m[1], (tmp.get(m[1]) || []).concat(iv));
+    if (m) {
+      currentQueue = m[1] + '.' + m[2];
+      if (!tmp.has(currentQueue)) tmp.set(currentQueue, []);
+      const inline = m[3] || m[4] || '';
+      if (inline) tmp.get(currentQueue).push(...parseRanges(inline));
+    } else if (currentQueue && RANGE_LINE_RE.test(line)) {
+      tmp.get(currentQueue).push(...parseRanges(line));
+    } else {
+      currentQueue = null;
+    }
   }
-  for (const k of [...tmp.keys()].sort(natural)) out.queues.set(k, mergeIv(tmp.get(k)));
+  for (const k of [...tmp.keys()].sort(natural)) {
+    const intervals = mergeIv(tmp.get(k));
+    if (intervals.length) out.queues.set(k, intervals);
+  }
   return out;
 }
+
 function formatDay(date, iso, queues) {
   const t = isoHM(iso);
   let s = `=== ${date}${t ? ' · ' + t : ''} ===\n`;
