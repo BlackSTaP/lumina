@@ -139,11 +139,20 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 .mq-hero{--sky:#433858;--light:#ffe0a5;position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;min-height:285px;border:1px solid #665a78;border-radius:24px;background:linear-gradient(110deg,#201e34 9%,#302b49 45%,var(--sky));color:#fcf7f2}
 .mq-hero.mq-off{--sky:#2b344d;--light:#d1ceef}.mq-hero.mq-transition{--sky:#59405a}.mq-hero.mq-quiet{--sky:#3b3552}
 .mq-city{position:absolute;z-index:-1;right:0;bottom:0;width:62%;height:100%;pointer-events:none;mask-image:linear-gradient(to right,transparent,#000 18%)}
-.city-lamps{opacity:.92}.mq-off .city-lamps,.mq-off .city-reflections{opacity:.10}.mq-quiet .city-lamps{opacity:.45}
-.city-reflections{animation:mqRipple 6s ease-in-out infinite alternate;transform-origin:65% 82%}
-.mq-transition .city-lamps{animation:mqLamplight 4s ease-in-out infinite alternate}
-@keyframes mqRipple{to{transform:scaleX(1.025);opacity:.62}}
-@keyframes mqLamplight{from{opacity:.35}to{opacity:.9}}
+.mq-city{--power:.48}
+.city-circuit{opacity:clamp(0,calc(var(--power)*2.25 - var(--offset,0)),1)}
+.city-haze{opacity:calc(.20 + var(--power)*.8)}
+.city-stars{opacity:calc(1 - var(--power)*.65)}
+.city-cloud{animation:mqCloud 54s ease-in-out infinite alternate}
+.city-ripples{transform-origin:65% 82%;animation:mqRipple 5s ease-in-out infinite alternate}
+.city-tram{animation:mqTram 22s linear infinite}
+.mq-quiet .city-tram{display:none}
+.city-beacon{animation:mqBeacon 6s ease-in-out infinite}
+@keyframes mqRipple{to{transform:scaleX(1.04) translateY(1px);opacity:.55}}
+@keyframes mqCloud{to{transform:translateX(-36px)}}
+@keyframes mqTram{from{transform:translate(0,0)}to{transform:translate(404px,-28.3px)}}
+@keyframes mqBeacon{0%,60%,100%{opacity:.22}80%{opacity:.9}}
+@media(prefers-reduced-motion:reduce){.city-tram{transform:translate(190px,-13.3px)}}
 .mq-copy{padding:clamp(22px,3.5vw,42px);width:55%;max-width:610px}
 .mq-overline{display:flex;gap:9px;align-items:center;font:650 .71rem/1.5 ui-monospace,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:#ded0e7}
 .mq-overline:before{content:"";width:20px;height:2px;background:var(--light)}
@@ -635,16 +644,25 @@ const MQ_ICONS = {
   spark:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2Zm7 13 .7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7L19 15Z"/></svg>'
 };
 let myQueueRenderKey = '';
-// One decorative print of the riverfront. The hero's forecast class controls its lights.
+// Each lamp shares a circuit with its pool of light on the bridge.
+const bridgeLights = [[96,232],[139,229],[218,223],[261,220],[304,217],[347,214]].map(([x,y],i) =>
+  `<g transform="translate(${x} ${y})"><path d="M0 3v-8h3" fill="none" stroke="#23263e" stroke-width="1.4"/>
+    <g class="city-circuit" style="--offset:${i*.23}"><circle cx="3" cy="-5" r="12" fill="url(#city-lantern)"/>
+    <path d="m2-4-5 7h13L4-4z" fill="#ffc676" opacity=".15"/><ellipse cx="3" cy="3" rx="7" ry="1.3" fill="#ffd395" opacity=".5"/>
+    <circle cx="3" cy="-5" r="1.4" fill="#fff1c4"/></g></g>`).join('');
 const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" viewBox="0 0 680 320" preserveAspectRatio="xMaxYMax meet" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <radialGradient id="city-haze"><stop stop-color="#c590ca" stop-opacity=".67"/><stop offset="1" stop-color="#624b92" stop-opacity="0"/></radialGradient>
+    <radialGradient id="city-lantern"><stop stop-color="#ffdf96" stop-opacity=".85"/><stop offset=".28" stop-color="#ffc875" stop-opacity=".32"/><stop offset="1" stop-color="#ffb75f" stop-opacity="0"/></radialGradient>
+    <clipPath id="city-road"><path d="m21 229 411-29v14l-411 29z"/></clipPath>
     <linearGradient id="city-water" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#413756"/><stop offset="1" stop-color="#171d36"/></linearGradient>
     <pattern id="city-windows" width="13" height="14" patternUnits="userSpaceOnUse"><path d="M3 3h5v6H3z" fill="#ffd78e"/><path d="M3 3h1v6H3z" fill="#cf9779"/></pattern>
   </defs>
-  <ellipse cx="460" cy="143" rx="260" ry="169" fill="url(#city-haze)"/>
+  <ellipse class="city-haze" cx="460" cy="143" rx="260" ry="169" fill="url(#city-haze)"/>
+  <g class="city-stars" fill="#e9dcff"><circle cx="282" cy="65" r="1.4"/><circle cx="360" cy="34" r="1.1"/><circle cx="394" cy="70" r="1.8"/><circle cx="429" cy="62" r="1"/><circle cx="551" cy="36" r="1.2"/><circle cx="609" cy="109" r="1.5"/><circle cx="650" cy="62" r="1"/></g>
   <g fill="#eee2fb"><circle cx="118" cy="88" r="1.4"/><circle cx="229" cy="61" r="1"/><circle cx="336" cy="88" r="1.5"/><circle cx="416" cy="38" r="1"/><circle cx="589" cy="77" r="1.8"/><circle cx="625" cy="30" r="1"/><path d="m377 47 1.1 3.8 3.9 1-3.9 1.1-1.1 4-1-4-4-1.1 4-1z"/></g>
   <g fill="#ffe6bb"><circle cx="507" cy="73" r="51" opacity=".045"/><circle cx="507" cy="73" r="39" opacity=".075"/><circle cx="507" cy="73" r="25"/></g>
+  <path class="city-cloud" d="M475 89q18-8 34-4 17-11 37-5 12-5 29 2l21 5q-42 4-79 3z" fill="#a998bc" opacity=".24"/>
   <path d="M0 207q64-32 119-19t101-6q55-36 125-14t117-13q60-32 119-14t99-17v111H0z" fill="#65577c"/>
   <path d="M0 222v-15h43v-19h26v11h30v-22h29v31h39v-54h12v-9h6v9h14v44h21v-16h42v21h23v-39h24v-9h6v9h13v43h32v-26h30v14h42v-37h26v42h35v-18h23v18h28v-30h41v19h29v-38h25v18h41v60H0z" fill="#4a476c"/>
   <g fill="#333651">
@@ -652,16 +670,30 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
     <path d="M418 234v-91l34-8 14 9v90z"/><path d="M473 234v-62h44l11 8v54z"/>
     <path d="M540 234v-106h8v-7h23v7h8v106z"/><path d="M589 234v-68h58v68z"/>
   </g>
-  <g class="city-lamps" fill="url(#city-windows)"><path d="M291 194h42v31h-42zM353 166h38v58h-38zM425 149h24v73h-24zM480 180h32v44h-32zM548 135h24v85h-24zM595 172h43v47h-43z"/></g>
+  <g fill="url(#city-windows)">
+    <path class="city-circuit" style="--offset:.05" d="M291 194h42v31h-42z"/>
+    <path class="city-circuit" style="--offset:.26" d="M353 166h38v58h-38z"/>
+    <path class="city-circuit" style="--offset:.49" d="M425 149h24v73h-24z"/>
+    <path class="city-circuit" style="--offset:.72" d="M480 180h32v44h-32z"/>
+    <path class="city-circuit" style="--offset:.95" d="M548 135h24v85h-24z"/>
+    <path class="city-circuit" style="--offset:1.18" d="M595 172h43v47h-43z"/>
+  </g>
+  <circle class="city-beacon" cx="560" cy="120" r="1.3" fill="#ffd1b2"/>
   <g fill="#292d49"><path d="M0 229q87-22 172-9t146-6q62-5 109 8t120-7q76-21 133-10v37H0z"/></g>
   <path d="M0 236q160-10 327-4t353-5v93H0z" fill="url(#city-water)"/>
-  <g class="city-reflections" fill="none" stroke="#ffd38d" stroke-linecap="round"><path opacity=".65" d="M350 241h32m39 4h30m89-9h21m33 4h29m-108 9h19"/><path opacity=".4" d="M344 248h20m61 6h17m94-9h29m-6 12h9m30-9h22"/><path opacity=".24" d="M365 257h15m45 7h20m89 2h17m64-7h16m-45 16h26"/></g>
+  <g class="city-ripples" fill="none" stroke="#ffd38d" stroke-linecap="round">
+    <g class="city-circuit" style="--offset:.26"><path opacity=".65" d="M350 241h32m39 4h30"/><path opacity=".32" d="M344 248h20m61 6h17m-60 3h15"/></g>
+    <g class="city-circuit" style="--offset:1"><path opacity=".65" d="M540 236h21m33 4h29m-108 9h19"/><path opacity=".32" d="M536 245h29m-6 12h9m30-9h22m-34 18h16"/></g>
+  </g>
   <g fill="none" stroke="#83809d" opacity=".45"><path d="M100 257h91m-68 7h29m90-20h49m-84 35h112m24-4h17m69 13h76m70 8h59m-251 12h124"/></g>
   <g stroke="#171c35" stroke-linejoin="round"><path d="m15 245 427-30" stroke-width="7"/><path d="m15 240 427-30" stroke="#b09cba" stroke-width="1.6"/>
     <path d="m152 248 21-115 9-1 14 113m-27-60 18-2m-20 17 22-2" fill="none" stroke-width="5"/>
     <path d="m40 239 134-105m-90 102 90-99m-52 97 53-94m7-6 153 84m-108 10-45-90m94 86-93-87" fill="none" stroke="#b4a7c5" stroke-width="1.4"/>
     <path d="m155 265 3-32 9-1-3 33zm156-12 2-34h6l-1 35z" fill="#23273e"/></g>
-  <g class="city-lamps" fill="#ffdb8b"><circle cx="96" cy="232" r="2"/><circle cx="139" cy="229" r="2"/><circle cx="218" cy="223" r="2"/><circle cx="261" cy="220" r="2"/><circle cx="304" cy="217" r="2"/></g>
+  <g clip-path="url(#city-road)" class="city-circuit" style="--offset:.92"><g class="city-tram"><g transform="translate(5 240) rotate(-4)">
+    <path d="M0 0v-5q0-2 2-2h22l3 4v3z" fill="#b794aa"/><path d="M3-5h4m2 0h4m2 0h4m2 0h3" stroke="#ffe9b6" stroke-width="2.2"/>
+    <path d="m26-3 13 2-12 1z" fill="#ffd896" opacity=".4"/></g></g></g>
+  ${bridgeLights}
   <path d="M0 286q67-18 128-7t106 16q90 19 149 25H0zm680-21q-45 11-83 33t-74 22h157z" fill="#171a31"/>
 </svg>`;
 let liveContext = '';
@@ -737,6 +769,22 @@ function mqCountdown(L, ev) {
   if (t >= start && (t < end || start === end)) return ['Сейчас','Окно события уже началось'];
   return [dur(start-t),'До начала расчетного окна'];
 }
+function cityPower(model, nowMinute) {
+  const dark = .035, next = model.next;
+  if (!next) return model.phase === 'off' ? dark : 1;
+  const [start,end] = next.window;
+  const until = start - nowMinute;
+  if (next.kind === 'off') {
+    // Start at the far end of the bridge 20 minutes before the forecast window.
+    if (until > 0) return .45 + .55 * Math.min(1, until / 20);
+    if (end === start) return dark;
+    return dark + (.45 - dark) * Math.max(0, (end - nowMinute) / (end - start));
+  }
+  // The city stays dark until the estimated restoration window actually opens.
+  if (until > 0) return dark;
+  if (end === start) return 1;
+  return dark + (1 - dark) * Math.min(1, -until / (end - start));
+}
 function updateMyQueueDynamic(L, model) {
   const count = liveCard.querySelector('[data-mq-count]');
   if (!count) return;
@@ -746,6 +794,11 @@ function updateMyQueueDynamic(L, model) {
   if (foot) foot.textContent = detail;
   const marker = liveCard.querySelector('[data-mq-now]');
   if (marker) marker.style.left = (L.t.sec / 864) + '%';
+  const city = liveCard.querySelector('.mq-city');
+  if (city) {
+    const power = cityPower(model,L.t.sec / 60).toFixed(4);
+    if (city.style.getPropertyValue('--power') !== power) city.style.setProperty('--power',power);
+  }
 }
 function renderLive() {
   const t = nowKyiv(), L = computeLive(state.dayMap, mySel.value, t);
