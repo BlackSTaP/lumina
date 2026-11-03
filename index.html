@@ -101,26 +101,38 @@ tr.mine{background:rgba(110,231,183,.09)}
 tr.mine td:first-child{border-left:3px solid var(--accent)}
 .sdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
 .sdot.on{background:var(--accent)}.sdot.off{background:var(--danger)}
-/* chart */
-dialog{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:12px;width:98%;max-width:1800px;padding:0;max-height:94vh}
-dialog::backdrop{background:rgba(0,0,0,.65)}
-.dlg-body{padding:22px;overflow:auto;max-height:calc(94vh - 70px)}
-.dlg-foot{display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:12px 20px;background:var(--card2);border-top:1px solid var(--border);flex-wrap:wrap}
-.chart{min-width:1670px;border:1px solid var(--border);border-radius:10px;background:#0f1724;overflow:hidden}
-.c-grid{display:grid;grid-template-columns:240px repeat(48,minmax(30px,1fr))}
-.g-corner{height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(110,231,183,.06);border-bottom:1px solid var(--border);color:var(--accent)}
-.g-corner .date{font-size:2rem;font-weight:800;letter-spacing:1px;text-shadow:0 0 12px rgba(110,231,183,.35)}
-.g-corner .upd{font-size:.75rem;color:var(--muted);font-weight:400}
-.g-hour{grid-column:span 2;height:76px;display:flex;align-items:center;justify-content:center;background:rgba(110,231,183,.06);color:var(--accent);font-weight:700;font-size:1rem;border-left:1px solid rgba(255,255,255,.07);border-bottom:1px solid var(--border)}
-.g-hour.now{background:rgba(255,255,255,.16);color:#fff}
-.g-label{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-weight:700;font-size:1.1rem;background:rgba(110,231,183,.06);border-right:3px solid var(--accent);border-bottom:1px solid rgba(255,255,255,.07)}
-.g-label small{color:var(--accent);font-size:.82rem;font-weight:600}
-.g-cell{height:58px;border-right:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07)}
-.g-cell.nowh{background-color:rgba(255,255,255,.045)}
-.g-cell.off{background-color:rgba(251,113,133,.14);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M13 2 4 14h6l-1 8 9-12h-6z' fill='%23fb7185'/%3E%3Cpath d='M3 3l18 18' stroke='%23281a2a' stroke-width='3.5'/%3E%3Cpath d='M3 3l18 18' stroke='%23fb7185' stroke-width='1.6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:center;background-size:62% auto}
-.g-cell.off.nowh{background-color:rgba(251,113,133,.24)}
-.g-foot{grid-column:1/-1;padding:20px 28px;text-align:right;background:var(--card2);border-top:2px solid var(--border);font-weight:600;font-size:1.05rem}
-.g-foot b{color:var(--accent);font-size:1.35em;margin-left:12px}
+/* Schedule visualizer */
+#tab-viz,#chartModal{--vz-paper:#202235;--vz-line:#393c53;--vz-ink:#f1edf8;--vz-muted:#c0baca;--vz-mint:#83cfc1;--vz-peach:#f2ae93;color:var(--vz-ink)}
+.vz-intro{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px 4px 18px}
+.vz-kicker,.vz-date,.vz-axis{font:650 .73rem/1.4 ui-monospace,Consolas,monospace;letter-spacing:.1em;color:#d5bafa}
+.vz-intro h2,.vz-report h3{margin:.18em 0;font-size:clamp(1.65rem,4vw,2.6rem);letter-spacing:-.055em;line-height:1.12}
+.vz-intro p,.vz-hint{margin:0;color:var(--vz-muted);font-size:.88rem}
+.vz-editor,.vz-sheet{background:var(--vz-paper);border:1px solid var(--vz-line);border-radius:17px}
+.vz-editor{margin:0 0 14px;padding:0 18px}.vz-editor summary{padding:14px 0;cursor:pointer;color:var(--vz-ink);font-weight:650}
+.vz-editor summary span{float:right;font-weight:450;color:var(--vz-muted);font-size:.85rem}.vz-editor[open] summary span{display:none}
+.vz-editor>label{display:block;font-size:.85rem;margin:0 0 6px}.vz-editor textarea{min-height:120px;background:#181a2a;line-height:1.5}
+.vz-actions,.vz-toolbar,.vz-tools,.vz-meta,.vz-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.vz-actions,.vz-toolbar,.vz-meta{justify-content:space-between}.vz-actions{margin:12px 0 16px}
+.vz-toolbar{padding:13px clamp(14px,2.4vw,25px);background:#25283d;border-radius:17px 17px 0 0;border-bottom:1px solid var(--vz-line)}
+.vz-toolbar label{display:flex;align-items:center;gap:8px;color:var(--vz-muted);font-size:.85rem}.vz-toolbar select{background:#1a1c2f;color:var(--vz-ink);font-size:.85rem}
+.vz-tools{gap:4px}.vz-tools button,.vz-actions button{font-size:.85rem;min-height:38px}.vz-tools button:not(.flat),.vz-actions button{color:#251c32;background:#dfc6fe}
+.vz-sheet button:focus-visible,.vz-sheet summary:focus-visible,.vz-editor summary:focus-visible{outline:2px solid #e3c6ff;outline-offset:2px}
+.vz-sheet button:disabled{opacity:.4}
+.vz-report{padding:clamp(16px,2.5vw,28px)}.vz-meta{align-items:flex-end;gap:12px;margin-bottom:18px}.vz-report h3{font-size:clamp(1.5rem,3vw,2.1rem)}
+.vz-date{letter-spacing:.04em}.vz-legend{color:var(--vz-muted);font-size:.78rem}.vz-legend span{display:inline-flex;gap:6px;align-items:center}
+.vz-key{width:13px;height:8px;background:#427a72;border-radius:2px}.vz-key.off{background:repeating-linear-gradient(125deg,#e6a58e 0 3px,#ab786d 3px 5px)}
+.vz-axisrow,.vz-row summary{display:grid;align-items:center;grid-template-columns:100px minmax(0,1fr) 76px;gap:12px}
+.vz-axisrow{color:var(--vz-muted);font-size:.72rem;margin-bottom:5px}.vz-axis{display:flex;justify-content:space-between;letter-spacing:0;color:var(--vz-muted)}
+.vz-row{margin:0;padding:0;border:0;border-top:1px solid var(--vz-line)}.vz-row summary{padding:11px 0;list-style:none;cursor:pointer;color:var(--vz-ink);font-size:.9rem}
+.vz-row summary::-webkit-details-marker{display:none}.vz-row summary strong{display:flex;align-items:center;gap:6px}.vz-row summary strong::before{content:'›';font-weight:500;color:#c2a1e5}.vz-row[open] summary strong::before{transform:rotate(90deg)}
+.vz-track{position:relative;background:#345e5b;height:22px;border-radius:5px;overflow:hidden}.vz-track svg{display:block;width:100%;height:100%}
+.vz-now{position:absolute;top:0;bottom:0;left:var(--vz-now);width:2px;background:white;box-shadow:0 0 0 1px #37304c}.vz-row small,.vz-axisrow>span:last-child{text-align:right;color:var(--vz-muted);font-variant-numeric:tabular-nums}
+.vz-breaks{margin:0 0 12px;color:var(--vz-muted);font-size:.85rem}.vz-footer{margin-top:12px;padding-top:14px;border-top:1px solid var(--vz-line);font-size:.82rem;color:var(--vz-muted)}
+.vz-empty{padding:32px;text-align:center;color:var(--vz-muted)}
+#chartModal{width:min(1320px,96vw);max-height:92vh;padding:0;background:var(--vz-paper);border:1px solid var(--vz-line);border-radius:18px;overflow:auto}
+#chartModal::backdrop{background:#0e1023bc}#chartModal .vz-sheet{border:0}#chartModal .vz-toolbar{position:sticky;top:0;z-index:3}
+@media(max-width:600px){.vz-axisrow,.vz-row summary{grid-template-columns:43px minmax(0,1fr) 50px;gap:7px}.vz-axisrow{font-size:.63rem}.vz-axis{font-size:.62rem}.vz-intro svg{width:70px}.vz-toolbar{align-items:flex-start}.vz-tools{gap:2px}.vz-tools button{padding:7px 9px}.vz-row small{font-size:.72rem}.vz-report{padding:14px}.vz-track{height:20px}}
+@media(prefers-reduced-motion:no-preference){.vz-breaks{animation:mqEnter .2s ease-out}.vz-row summary:hover{background:#292b40}}
 #toasts{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:99;align-items:center;width:max-content;max-width:92vw}
 .toast{background:#0b3b2e;color:#d1fae5;border:1px solid var(--accent-d);padding:10px 18px;border-radius:24px;box-shadow:0 6px 20px rgba(0,0,0,.4);animation:in .2s}
 .toast.err{background:#4c1d2b;color:#ffe4e6;border-color:var(--danger)}
@@ -329,26 +341,24 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 
   <!-- VISUALIZER -->
   <section id="tab-viz" class="pane">
-    <div class="card">
-      <h3>Генератор графика</h3>
-      <div class="muted" style="font-size:.88rem;margin-bottom:8px">Поддерживаются очереди на одной или нескольких строках. Форматы: «1.1: 00:00-02:00, 15:00-20:00», «Черга 1.1: з 00:00 до 02:00». Заголовок «=== 17.10.2026 · 14:32 ===» задаёт дату и время обновления.</div>
-      <textarea id="vizInput" style="min-height:170px" placeholder="Черга 1.1: з 00:00 до 02:00, з 15:00 до 20:00&#10;1.2: 02:00 – 06:00"></textarea>
-      <div style="margin:12px 0"><label class="chk"><input type="checkbox" id="nextDayCheck"><span>График на завтра (следующий день)</span></label></div>
-      <button id="generateVizBtn" style="width:100%;padding:13px">📊 Построить график</button>
-    </div>
+    <header class="vz-intro"><div><div class="vz-kicker">LUMINA / ВИЗУАЛИЗАТОР</div><h2>График отключений</h2><p>Все очереди на одной шкале суток.</p></div>
+      <svg viewBox="0 0 144 66" width="144" height="66" aria-hidden="true"><g fill="none" stroke="#656481" stroke-width="2"><path d="M0 14h144M0 33h144M0 52h144"/></g><g stroke-linecap="round" stroke-width="8"><path stroke="#d6b9ff" d="M12 14h31m28 0h35"/><path stroke="#efae99" d="M35 33h45m34 0h17"/><path stroke="#97d9cc" d="M9 52h21m35 0h52"/></g></svg>
+    </header>
+    <details class="vz-editor" id="vizEditor"><summary>Исходное расписание <span>Редактировать</span></summary>
+      <label for="vizInput">Вставьте интервалы для каждой очереди</label>
+      <textarea id="vizInput" placeholder="Черга 1.1: з 00:00 до 02:00, з 15:00 до 20:00&#10;1.2: 02:00 – 06:00"></textarea>
+      <p class="vz-hint">Для даты и времени обновления добавьте заголовок вида «=== 17.10.2026 · 14:32 ===».</p>
+      <div class="vz-actions"><label class="chk"><input type="checkbox" id="nextDayCheck"><span>Указать завтрашнюю дату</span></label><button id="generateVizBtn">Построить график</button></div>
+    </details>
+    <div id="vizDock"><section class="vz-sheet" id="vizSheet" aria-label="График по очередям">
+      <div class="vz-toolbar"><label>Показать <select id="vizQueue" aria-label="Очередь на графике"><option value="">Все очереди</option></select></label>
+        <div class="vz-tools"><button id="expandVizBtn" class="flat">Развернуть</button><button id="copyPngBtn" class="flat">Копировать PNG</button><button id="downloadPngBtn">Скачать PNG</button></div></div>
+      <div id="chartHost"></div>
+    </section></div>
   </section>
 </div>
 
-<dialog id="chartModal">
-  <div class="dlg-body"><h3 style="margin-top:0">Визуализация отключений</h3>
-    <div id="chartHost"></div></div>
-  <div class="dlg-foot">
-    <span class="muted hide-sm" style="margin-right:auto;font-size:.8rem">Подсвечен текущий час.</span>
-    <button id="copyPngBtn" class="flat">Копировать</button>
-    <button id="closeModalBtn" class="flat">Закрыть</button>
-    <button id="downloadPngBtn">⬇ Скачать PNG</button>
-  </div>
-</dialog>
+<dialog id="chartModal" aria-label="Развёрнутый график отключений"></dialog>
 <div id="toasts"></div>
 
 <script>
@@ -371,14 +381,6 @@ function hmFull(min) {
   const h = Math.floor(min / 60), m = min % 60;
   if (!h && !m) return '0ч';
   return (h ? h + 'ч' : '') + (h && m ? ' ' : '') + (m ? m + 'мин' : '');
-}
-function slotsOff(iv) {
-  const a = new Array(48).fill(false);
-  for (const [s, e] of iv) for (let i = 0; i < 48; i++) {
-    const o = Math.min(e, i * 30 + 30) - Math.max(s, i * 30);
-    if (o >= 15 || (o > 0 && o === e - s)) a[i] = true;
-  }
-  return a;
 }
 function dur(sec) {
   sec = Math.max(0, Math.round(sec));
@@ -1047,7 +1049,7 @@ $('#clearBtn').addEventListener('click', () => {
 onlyChanges.addEventListener('change', () => renderCompare());
 oldInput.addEventListener('input', () => { store.set('old', oldInput.value); autosize(oldInput); });
 newInput.addEventListener('input', () => { store.set('new', newInput.value); autosize(newInput); rebuildDayMap(); renderTables(); });
-vizInput.addEventListener('input', () => store.set('viz', vizInput.value));
+vizInput.addEventListener('input', () => { store.set('viz', vizInput.value); refreshViz(); });
 soundCheck.addEventListener('change', () => { store.set('sound_enabled', soundCheck.checked); if (soundCheck.checked) initAudio(); });
 
 function renderVersions() {
@@ -1088,8 +1090,9 @@ function processJsonData(data, isAuto) {
     changed = true;
     const oldText = prevText || saved;
     if (oldText) { oldInput.value = oldText; store.set('old', oldText); }
-    newInput.value = latestText; vizInput.value = latestText;
-    store.set('new', latestText); store.set('viz', latestText);
+    if (!vizInput.value || vizInput.value === saved) vizInput.value = latestText;
+    newInput.value = latestText;
+    store.set('new', latestText); store.set('viz', vizInput.value);
   } else {
     if (!newInput.value && latestText) newInput.value = latestText;
     if (!vizInput.value && latestText) vizInput.value = latestText;
@@ -1097,6 +1100,7 @@ function processJsonData(data, isAuto) {
   [oldInput, newInput].forEach(autosize);
   rebuildDayMap(); renderVersions(); renderTables(); renderLive(); setStatus();
 
+  if ($('#tab-viz').classList.contains('active')) refreshViz();
   if (changed) {
     renderCompare();
     if (isAuto && saved) {
@@ -1158,99 +1162,132 @@ function buildModel(text, nextDay) {
   const rows = [...p.queues].map(([name, iv]) => ({name, iv, total: sum(iv)}));
   return {date, time: p.time, rows};
 }
+const vizQueue = $('#vizQueue'), vizSheet = $('#vizSheet');
+const vizHours = [0,6,12,18,24];
+const vizPalette = {paper:'#202235',ink:'#f1edf8',muted:'#c0baca',line:'#393c53',on:'#345e5b',off:'#eda990',accent:'#d5bafa'};
+const rangeLabel = ([start,end]) => fmt(start)+'–'+fmt(end);
+
+function chartRows() {
+  return state.model.rows.filter(row => !vizQueue.value || row.name === vizQueue.value);
+}
+function chartPattern() {
+  return '<defs><pattern id="vz-hatch" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="'+vizPalette.off+'"/><path d="m-2 2 4-4m-2 10 8-8m-2 10 4-4" stroke="#b68074" stroke-width="1.6"/></pattern></defs>';
+}
+// One SVG unit is one minute. Both the screen and the PNG use these same bands.
+function chartBand(row) {
+  const marks = row.iv.map(([a,b]) => `<rect x="${a}" width="${b-a}" height="24" fill="url(#vz-hatch)"/>`).join('');
+  return '<rect width="1440" height="24" fill="'+vizPalette.on+'"/>'+marks+
+    '<path d="M360 0v24m360-24v24m360-24v24" stroke="#fff" stroke-opacity=".32" stroke-width="2"/>';
+}
+function refreshViz() {
+  const model = buildModel(vizInput.value,$('#nextDayCheck').checked);
+  const selected = vizQueue.value;
+  state.model = model;
+  vizQueue.innerHTML = '<option value="">Все очереди</option>'+model.rows.map(r=>`<option value="${esc(r.name)}">${esc(r.name)}</option>`).join('');
+  if (model.rows.some(r=>r.name===selected)) vizQueue.value = selected;
+  renderChart();
+}
+function updateVizClock() {
+  if (!state.model) return;
+  const t = nowKyiv(), today = t.date === state.model.date;
+  chartHost.style.setProperty('--vz-now',t.sec/864+'%');
+  for (const el of $$('.vz-now, [data-now-key]',chartHost)) el.style.display = today ? '' : 'none';
+}
 function renderChart() {
-  const m = state.model; if (!m) return;
-  const t = nowKyiv(), isToday = m.date === t.date, nowH = isToday ? Math.floor(t.sec / 3600) : -1;
-  let h = `<div class="chart"><div class="c-grid"><div class="g-corner"><span class="date">${esc(m.date.slice(0, 5))}</span>${m.time ? `<span class="upd">обновлено в ${esc(m.time)}</span>` : ''}</div>`;
-  for (let i = 0; i < 24; i++) h += `<div class="g-hour${i === nowH ? ' now' : ''}">${pad2(i)}:00</div>`;
-  for (const r of m.rows) {
-    h += `<div class="g-label"><span>${esc(r.name)}</span><small>(${hmFull(r.total)})</small></div>`;
-    const off = slotsOff(r.iv);
-    for (let i = 0; i < 48; i++) h += `<div class="g-cell${off[i] ? ' off' : ''}${(i >> 1) === nowH ? ' nowh' : ''}"></div>`;
+  const m = state.model, rows = chartRows();
+  for (const el of [vizQueue,$('#copyPngBtn'),$('#downloadPngBtn')]) el.disabled = !rows.length;
+  if (!rows.length) {
+    chartHost.innerHTML='<div class="vz-empty">Введите расписание в поле выше, чтобы построить график.</div>';
+    return;
   }
-  const total = m.rows.reduce((a, r) => a + r.total, 0);
-  h += `<div class="g-foot">Всего времени отсутствия света (сумма по группам):<b>${hmFull(total)}</b></div></div></div>`;
-  chartHost.innerHTML = `<div style="overflow-x:auto">${h}</div>`;
+  const title = vizQueue.value ? 'Очередь '+esc(vizQueue.value) : 'Все очереди';
+  chartHost.innerHTML = `<div class="vz-report">
+    <svg width="0" height="0" aria-hidden="true" style="position:absolute">${chartPattern()}</svg>
+    <header class="vz-meta"><div><div class="vz-date">${esc(m.date)} · Киев${m.time?' · обновлено в '+esc(m.time):''}</div><h3>${title}</h3></div>
+      <div class="vz-legend"><span><i class="vz-key"></i>Есть свет</span><span><i class="vz-key off"></i>Отключение</span><span data-now-key>│ Сейчас</span></div></header>
+    <div class="vz-axisrow"><span>Очередь</span><div class="vz-axis">${vizHours.map(h=>'<span>'+pad2(h)+'</span>').join('')}</div><span>Без света</span></div>
+    ${rows.map(row=>`<details class="vz-row"${vizQueue.value?' open':''}><summary><strong>${esc(row.name)}</strong>
+      <span class="vz-track"><svg viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true">${chartBand(row)}</svg><i class="vz-now"></i></span>
+      <small>${hm(row.total)}</small></summary><p class="vz-breaks">Отключения по графику · ${row.iv.map(rangeLabel).join(' · ')}</p></details>`).join('')}
+    <div class="vz-footer">Всего без света${rows.length>1?' по '+rows.length+' очередям':''} · <b>${hmFull(rows.reduce((n,r)=>n+r.total,0))}</b></div></div>`;
+  updateVizClock();
 }
 $('#generateVizBtn').addEventListener('click', () => {
-  const m = buildModel(vizInput.value, $('#nextDayCheck').checked);
-  if (!m.rows.length) return toast('Не удалось распознать график', true);
-  state.model = m; renderChart(); chartModal.showModal();
+  refreshViz();
+  if (!state.model.rows.length) { toast('Не удалось распознать расписание',true); vizInput.focus(); return; }
+  $('#vizEditor').open = false;
+  vizQueue.focus();
 });
-$('#closeModalBtn').addEventListener('click', () => chartModal.close());
-chartModal.addEventListener('click', e => { if (e.target === chartModal) chartModal.close(); });
+vizQueue.addEventListener('change',renderChart);
+$('#nextDayCheck').addEventListener('change',refreshViz);
+$('#expandVizBtn').addEventListener('click', () => {
+  if (chartModal.open) { chartModal.close(); return; }
+  chartModal.append(vizSheet); $('#expandVizBtn').textContent='Свернуть'; chartModal.showModal();
+});
+chartModal.addEventListener('close', () => {
+  $('#vizDock').append(vizSheet); $('#expandVizBtn').textContent='Развернуть'; $('#expandVizBtn').focus();
+});
+chartModal.addEventListener('click', e => { if (e.target===chartModal) chartModal.close(); });
 
-const BOLT = new Path2D('M13 2 4 14h6l-1 8 9-12h-6z');
-function drawBolt(g, cx, cy, size) {
-  const k = size / 24;
-  g.save(); g.translate(cx - size / 2, cy - size / 2); g.scale(k, k);
-  g.fillStyle = '#fb7185'; g.fill(BOLT);
-  g.lineCap = 'round'; g.strokeStyle = '#281a2a'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(3, 3); g.lineTo(21, 21); g.stroke();
-  g.strokeStyle = '#fb7185'; g.lineWidth = 1.6; g.stroke();
-  g.restore();
+// Export a self-contained sheet with exact times printed underneath each band.
+function chartPoster(model, rows, now) {
+  const width=1000, left=150, bandWidth=690, right=962, p=vizPalette;
+  const label=(x,y,value,size,color=p.ink,extra='')=>`<text x="${x}" y="${y}" font-size="${size}" fill="${color}" ${extra}>${esc(value)}</text>`;
+  let y=191;
+  const content=rows.map(row=>{
+    const top=y, ranges=row.iv.map(rangeLabel);
+    let times='';
+    for (let i=0;i<ranges.length;i+=6) times+=label(left,top+41+(i/6)*19,ranges.slice(i,i+6).join('   ·   '),15,p.muted);
+    y+=56+Math.max(0,Math.ceil(ranges.length/6)-1)*19;
+    return `<path d="M38 ${top-7}H962" stroke="${p.line}"/>`+label(38,top+14,row.name,20,p.ink,'font-weight="bold"')+
+      `<svg x="${left}" y="${top}" width="${bandWidth}" height="19" viewBox="0 0 1440 24" preserveAspectRatio="none">${chartBand(row)}</svg>`+
+      (model.date===now.date?`<rect x="${left+bandWidth*now.sec/86400}" y="${top}" width="2" height="19" fill="white"/>`:'')+
+      label(right,top+15,hm(row.total),17,p.ink,'text-anchor="end"')+times;
+  }).join('');
+  const height=y+55;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" font-family="Segoe UI,Arial,sans-serif">${chartPattern()}
+    <rect width="100%" height="100%" fill="${p.paper}"/>${label(38,36,'LUMINA  /  СУТОЧНЫЙ ГРАФИК',14,p.accent,'letter-spacing="2"')}
+    ${label(38,83,'График отключений',39,p.ink,'font-weight="bold"')}${label(right,78,model.date,25,p.accent,'text-anchor="end"')}
+    ${label(38,116,'Киевское время'+(model.time?' · обновлено в '+model.time:''),16,p.muted)}
+    <rect x="590" y="102" width="17" height="12" rx="3" fill="${p.on}"/>${label(615,114,'Есть свет',15,p.muted)}
+    <rect x="704" y="102" width="17" height="12" rx="3" fill="url(#vz-hatch)"/>${label(729,114,'Отключение',15,p.muted)}
+    ${model.date===now.date?label(862,114,'│ Сейчас',15,p.muted):''}
+    ${label(38,166,'Очередь',15,p.muted)}${vizHours.map(h=>label(left+bandWidth*h/24,166,pad2(h)+':00',15,p.muted,'text-anchor="middle"')).join('')}
+    ${label(right,166,'Без света',15,p.muted,'text-anchor="end"')}${content}
+    <path d="M38 ${y}H962" stroke="${p.line}"/>${label(38,y+32,'Суммарное время отключений по выбранным очередям',16,p.muted)}
+    ${label(right,y+32,hmFull(rows.reduce((n,r)=>n+r.total,0)),21,p.accent,'text-anchor="end"')}</svg>`;
+  return {svg,width,height};
 }
-function drawCanvas(m) {
-  const S = 2, LW = 250, CW = 34, W = LW + 48 * CW, HH = 76, RH = 66, FH = 76, H = HH + m.rows.length * RH + FH;
-  const c = document.createElement('canvas'); c.width = W * S; c.height = H * S;
-  const g = c.getContext('2d'); g.scale(S, S);
-  const FONT = '"Segoe UI",Roboto,Arial,sans-serif', LINE = 'rgba(255,255,255,0.07)';
-  const t = nowKyiv(), isToday = m.date === t.date, nowH = isToday ? Math.floor(t.sec / 3600) : -1;
-  g.fillStyle = '#0f1724'; g.fillRect(0, 0, W, H);
-  g.fillStyle = 'rgba(110,231,183,0.06)'; g.fillRect(0, 0, W, HH);
-  g.textBaseline = 'middle'; g.textAlign = 'center';
-  g.fillStyle = '#6ee7b7'; g.font = `800 40px ${FONT}`; g.fillText(m.date.slice(0, 5), LW / 2, m.time ? 32 : HH / 2);
-  if (m.time) { g.fillStyle = '#94a3b8'; g.font = `400 15px ${FONT}`; g.fillText('обновлено в ' + m.time, LW / 2, 60); }
-  for (let hh = 0; hh < 24; hh++) {
-    const x = LW + hh * 2 * CW;
-    if (hh === nowH) { g.fillStyle = 'rgba(255,255,255,0.16)'; g.fillRect(x, 0, 2 * CW, HH); }
-    g.fillStyle = '#6ee7b7'; g.font = `700 20px ${FONT}`; g.fillText(pad2(hh) + ':00', x + CW, HH / 2);
-  }
-  m.rows.forEach((r, k) => {
-    const y = HH + k * RH, off = slotsOff(r.iv);
-    g.fillStyle = 'rgba(110,231,183,0.06)'; g.fillRect(0, y, LW, RH);
-    g.textAlign = 'left'; g.fillStyle = '#e6eef6'; g.font = `700 24px ${FONT}`; g.fillText(r.name, 20, y + RH / 2);
-    g.textAlign = 'right'; g.fillStyle = '#6ee7b7'; g.font = `600 17px ${FONT}`; g.fillText(`(${hmFull(r.total)})`, LW - 18, y + RH / 2);
-    for (let i = 0; i < 48; i++) {
-      const x = LW + i * CW, cur = (i >> 1) === nowH;
-      if (cur) { g.fillStyle = 'rgba(255,255,255,0.045)'; g.fillRect(x, y, CW, RH); }
-      if (!off[i]) continue;
-      g.fillStyle = cur ? 'rgba(251,113,133,0.24)' : 'rgba(251,113,133,0.14)'; g.fillRect(x, y, CW, RH);
-      drawBolt(g, x + CW / 2, y + RH / 2, 20);
-    }
-  });
-  g.strokeStyle = LINE; g.lineWidth = 1; g.beginPath();
-  for (let i = 0; i <= 48; i++) { const x = LW + i * CW; g.moveTo(x, 0); g.lineTo(x, H - FH); }
-  for (let k = 0; k <= m.rows.length; k++) { const y = HH + k * RH; g.moveTo(0, y); g.lineTo(W, y); }
-  g.stroke();
-  g.fillStyle = '#6ee7b7'; g.fillRect(LW - 3, HH, 3, m.rows.length * RH);
-  g.fillStyle = '#162032'; g.fillRect(0, H - FH, W, FH);
-  g.strokeStyle = 'rgba(255,255,255,0.12)'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, H - FH); g.lineTo(W, H - FH); g.stroke();
-  const val = hmFull(m.rows.reduce((a, r) => a + r.total, 0));
-  g.textAlign = 'right'; g.fillStyle = '#6ee7b7'; g.font = `600 32px ${FONT}`; g.fillText(val, W - 28, H - FH / 2);
-  const vw = g.measureText(val).width;
-  g.fillStyle = '#e6eef6'; g.font = `600 22px ${FONT}`; g.fillText('Всего времени отсутствия света (сумма по группам):', W - 28 - vw - 14, H - FH / 2);
-  return c;
+async function chartPng() {
+  const {svg,width,height}=chartPoster(state.model,chartRows(),nowKyiv());
+  const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));
+  try {
+    const img=new Image(); img.src=url; await img.decode();
+    const canvas=document.createElement('canvas'); canvas.width=width*2; canvas.height=height*2;
+    canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+    return await new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('PNG')),'image/png'));
+  } finally { URL.revokeObjectURL(url); }
 }
-$('#downloadPngBtn').addEventListener('click', () => {
-  if (!state.model) return;
-  drawCanvas(state.model).toBlob(b => {
-    const a = document.createElement('a'); a.href = URL.createObjectURL(b);
-    a.download = `svet_${state.model.date.replace(/\./g, '-')}.png`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
-  }, 'image/png');
+$('#downloadPngBtn').addEventListener('click',async()=>{
+  const filename='svet_'+state.model.date.replace(/\./g,'-')+(vizQueue.value?'_'+vizQueue.value:'')+'.png';
+  try {
+    const url=URL.createObjectURL(await chartPng()), a=document.createElement('a');
+    a.href=url; a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(url),3000);
+  } catch { toast('Не удалось сохранить PNG',true); }
 });
-$('#copyPngBtn').addEventListener('click', () => {
-  if (!state.model || !window.ClipboardItem) return toast('Копирование картинки не поддерживается', true);
-  drawCanvas(state.model).toBlob(async b => {
-    try { await navigator.clipboard.write([new ClipboardItem({'image/png': b})]); toast('Картинка скопирована'); }
-    catch { toast('Не удалось скопировать картинку', true); }
-  }, 'image/png');
+$('#copyPngBtn').addEventListener('click',async()=>{
+  if (!window.ClipboardItem || !navigator.clipboard?.write) return toast('Браузер не поддерживает копирование PNG',true);
+  try { await navigator.clipboard.write([new ClipboardItem({'image/png':chartPng()})]); toast('График скопирован'); }
+  catch { toast('Не удалось скопировать PNG',true); }
 });
+
 
 // ---------- tabs ----------
 function showTab(name) {
   $$('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   $$('.pane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
   store.set('tab', name);
+  if (name === 'viz') { refreshViz(); if (!state.model.rows.length) $('#vizEditor').open = true; }
   if (name === 'compare') [oldInput, newInput].forEach(autosize);
 }
 $('.tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); });
@@ -1282,7 +1319,7 @@ let tick = 0;
 setInterval(() => {
   tick++;
   const L = renderLive(); checkEvents(L);
-  if (tick % 30 === 0) { renderTables(); if (chartModal.open) renderChart(); }
+  if (tick % 30 === 0) { renderTables(); if ($('#tab-viz').classList.contains('active')) updateVizClock(); }
 }, 1000);
 })();
 </script>
