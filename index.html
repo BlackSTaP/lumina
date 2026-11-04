@@ -101,38 +101,25 @@ tr.mine{background:rgba(110,231,183,.09)}
 tr.mine td:first-child{border-left:3px solid var(--accent)}
 .sdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
 .sdot.on{background:var(--accent)}.sdot.off{background:var(--danger)}
-/* Schedule visualizer */
-#tab-viz,#chartModal{--vz-paper:#202235;--vz-line:#393c53;--vz-ink:#f1edf8;--vz-muted:#c0baca;--vz-mint:#83cfc1;--vz-peach:#f2ae93;color:var(--vz-ink)}
-.vz-intro{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px 4px 18px}
-.vz-kicker,.vz-date,.vz-axis{font:650 .73rem/1.4 ui-monospace,Consolas,monospace;letter-spacing:.1em;color:#d5bafa}
-.vz-intro h2,.vz-report h3{margin:.18em 0;font-size:clamp(1.65rem,4vw,2.6rem);letter-spacing:-.055em;line-height:1.12}
-.vz-intro p,.vz-hint{margin:0;color:var(--vz-muted);font-size:.88rem}
-.vz-editor,.vz-sheet{background:var(--vz-paper);border:1px solid var(--vz-line);border-radius:17px}
-.vz-editor{margin:0 0 14px;padding:0 18px}.vz-editor summary{padding:14px 0;cursor:pointer;color:var(--vz-ink);font-weight:650}
-.vz-editor summary span{float:right;font-weight:450;color:var(--vz-muted);font-size:.85rem}.vz-editor[open] summary span{display:none}
-.vz-editor>label{display:block;font-size:.85rem;margin:0 0 6px}.vz-editor textarea{min-height:120px;background:#181a2a;line-height:1.5}
-.vz-actions,.vz-toolbar,.vz-tools,.vz-meta,.vz-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.vz-actions,.vz-toolbar,.vz-meta{justify-content:space-between}.vz-actions{margin:12px 0 16px}
-.vz-toolbar{padding:13px clamp(14px,2.4vw,25px);background:#25283d;border-radius:17px 17px 0 0;border-bottom:1px solid var(--vz-line)}
-.vz-toolbar label{display:flex;align-items:center;gap:8px;color:var(--vz-muted);font-size:.85rem}.vz-toolbar select{background:#1a1c2f;color:var(--vz-ink);font-size:.85rem}
-.vz-tools{gap:4px}.vz-tools button,.vz-actions button{font-size:.85rem;min-height:38px}.vz-tools button:not(.flat),.vz-actions button{color:#251c32;background:#dfc6fe}
-.vz-sheet button:focus-visible,.vz-sheet summary:focus-visible,.vz-editor summary:focus-visible{outline:2px solid #e3c6ff;outline-offset:2px}
-.vz-sheet button:disabled{opacity:.4}
-.vz-report{padding:clamp(16px,2.5vw,28px)}.vz-meta{align-items:flex-end;gap:12px;margin-bottom:18px}.vz-report h3{font-size:clamp(1.5rem,3vw,2.1rem)}
-.vz-date{letter-spacing:.04em}.vz-legend{color:var(--vz-muted);font-size:.78rem}.vz-legend span{display:inline-flex;gap:6px;align-items:center}
-.vz-key{width:13px;height:8px;background:#427a72;border-radius:2px}.vz-key.off{background:repeating-linear-gradient(125deg,#e6a58e 0 3px,#ab786d 3px 5px)}
-.vz-axisrow,.vz-row summary{display:grid;align-items:center;grid-template-columns:100px minmax(0,1fr) 76px;gap:12px}
-.vz-axisrow{color:var(--vz-muted);font-size:.72rem;margin-bottom:5px}.vz-axis{display:flex;justify-content:space-between;letter-spacing:0;color:var(--vz-muted)}
-.vz-row{margin:0;padding:0;border:0;border-top:1px solid var(--vz-line)}.vz-row summary{padding:11px 0;list-style:none;cursor:pointer;color:var(--vz-ink);font-size:.9rem}
-.vz-row summary::-webkit-details-marker{display:none}.vz-row summary strong{display:flex;align-items:center;gap:6px}.vz-row summary strong::before{content:'›';font-weight:500;color:#c2a1e5}.vz-row[open] summary strong::before{transform:rotate(90deg)}
-.vz-track{position:relative;background:#345e5b;height:22px;border-radius:5px;overflow:hidden}.vz-track svg{display:block;width:100%;height:100%}
-.vz-now{position:absolute;top:0;bottom:0;left:var(--vz-now);width:2px;background:white;box-shadow:0 0 0 1px #37304c}.vz-row small,.vz-axisrow>span:last-child{text-align:right;color:var(--vz-muted);font-variant-numeric:tabular-nums}
-.vz-breaks{margin:0 0 12px;color:var(--vz-muted);font-size:.85rem}.vz-footer{margin-top:12px;padding-top:14px;border-top:1px solid var(--vz-line);font-size:.82rem;color:var(--vz-muted)}
-.vz-empty{padding:32px;text-align:center;color:var(--vz-muted)}
-#chartModal{width:min(1320px,96vw);max-height:92vh;padding:0;background:var(--vz-paper);border:1px solid var(--vz-line);border-radius:18px;overflow:auto}
-#chartModal::backdrop{background:#0e1023bc}#chartModal .vz-sheet{border:0}#chartModal .vz-toolbar{position:sticky;top:0;z-index:3}
-@media(max-width:600px){.vz-axisrow,.vz-row summary{grid-template-columns:43px minmax(0,1fr) 50px;gap:7px}.vz-axisrow{font-size:.63rem}.vz-axis{font-size:.62rem}.vz-intro svg{width:70px}.vz-toolbar{align-items:flex-start}.vz-tools{gap:2px}.vz-tools button{padding:7px 9px}.vz-row small{font-size:.72rem}.vz-report{padding:14px}.vz-track{height:20px}}
-@media(prefers-reduced-motion:no-preference){.vz-breaks{animation:mqEnter .2s ease-out}.vz-row summary:hover{background:#292b40}}
+#vizTooltip{position:fixed;z-index:1000;pointer-events:none;max-width:320px;padding:13px 16px;border-radius:12px;border:1px solid #8c789e;background:#28243bf5;color:#f3edf9;box-shadow:0 12px 32px #080b1870;font-size:.8rem;line-height:1.6;white-space:normal}#vizTooltip[hidden]{display:none}
+/* City atlas: isolated from the My Queue and comparison tabs. */
+#tab-viz,#chartModal{--accent:#dbc6ff;--muted:#b6b6cb;--border:#3b3e56;--card:#202337;--card2:#191d30}
+.vz-intro{display:flex;justify-content:space-between;align-items:center;margin:23px 0 18px;gap:14px}.vz-intro h2{margin:4px 0;font-size:1.55rem;letter-spacing:-.6px}.vz-kicker{color:#dbc6ff;letter-spacing:.19em;font-size:.67rem;font-weight:750}.vz-intro p{margin:0;color:var(--muted);font-size:.85rem}
+.vz-editor{background:#202337;border:1px solid var(--border);border-radius:16px;padding:13px 18px;margin:0 0 16px}.vz-editor summary{color:#e9e1f6}.vz-editor label{display:block;margin:14px 0 8px;color:var(--muted);font-size:.85rem}.vz-editor p{font-size:.78rem;color:var(--muted)}.vz-editor .chk{display:flex;margin:0}.vz-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px}
+.vz-sheet{container-type:inline-size;overflow:hidden;border:1px solid #4c4563;border-radius:24px;background:#191d30;box-shadow:0 20px 65px #080b182b;color:#f3edf9}
+.vz-hero{position:relative;isolation:isolate;overflow:hidden;min-height:226px;background:linear-gradient(110deg,#211f35 10%,#302b49 55%,#443b59);padding:28px 30px}.vz-hero .mq-city{width:70%;height:100%;z-index:-1;--power:.7}.vz-hero h3{font-size:clamp(1.6rem,3vw,2.2rem);letter-spacing:-1px;margin:10px 0 5px}.vz-hero p{margin:0;color:#c4bdd1;font-size:.83rem}.vz-hero-copy{position:relative;max-width:55%}.vz-hero-badge{display:inline-flex;gap:8px;align-items:center;margin-top:22px;border:1px solid #8e7da76b;background:#25243cbb;padding:7px 12px;border-radius:10px;font-size:.78rem;color:#e5d6ff}.vz-hero-badge i{width:6px;height:6px;border-radius:50%;background:#dbc6ff;box-shadow:0 0 13px #dbc6ff}
+.vz-toolbar{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px;padding:18px 22px;border-bottom:1px solid var(--border);background:#222438}.vz-toolbar label{font-size:.72rem;color:#bcb6cd;display:grid;gap:6px}.vz-toolbar select{min-height:40px;background:#191d30;border-radius:10px;max-width:100%;font-size:.83rem}.vz-tools{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap;margin-left:auto}.vz-tools button{font-size:.8rem;min-height:40px;padding:8px 12px}.vz-tools .vz-quality{min-width:95px}.vz-source{display:flex;gap:4px;flex-wrap:wrap}.vz-source button{font-size:.8rem;background:transparent;color:#b6b6cb;border:1px solid transparent}.vz-source button.active{background:#dbc6ff19;color:#dbc6ff;border-color:#dbc6ff55}
+.vz-report{padding:20px 22px}.vz-guide{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:18px;color:#b6b6cb;font-size:.72rem}.vz-legend{display:flex;gap:14px;flex-wrap:wrap}.vz-legend span{display:flex;align-items:center;gap:6px}.vz-key{display:inline-block;width:12px;height:12px;border-radius:3px;background:#365c58;border:1px solid #7fc8b855}.vz-key.off{background:#ad7187;border-color:#e3a2b9}.vz-key.partial{background:linear-gradient(90deg,#ad7187 50%,#365c58 50%)}.vz-key.now{background:transparent;border:2px solid #fff}
+.vz-panel+.vz-panel{margin-top:23px}.vz-panel-title{display:flex;justify-content:space-between;color:#b6b6cb;font-size:.7rem;letter-spacing:.06em;margin-bottom:8px}.vz-panel-title b{color:#d8c9ed;font-weight:500}
+.vz-axis,.vz-row{display:grid;grid-template-columns:96px minmax(0,1fr) 62px;gap:10px;align-items:center}.vz-axis{font-size:.65rem;color:#a8a4ba;margin:0 0 8px;padding:0 10px}.vz-hours,.vz-cells{display:grid;grid-template-columns:repeat(var(--hours),minmax(0,1fr));gap:5px;min-width:0}.vz-hours>span{text-align:center}.vz-hours small{display:block;font-size:.55rem;color:#8d8b9f;letter-spacing:.02em;margin-top:3px}.vz-axis>span:last-child{text-align:right}
+.vz-row{position:relative;margin:3px 0;border:1px solid transparent;border-radius:10px;padding:9px;transition:background .18s,border-color .18s}.vz-row:hover{background:#ffffff05}.vz-row.is-mine{background:linear-gradient(90deg,#dbc6ff20,#dbc6ff09);border-color:#b49bdb70;box-shadow:inset 3px 0 #dbc6ff}.vz-name{display:flex;gap:7px;align-items:center;min-width:0}.vz-name strong{font-size:.95rem;font-variant-numeric:tabular-nums}.vz-name small{color:#dbc6ff;font-size:.6rem;border-radius:5px;padding:2px 4px;background:#dbc6ff15}.vz-total{color:#bdb7cc;text-align:right;font-size:.75rem;font-variant-numeric:tabular-nums}.vz-row.is-mine .vz-total{color:#e7d9ff}
+.vz-hour-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px}.vz-cell{position:relative;isolation:isolate;overflow:hidden;aspect-ratio:1;min-width:0;width:100%;padding:0;border-radius:4px;border:1px solid #81c6b92b;background:#365c58;color:#eac8d5;transition:transform .16s,box-shadow .16s;touch-action:manipulation}.vz-cell>i{position:absolute;inset:0;z-index:-1;background:var(--slot-fill)}.vz-cell.off:after{content:'';position:absolute;width:40%;height:1.5px;background:#e6b8c9;left:30%;top:48%;transform:rotate(-45deg);opacity:.8}.vz-cell.partial:after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(135deg,transparent 0 5px,#fff1 5px 6px)}.vz-cell:hover,.vz-cell:focus-visible,.vz-cell.is-selected{z-index:2;outline:2px solid #efe4ff;outline-offset:2px;transform:translateY(-2px);box-shadow:0 4px 16px #dbc6ff55;filter:none}.vz-cell.is-now{box-shadow:inset 0 0 0 1.5px #fff}.vz-cell.is-now:before{content:'';position:absolute;width:3px;height:3px;border-radius:50%;background:white;top:2px;left:calc(50% - 1.5px);animation:vzPulse 2.8s ease-in-out infinite}.vz-cell:disabled{background:#365c58}
+.vz-detail{display:flex;align-items:center;gap:14px;margin:20px 0 0;padding:16px 18px;min-height:76px;border:1px solid #484159;border-radius:14px;background:linear-gradient(115deg,#2b2940,#202338)}.vz-detail-icon{display:grid;place-items:center;width:38px;height:38px;flex:none;background:#dbc6ff15;border:1px solid #dbc6ff30;border-radius:12px;color:#dbc6ff}.vz-detail svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6}.vz-detail strong{display:block;font-size:.9rem;margin-bottom:4px}.vz-detail p{margin:0;color:#bdb7cc;font-size:.77rem}.vz-footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;color:#9997ae;font-size:.7rem}.vz-footer b{color:#dbc6ff}.vz-empty{padding:40px 22px;color:#b6b6cb;text-align:center;line-height:1.7}
+#chartModal{width:min(1700px,98vw);max-width:none;max-height:95dvh;background:#191d30;border-radius:24px;overflow:auto;padding:0}#chartModal::backdrop{background:#0b0d20cf;backdrop-filter:blur(8px)}#chartModal .vz-sheet{border:0;border-radius:0}.vz-sheet.vz-paused *,.vz-sheet.vz-paused *:before{animation-play-state:paused!important}#tab-viz:not(.active) *{animation-play-state:paused!important}
+@keyframes vzPulse{50%{opacity:.35}}
+@container(max-width:700px){.vz-toolbar{padding:16px;gap:10px}.vz-tools{margin-left:0;flex:1 1 100%}.vz-report{padding:16px 12px}.vz-axis,.vz-row{grid-template-columns:65px minmax(0,1fr) 45px;gap:7px}.vz-name{flex-wrap:wrap;gap:2px}.vz-name small{font-size:.53rem}.vz-total{font-size:.64rem}.vz-hours,.vz-cells{gap:4px}.vz-hero{padding:24px 22px;min-height:240px}.vz-hero-copy{max-width:70%}.vz-hero .mq-city{width:100%;height:77%;opacity:.78}.vz-hero h3{font-size:1.65rem}.vz-hero-badge{margin-top:16px}.vz-axis{padding:0 7px}.vz-row{padding:8px 6px}.vz-hours small{font-size:.5rem}}
+@container(max-width:400px){.vz-axis,.vz-row{grid-template-columns:49px minmax(0,1fr) 39px;gap:5px}.vz-hours,.vz-cells{gap:3px}.vz-name strong{font-size:.85rem}.vz-hour-pair{gap:2px}.vz-cell{border-radius:3px}.vz-tools button{padding:8px;font-size:.75rem}.vz-hero-copy{max-width:90%}.vz-hero{min-height:264px}.vz-hero .mq-city{height:65%}.vz-hero-badge{margin-top:12px}.vz-detail{padding:12px;gap:10px}.vz-detail-icon{width:30px;height:30px}.vz-hours small{letter-spacing:-.04em}}
+@media(prefers-reduced-motion:reduce){#tab-viz *,#chartModal *,#tab-viz *:before,#chartModal *:before{animation:none!important;transition:none!important}}
 #toasts{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:99;align-items:center;width:max-content;max-width:92vw}
 .toast{background:#0b3b2e;color:#d1fae5;border:1px solid var(--accent-d);padding:10px 18px;border-radius:24px;box-shadow:0 6px 20px rgba(0,0,0,.4);animation:in .2s}
 .toast.err{background:#4c1d2b;color:#ffe4e6;border-color:var(--danger)}
@@ -341,24 +328,28 @@ tr.mine td:first-child{border-left:3px solid var(--accent)}
 
   <!-- VISUALIZER -->
   <section id="tab-viz" class="pane">
-    <header class="vz-intro"><div><div class="vz-kicker">LUMINA / ВИЗУАЛИЗАТОР</div><h2>График отключений</h2><p>Все очереди на одной шкале суток.</p></div>
-      <svg viewBox="0 0 144 66" width="144" height="66" aria-hidden="true"><g fill="none" stroke="#656481" stroke-width="2"><path d="M0 14h144M0 33h144M0 52h144"/></g><g stroke-linecap="round" stroke-width="8"><path stroke="#d6b9ff" d="M12 14h31m28 0h35"/><path stroke="#efae99" d="M35 33h45m34 0h17"/><path stroke="#97d9cc" d="M9 52h21m35 0h52"/></g></svg>
-    </header>
-    <details class="vz-editor" id="vizEditor"><summary>Исходное расписание <span>Редактировать</span></summary>
-      <label for="vizInput">Вставьте интервалы для каждой очереди</label>
-      <textarea id="vizInput" placeholder="Черга 1.1: з 00:00 до 02:00, з 15:00 до 20:00&#10;1.2: 02:00 – 06:00"></textarea>
-      <p class="vz-hint">Для даты и времени обновления добавьте заголовок вида «=== 17.10.2026 · 14:32 ===».</p>
+    <header class="vz-intro"><div><div class="vz-kicker">LUMINA / ГОРОДСКОЙ АТЛАС</div><h2>Визуализация</h2><p>Ритм города. Ваши полчаса света.</p></div></header>
+    <details class="vz-editor" id="vizEditor"><summary>Свое расписание · вставить или изменить</summary>
+      <label for="vizInput">Очереди и точные интервалы отключений</label>
+      <textarea id="vizInput" placeholder="Черга 1.1: з 09:00 до 13:00&#10;1.2: 09:30–13:00"></textarea>
+      <p>Поддерживаются многострочные расписания. Дата и обновление: === 04.11.2026 · 14:32 ===</p>
       <div class="vz-actions"><label class="chk"><input type="checkbox" id="nextDayCheck"><span>Указать завтрашнюю дату</span></label><button id="generateVizBtn">Построить график</button></div>
     </details>
-    <div id="vizDock"><section class="vz-sheet" id="vizSheet" aria-label="График по очередям">
-      <div class="vz-toolbar"><label>Показать <select id="vizQueue" aria-label="Очередь на графике"><option value="">Все очереди</option></select></label>
-        <div class="vz-tools"><button id="expandVizBtn" class="flat">Развернуть</button><button id="copyPngBtn" class="flat">Копировать PNG</button><button id="downloadPngBtn">Скачать PNG</button></div></div>
+    <div id="vizDock"><section class="vz-sheet" id="vizSheet" aria-label="Интерактивный график отключений">
+      <header class="vz-hero"><div id="vizCity"></div><div class="vz-hero-copy"><div class="vz-kicker">СВЕТ В ОКНАХ / 24 ЧАСА</div><h3 id="vizDate">График отключений</h3><p id="vizUpdated">Киевское время · официальный график</p><div class="vz-hero-badge"><i></i><span id="vizMineBadge">Выберите свою очередь</span></div></div></header>
+      <div class="vz-toolbar">
+        <div class="vz-source" role="group" aria-label="Источник графика"><button data-vz-day="today">Сегодня</button><button data-vz-day="tomorrow">Завтра</button><button data-vz-day="custom">Свой текст</button></div>
+        <label>Моя очередь<select id="vizMine" aria-label="Моя очередь в визуализаторе"></select></label>
+        <label>Показать<select id="vizQueue" aria-label="Фильтр очередей"><option value="">Все очереди</option></select></label>
+        <div class="vz-tools"><button id="vizMotionBtn" class="flat" aria-pressed="false">Пауза анимации</button><button id="expandVizBtn" class="flat">Развернуть</button><label>Качество PNG<select id="vizQuality" class="vz-quality"><option value="2">2× · 3200 px</option><option value="3">3× · 4800 px</option></select></label><button id="copyPngBtn" class="flat" title="Копировать график в буфер обмена">Копировать</button><button id="downloadPngBtn">↓ PNG</button></div>
+      </div>
       <div id="chartHost"></div>
     </section></div>
   </section>
 </div>
 
-<dialog id="chartModal" aria-label="Развёрнутый график отключений"></dialog>
+<dialog id="chartModal" aria-label="График отключений на весь экран"></dialog>
+<div id="vizTooltip" role="tooltip" hidden></div>
 <div id="toasts"></div>
 
 <script>
@@ -381,6 +372,14 @@ function hmFull(min) {
   const h = Math.floor(min / 60), m = min % 60;
   if (!h && !m) return '0ч';
   return (h ? h + 'ч' : '') + (h && m ? ' ' : '') + (m ? m + 'мин' : '');
+}
+function slotsOff(iv) {
+  const a = new Array(48).fill(false);
+  for (const [s, e] of iv) for (let i = 0; i < 48; i++) {
+    const o = Math.min(e, i * 30 + 30) - Math.max(s, i * 30);
+    if (o >= 15 || (o > 0 && o === e - s)) a[i] = true;
+  }
+  return a;
 }
 function dur(sec) {
   sec = Math.max(0, Math.round(sec));
@@ -1049,7 +1048,7 @@ $('#clearBtn').addEventListener('click', () => {
 onlyChanges.addEventListener('change', () => renderCompare());
 oldInput.addEventListener('input', () => { store.set('old', oldInput.value); autosize(oldInput); });
 newInput.addEventListener('input', () => { store.set('new', newInput.value); autosize(newInput); rebuildDayMap(); renderTables(); });
-vizInput.addEventListener('input', () => { store.set('viz', vizInput.value); refreshViz(); });
+vizInput.addEventListener('input', () => { store.set('viz', vizInput.value); vizSource='custom'; store.set('viz_source',vizSource); refreshViz(); });
 soundCheck.addEventListener('change', () => { store.set('sound_enabled', soundCheck.checked); if (soundCheck.checked) initAudio(); });
 
 function renderVersions() {
@@ -1099,8 +1098,8 @@ function processJsonData(data, isAuto) {
   }
   [oldInput, newInput].forEach(autosize);
   rebuildDayMap(); renderVersions(); renderTables(); renderLive(); setStatus();
+  if ($('#tab-viz').classList.contains('active') || chartModal.open) refreshViz();
 
-  if ($('#tab-viz').classList.contains('active')) refreshViz();
   if (changed) {
     renderCompare();
     if (isAuto && saved) {
@@ -1156,138 +1155,201 @@ $('#copyJsonBtn').addEventListener('click', async () => {
 });
 
 // ---------- visualizer ----------
+// <viz-core>
 function buildModel(text, nextDay) {
   const p = parseText(text), t = nowKyiv();
-  const date = nextDay ? addDays(t.date, 1) : (p.date || t.date);
-  const rows = [...p.queues].map(([name, iv]) => ({name, iv, total: sum(iv)}));
-  return {date, time: p.time, rows};
+  return {date:nextDay ? addDays(t.date,1) : (p.date || t.date),time:p.time,
+    rows:[...p.queues].map(([name,iv])=>({name,iv,total:sum(iv)}))};
 }
-const vizQueue = $('#vizQueue'), vizSheet = $('#vizSheet');
-const vizHours = [0,6,12,18,24];
-const vizPalette = {paper:'#202235',ink:'#f1edf8',muted:'#c0baca',line:'#393c53',on:'#345e5b',off:'#eda990',accent:'#d5bafa'};
-const rangeLabel = ([start,end]) => fmt(start)+'–'+fmt(end);
-
-function chartRows() {
-  return state.model.rows.filter(row => !vizQueue.value || row.name === vizQueue.value);
+// Preserve exact minute boundaries; screen and export share these segments.
+function vizSlot(iv, slot) {
+  const start=slot*30, end=start+30;
+  const parts=mergeIv(iv.map(([a,b])=>[Math.max(start,a),Math.min(end,b)]).filter(([a,b])=>b>a));
+  const off=sum(parts);
+  return {start,end,parts,off,kind:off===0?'on':off===30?'off':'partial'};
 }
-function chartPattern() {
-  return '<defs><pattern id="vz-hatch" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="'+vizPalette.off+'"/><path d="m-2 2 4-4m-2 10 8-8m-2 10 4-4" stroke="#b68074" stroke-width="1.6"/></pattern></defs>';
+function vizFill(cell) {
+  const stops=[];let last=0;
+  for (const [a,b] of cell.parts) {
+    const left=(a-cell.start)/30*100,right=(b-cell.start)/30*100;
+    if(left>last) stops.push(`#365c58 ${last}% ${left}%`);
+    stops.push(`#ad7187 ${left}% ${right}%`);last=right;
+  }
+  if(last<100) stops.push(`#365c58 ${last}% 100%`);
+  return `linear-gradient(90deg,${stops.join(',')})`;
 }
-// One SVG unit is one minute. Both the screen and the PNG use these same bands.
-function chartBand(row) {
-  const marks = row.iv.map(([a,b]) => `<rect x="${a}" width="${b-a}" height="24" fill="url(#vz-hatch)"/>`).join('');
-  return '<rect width="1440" height="24" fill="'+vizPalette.on+'"/>'+marks+
-    '<path d="M360 0v24m360-24v24m360-24v24" stroke="#fff" stroke-opacity=".32" stroke-width="2"/>';
+function vizRows(model, filter, mine) {
+  // Keep the user's queue present even while comparing with a different queue.
+  return model.rows.filter(r=>!filter || r.name===filter || r.name===mine);
 }
+function vizHoursForWidth(width) { return width<600?6:width<1000?12:24; }
+const vizRange = ([a,b])=>fmt(a)+'–'+fmt(b);
+function vizCellLabel(row,slot) {
+  const cell=vizSlot(row.iv,slot);
+  return `Очередь ${row.name} · ${fmt(cell.start)}–${fmt(cell.end)} · `+
+    (cell.off===0?'Свет есть по графику':cell.off===30?'Без света по графику':'Частичное отключение: '+cell.parts.map(vizRange).join(', '));
+}
+// </viz-core>
+const vizSheet=$('#vizSheet'), vizQueue=$('#vizQueue'), vizMine=$('#vizMine');
+let vizSource=store.get('viz_source','today'), vizHours=24, vizSelection=null, vizRenderKey='';
+if(!['today','tomorrow','custom'].includes(vizSource)) vizSource='today';
+const vizCity=riverfront.replace(/id="city-/g,'id="vz-city-').replace(/url\(#city-/g,'url(#vz-city-');
+$('#vizCity').innerHTML=vizCity;
+const currentVizMine=()=>mySel.value || store.get('myQueue','');
+function currentVizRows(){return state.model?vizRows(state.model,vizQueue.value,currentVizMine()):[];}
 function refreshViz() {
-  const model = buildModel(vizInput.value,$('#nextDayCheck').checked);
-  const selected = vizQueue.value;
-  state.model = model;
-  vizQueue.innerHTML = '<option value="">Все очереди</option>'+model.rows.map(r=>`<option value="${esc(r.name)}">${esc(r.name)}</option>`).join('');
-  if (model.rows.some(r=>r.name===selected)) vizQueue.value = selected;
+  if(vizSource==='custom') state.model=buildModel(vizInput.value,$('#nextDayCheck').checked);
+  else {
+    const date=addDays(nowKyiv().date,vizSource==='tomorrow'?1:0), day=state.dayMap.get(date);
+    state.model={date,time:day?.time,rows:day?[...day.queues].map(([name,iv])=>({name,iv,total:sum(iv)})):[]};
+  }
+  const mine=currentVizMine(), selected=vizQueue.value;
+  const names=[...new Set([...state.model.rows.map(r=>r.name),...Array.from(mySel.options,o=>o.value).filter(Boolean),...(mine?[mine]:[])])].sort(natural);
+  vizMine.innerHTML='<option value="">Выбрать</option>'+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');vizMine.value=mine;
+  vizQueue.innerHTML='<option value="">Все очереди</option>'+state.model.rows.map(r=>`<option value="${esc(r.name)}">${esc(r.name===mine?r.name+' · моя':r.name)}</option>`).join('');
+  if(state.model.rows.some(r=>r.name===selected)) vizQueue.value=selected;
+  $$('#vizSheet [data-vz-day]').forEach(b=>{b.classList.toggle('active',b.dataset.vzDay===vizSource);b.setAttribute('aria-pressed',b.dataset.vzDay===vizSource);});
+  const width=vizSheet.getBoundingClientRect().width;if(width) vizHours=vizHoursForWidth(width);
   renderChart();
 }
-function updateVizClock() {
-  if (!state.model) return;
-  const t = nowKyiv(), today = t.date === state.model.date;
-  chartHost.style.setProperty('--vz-now',t.sec/864+'%');
-  for (const el of $$('.vz-now, [data-now-key]',chartHost)) el.style.display = today ? '' : 'none';
-}
 function renderChart() {
-  const m = state.model, rows = chartRows();
-  for (const el of [vizQueue,$('#copyPngBtn'),$('#downloadPngBtn')]) el.disabled = !rows.length;
-  if (!rows.length) {
-    chartHost.innerHTML='<div class="vz-empty">Введите расписание в поле выше, чтобы построить график.</div>';
-    return;
+  const m=state.model;if(!m)return;
+  const rows=currentVizRows(),mine=currentVizMine();
+  const key=JSON.stringify([m,vizQueue.value,mine,vizHours]);
+  if(key===vizRenderKey){updateVizClock();return;}
+  vizRenderKey=key;$('#vizTooltip').hidden=true;
+  $('#vizDate').textContent=m.date;
+  $('#vizUpdated').textContent='Киевское время · '+(m.time?'обновлено в '+m.time:'время обновления не указано');
+  $('#vizMineBadge').textContent=mine?'Моя очередь '+mine+(m.rows.some(r=>r.name===mine)?' · всегда в фокусе':' · нет данных на эту дату'):'Выберите свою очередь';
+  for(const id of ['#copyPngBtn','#downloadPngBtn']) $(id).disabled=!rows.length;
+  if(!rows.length){chartHost.innerHTML=`<div class="vz-empty">${vizSource==='custom'?'Вставьте расписание в редактор выше.':'На '+esc(m.date)+' расписание пока не опубликовано.'}<br>Отсутствие данных не означает отсутствие отключений.</div>`;return;}
+  let panels='';
+  for(let start=0;start<24;start+=vizHours){
+    const hours=Array.from({length:vizHours},(_,i)=>start+i);
+    panels+=`<section class="vz-panel" style="--hours:${vizHours}" aria-label="${pad2(start)}:00–${pad2(start+vizHours)}:00"><div class="vz-panel-title"><b>${pad2(start)}:00 — ${pad2(start+vizHours)}:00</b><span>${vizHours===24?'СУТКИ':start<6?'НОЧЬ':start<12?'УТРО':start<18?'ДЕНЬ':'ВЕЧЕР'}</span></div><div class="vz-axis"><span>Очередь</span><div class="vz-hours">${hours.map(h=>`<span>${pad2(h)}<small>00 · 30</small></span>`).join('')}</div><span>Без света<br>за сутки</span></div>`;
+    panels+=rows.map(row=>`<div class="vz-row${row.name===mine?' is-mine':''}" data-vz-row="${esc(row.name)}"><div class="vz-name"><strong>${esc(row.name)}</strong>${row.name===mine?'<small>МОЯ</small>':''}</div><div class="vz-cells" role="group" aria-label="Очередь ${esc(row.name)}, ${pad2(start)}:00–${pad2(start+vizHours)}:00">${hours.map(hour=>'<div class="vz-hour-pair">'+[0,1].map(half=>{
+      const slot=hour*2+half,cell=vizSlot(row.iv,slot),chosen=vizSelection?.name===row.name&&vizSelection?.slot===slot;
+      return `<button class="vz-cell ${cell.kind}${chosen?' is-selected':''}" data-vz-name="${esc(row.name)}" data-vz-slot="${slot}" tabindex="${hour===start&&half===0?0:-1}" aria-label="${esc(vizCellLabel(row,slot))}" aria-pressed="${chosen}" style="--slot-fill:${vizFill(cell)}"><i aria-hidden="true"></i></button>`;
+    }).join('')+'</div>').join('')}</div><span class="vz-total">${hm(row.total)}</span></div>`).join('')+'</section>';
   }
-  const title = vizQueue.value ? 'Очередь '+esc(vizQueue.value) : 'Все очереди';
-  chartHost.innerHTML = `<div class="vz-report">
-    <svg width="0" height="0" aria-hidden="true" style="position:absolute">${chartPattern()}</svg>
-    <header class="vz-meta"><div><div class="vz-date">${esc(m.date)} · Киев${m.time?' · обновлено в '+esc(m.time):''}</div><h3>${title}</h3></div>
-      <div class="vz-legend"><span><i class="vz-key"></i>Есть свет</span><span><i class="vz-key off"></i>Отключение</span><span data-now-key>│ Сейчас</span></div></header>
-    <div class="vz-axisrow"><span>Очередь</span><div class="vz-axis">${vizHours.map(h=>'<span>'+pad2(h)+'</span>').join('')}</div><span>Без света</span></div>
-    ${rows.map(row=>`<details class="vz-row"${vizQueue.value?' open':''}><summary><strong>${esc(row.name)}</strong>
-      <span class="vz-track"><svg viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true">${chartBand(row)}</svg><i class="vz-now"></i></span>
-      <small>${hm(row.total)}</small></summary><p class="vz-breaks">Отключения по графику · ${row.iv.map(rangeLabel).join(' · ')}</p></details>`).join('')}
-    <div class="vz-footer">Всего без света${rows.length>1?' по '+rows.length+' очередям':''} · <b>${hmFull(rows.reduce((n,r)=>n+r.total,0))}</b></div></div>`;
+  chartHost.innerHTML=`<div class="vz-report"><div class="vz-guide"><div class="vz-legend"><span><i class="vz-key"></i>Есть свет</span><span><i class="vz-key off"></i>Нет света</span><span><i class="vz-key partial"></i>Часть 30 мин</span><span><i class="vz-key now"></i>Сейчас</span></div><span>1 квадрат = 30 минут · 2 квадрата = час</span></div>${panels}<div class="vz-detail" id="vizDetail" role="status" aria-live="polite" aria-atomic="true"><span class="vz-detail-icon">${MQ_ICONS.clock}</span><div><strong>У каждого получаса есть детали</strong><p>Наведите или нажмите на квадрат. С клавиатуры: Tab, затем стрелки.</p></div></div><footer class="vz-footer"><span>Официальное расписание · без поправок на время переключения</span><span>Сумма по показанным очередям: <b>${hmFull(rows.reduce((a,r)=>a+r.total,0))}</b></span></footer></div>`;
+  if(vizSelection){const row=rows.find(r=>r.name===vizSelection.name);if(row) showVizDetail(row,vizSelection.slot);else vizSelection=null;}
   updateVizClock();
 }
-$('#generateVizBtn').addEventListener('click', () => {
-  refreshViz();
-  if (!state.model.rows.length) { toast('Не удалось распознать расписание',true); vizInput.focus(); return; }
-  $('#vizEditor').open = false;
-  vizQueue.focus();
+function showVizDetail(row,slot){
+  const cell=vizSlot(row.iv,slot),el=$('#vizDetail');if(!el)return;
+  el.innerHTML=`<span class="vz-detail-icon">${cell.off?MQ_ICONS.bolt:MQ_ICONS.bulb}</span><div><strong>${esc(vizCellLabel(row,slot))}</strong><p>${cell.off?'В этом получасе без света: '+hmFull(cell.off)+'. ':''}Отключения за сутки: ${row.iv.length?row.iv.map(vizRange).join(' · '):'не запланированы'}.</p></div>`;
+}
+function inspectVizCell(button,pin=false){
+  if(!button)return;
+  const row=state.model?.rows.find(r=>r.name===button.dataset.vzName);if(!row)return;
+  const slot=Number(button.dataset.vzSlot);showVizDetail(row,slot);
+  const tip=$('#vizTooltip'),rect=button.getBoundingClientRect(),viewportWidth=document.documentElement.clientWidth;
+  // Keep the tooltip in the dialog's top layer when expanded.
+  const owner=chartModal.open?chartModal:document.body;if(tip.parentElement!==owner)owner.append(tip);
+  tip.textContent=vizCellLabel(row,slot);tip.hidden=false;
+  tip.style.width=Math.min(320,viewportWidth-24)+'px';
+  tip.style.left=Math.max(12,Math.min(rect.left,viewportWidth-tip.offsetWidth-12))+'px';
+  tip.style.top=Math.max(12,rect.bottom+tip.offsetHeight+12>window.innerHeight?rect.top-tip.offsetHeight-10:rect.bottom+10)+'px';
+  if(pin){
+    vizSelection={name:row.name,slot};
+    $$('.vz-cell.is-selected',chartHost).forEach(el=>{el.classList.remove('is-selected');el.setAttribute('aria-pressed','false');});
+    button.classList.add('is-selected');button.setAttribute('aria-pressed','true');
+  }
+}
+chartHost.addEventListener('pointerover',e=>{if(e.pointerType!=='touch')inspectVizCell(e.target.closest('.vz-cell'));});
+chartHost.addEventListener('focusin',e=>inspectVizCell(e.target.closest('.vz-cell')));
+chartHost.addEventListener('click',e=>inspectVizCell(e.target.closest('.vz-cell'),true));
+chartHost.addEventListener('keydown',e=>{
+  const cell=e.target.closest('.vz-cell');if(!cell)return;
+  const keys=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'];if(!keys.includes(e.key))return;
+  e.preventDefault();const cells=$$('.vz-cell',chartHost),row=cell.dataset.vzName,slot=+cell.dataset.vzSlot,rows=currentVizRows();
+  const delta=e.key==='ArrowLeft'?-1:e.key==='ArrowRight'?1:0;
+  const targetRow=e.key==='ArrowDown'?rows[Math.min(rows.length-1,rows.findIndex(r=>r.name===row)+1)].name:e.key==='ArrowUp'?rows[Math.max(0,rows.findIndex(r=>r.name===row)-1)].name:row;
+  const targetSlot=e.key==='Home'?0:e.key==='End'?47:Math.max(0,Math.min(47,slot+delta));
+  const next=cells.find(c=>c.dataset.vzName===targetRow&&+c.dataset.vzSlot===targetSlot);
+  if(next){cell.tabIndex=-1;next.tabIndex=0;next.focus();}
+});
+chartHost.addEventListener('pointerleave',()=>{$('#vizTooltip').hidden=true;if(vizSelection){const row=state.model.rows.find(r=>r.name===vizSelection.name);if(row)showVizDetail(row,vizSelection.slot);}});
+document.addEventListener('scroll',()=>{$('#vizTooltip').hidden=true;},true);
+document.addEventListener('click',e=>{if(!e.target.closest('.vz-cell'))$('#vizTooltip').hidden=true;});
+chartHost.addEventListener('focusout',()=>{$('#vizTooltip').hidden=true;});
+function updateVizClock(){
+  if(!state.model)return;const now=nowKyiv(),slot=state.model.date===now.date?Math.floor(now.sec/1800):-1;
+  $$('.vz-cell',chartHost).forEach(c=>{const cur=+c.dataset.vzSlot===slot;c.classList.toggle('is-now',cur);if(cur)c.setAttribute('aria-current','time');else c.removeAttribute('aria-current');});
+}
+new ResizeObserver(entries=>{const width=entries[0].contentRect.width;if(!width)return;const hours=vizHoursForWidth(width);if(hours!==vizHours){vizHours=hours;renderChart();}}).observe(vizSheet);
+vizMine.addEventListener('change',()=>{
+  const value=vizMine.value;store.set('myQueue',value);
+  if(value&&!Array.from(mySel.options).some(o=>o.value===value))mySel.add(new Option(value,value));
+  mySel.value=value;renderTables();renderLive();refreshViz();
 });
 vizQueue.addEventListener('change',renderChart);
-$('#nextDayCheck').addEventListener('change',refreshViz);
-$('#expandVizBtn').addEventListener('click', () => {
-  if (chartModal.open) { chartModal.close(); return; }
-  chartModal.append(vizSheet); $('#expandVizBtn').textContent='Свернуть'; chartModal.showModal();
+$('.vz-source').addEventListener('click',e=>{const b=e.target.closest('[data-vz-day]');if(!b)return;vizSource=b.dataset.vzDay;store.set('viz_source',vizSource);$('#vizEditor').open=vizSource==='custom';refreshViz();});
+$('#nextDayCheck').addEventListener('change',()=>{vizSource='custom';store.set('viz_source',vizSource);refreshViz();});
+$('#generateVizBtn').addEventListener('click',()=>{vizSource='custom';store.set('viz_source',vizSource);refreshViz();if(!state.model.rows.length)return toast('Не удалось распознать расписание',true);$('#vizEditor').open=false;});
+$('#vizMotionBtn').addEventListener('click',()=>{const paused=vizSheet.classList.toggle('vz-paused');$('#vizMotionBtn').setAttribute('aria-pressed',paused);$('#vizMotionBtn').textContent=paused?'Включить анимацию':'Пауза анимации';});
+$('#expandVizBtn').addEventListener('click',()=>{
+  if(chartModal.open){chartModal.close();return;}
+  chartModal.append(vizSheet);$('#expandVizBtn').textContent='Свернуть';chartModal.showModal();
 });
-chartModal.addEventListener('close', () => {
-  $('#vizDock').append(vizSheet); $('#expandVizBtn').textContent='Развернуть'; $('#expandVizBtn').focus();
-});
-chartModal.addEventListener('click', e => { if (e.target===chartModal) chartModal.close(); });
+chartModal.addEventListener('close',()=>{$('#vizTooltip').hidden=true;document.body.append($('#vizTooltip'));$('#vizDock').append(vizSheet);$('#expandVizBtn').textContent='Развернуть';$('#expandVizBtn').focus();});
+chartModal.addEventListener('click',e=>{if(e.target===chartModal)chartModal.close();});
 
-// Export a self-contained sheet with exact times printed underneath each band.
-function chartPoster(model, rows, now) {
-  const width=1000, left=150, bandWidth=690, right=962, p=vizPalette;
-  const label=(x,y,value,size,color=p.ink,extra='')=>`<text x="${x}" y="${y}" font-size="${size}" fill="${color}" ${extra}>${esc(value)}</text>`;
-  let y=191;
-  const content=rows.map(row=>{
-    const top=y, ranges=row.iv.map(rangeLabel);
-    let times='';
-    for (let i=0;i<ranges.length;i+=6) times+=label(left,top+41+(i/6)*19,ranges.slice(i,i+6).join('   ·   '),15,p.muted);
-    y+=56+Math.max(0,Math.ceil(ranges.length/6)-1)*19;
-    return `<path d="M38 ${top-7}H962" stroke="${p.line}"/>`+label(38,top+14,row.name,20,p.ink,'font-weight="bold"')+
-      `<svg x="${left}" y="${top}" width="${bandWidth}" height="19" viewBox="0 0 1440 24" preserveAspectRatio="none">${chartBand(row)}</svg>`+
-      (model.date===now.date?`<rect x="${left+bandWidth*now.sec/86400}" y="${top}" width="2" height="19" fill="white"/>`:'')+
-      label(right,top+15,hm(row.total),17,p.ink,'text-anchor="end"')+times;
-  }).join('');
-  const height=y+55;
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" font-family="Segoe UI,Arial,sans-serif">${chartPattern()}
-    <rect width="100%" height="100%" fill="${p.paper}"/>${label(38,36,'LUMINA  /  СУТОЧНЫЙ ГРАФИК',14,p.accent,'letter-spacing="2"')}
-    ${label(38,83,'График отключений',39,p.ink,'font-weight="bold"')}${label(right,78,model.date,25,p.accent,'text-anchor="end"')}
-    ${label(38,116,'Киевское время'+(model.time?' · обновлено в '+model.time:''),16,p.muted)}
-    <rect x="590" y="102" width="17" height="12" rx="3" fill="${p.on}"/>${label(615,114,'Есть свет',15,p.muted)}
-    <rect x="704" y="102" width="17" height="12" rx="3" fill="url(#vz-hatch)"/>${label(729,114,'Отключение',15,p.muted)}
-    ${model.date===now.date?label(862,114,'│ Сейчас',15,p.muted):''}
-    ${label(38,166,'Очередь',15,p.muted)}${vizHours.map(h=>label(left+bandWidth*h/24,166,pad2(h)+':00',15,p.muted,'text-anchor="middle"')).join('')}
-    ${label(right,166,'Без света',15,p.muted,'text-anchor="end"')}${content}
-    <path d="M38 ${y}H962" stroke="${p.line}"/>${label(38,y+32,'Суммарное время отключений по выбранным очередям',16,p.muted)}
-    ${label(right,y+32,hmFull(rows.reduce((n,r)=>n+r.total,0)),21,p.accent,'text-anchor="end"')}</svg>`;
+// Export is independent of the viewport: one full-day sheet, crisp vector shapes.
+function chartPoster(model,rows,now,mine){
+  const width=1600,left=165,step=25,cellSize=21;
+  const text=(x,y,value,size=16,color='#c0b9ce',extra='')=>`<text x="${x}" y="${y}" font-size="${size}" fill="${color}" ${extra}>${esc(value)}</text>`;
+  let y=350,body='';
+  for(const row of rows){
+    const ranges=row.iv.map(vizRange),lines=Math.max(1,Math.ceil(ranges.length/7)),rh=66+lines*21;
+    const own=row.name===mine;
+    body+=`<rect x="28" y="${y-12}" width="1544" height="${rh-6}" rx="12" fill="${own?'#353049':'#202337'}" stroke="${own?'#9d85c1':'#343449'}"/>`;
+    body+=text(46,y+13,row.name,24,own?'#e4d3ff':'#f3edf9','font-weight="700"')+(own?text(46,y+37,'МОЯ ОЧЕРЕДЬ',10,'#dbc6ff'):'');
+    for(let slot=0;slot<48;slot++){
+      const cell=vizSlot(row.iv,slot),x=left+slot*step+(slot>>1)*3;
+      body+=`<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" rx="4" fill="#365c58"/>`;
+      for(const [a,b] of cell.parts)body+=`<rect x="${x+(a-cell.start)/30*cellSize}" y="${y}" width="${(b-a)/30*cellSize}" height="${cellSize}" rx="${cell.kind==='off'?4:0}" fill="#ad7187"/>`;
+      if(cell.off===30)body+=`<path d="m${x+8} ${y+14} 7-7" stroke="#e6b8c9" stroke-width="1.5"/>`;
+      if(model.date===now.date&&slot===Math.floor(now.sec/1800))body+=`<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" rx="4" fill="none" stroke="white" stroke-width="2"/>`;
+    }
+    body+=text(1546,y+17,hmFull(row.total),16,own?'#e4d3ff':'#c0b9ce','text-anchor="end"');
+    for(let i=0;i<lines;i++)body+=text(left,y+48+i*21,ranges.slice(i*7,i*7+7).join('   ·   ')||'Отключений не запланировано',14,'#a8a4ba');
+    y+=rh;
+  }
+  const height=y+92;
+  const city=vizCity.replace('class="mq-city"','x="850" y="0" width="720" height="270"').replace(/vz-city-/g,'poster-city-');
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" font-family="Segoe UI,Arial,sans-serif"><defs><linearGradient id="poster-sky"><stop stop-color="#211f35"/><stop offset="1" stop-color="#443b59"/></linearGradient></defs><style>.city-circuit{opacity:.7}.city-haze{opacity:.6}.city-stars{opacity:.8}.city-wire{display:none}.city-tram{transform:translate(190px,-13.3px)}.city-ferry{transform:translate(433px,266px)}.city-meteor{display:none}</style>
+  <rect width="100%" height="100%" fill="#191d30"/><rect width="1600" height="260" fill="url(#poster-sky)"/>${city}
+  ${text(42,46,'LUMINA / ГОРОДСКОЙ АТЛАС',16,'#dbc6ff','letter-spacing="3"')}${text(42,106,'График отключений',43,'#f3edf9','font-weight="700"')}${text(42,151,model.date+' · Киевское время',25,'#e4d3ff')}${text(42,188,model.time?'Обновлено в '+model.time:'Время обновления не указано',16)}${text(42,226,mine?'Моя очередь '+mine+(model.rows.some(r=>r.name===mine)?' · выделена на графике':' · нет данных на эту дату'):'Официальное расписание',16,'#dbc6ff')}
+  <rect x="42" y="278" width="14" height="14" rx="3" fill="#365c58"/>${text(65,291,'Есть свет',14)}<rect x="175" y="278" width="14" height="14" rx="3" fill="#ad7187"/>${text(198,291,'Нет света',14)}${text(330,291,'1 квадрат = 30 минут · заполнение соответствует точным минутам',14)}${text(1545,291,'Белая рамка — сейчас',14,'#c0b9ce','text-anchor="end"')}
+  ${text(44,326,'Очередь',14)}${Array.from({length:24},(_,h)=>text(left+h*53+23,326,pad2(h)+':00',13,'#bfb5d1','text-anchor="middle"')).join('')}${text(1546,326,'Без света',14,'#bfb5d1','text-anchor="end"')}${body}
+  ${text(42,y+32,'Официальное расписание · без поправок на время переключения',14)}${text(42,y+61,'Сумма по показанным очередям: '+hmFull(rows.reduce((n,r)=>n+r.total,0)),17,'#dbc6ff')}${text(1546,y+61,'LUMINA',16,'#dbc6ff','text-anchor="end" letter-spacing="3"')}</svg>`;
   return {svg,width,height};
 }
-async function chartPng() {
-  const {svg,width,height}=chartPoster(state.model,chartRows(),nowKyiv());
+async function chartPng(){
+  if(!state.model||!currentVizRows().length)throw new Error('Нет данных');
+  const {svg,width,height}=chartPoster(state.model,currentVizRows(),nowKyiv(),currentVizMine()),scale=Number($('#vizQuality').value);
+  if(width*height*scale*scale>48000000||height*scale>16000)throw new Error('Слишком много очередей: выберите фильтр или качество 2×');
   const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));
-  try {
-    const img=new Image(); img.src=url; await img.decode();
-    const canvas=document.createElement('canvas'); canvas.width=width*2; canvas.height=height*2;
-    canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
-    return await new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('PNG')),'image/png'));
-  } finally { URL.revokeObjectURL(url); }
+  try{const img=new Image();img.src=url;await img.decode();const canvas=document.createElement('canvas');canvas.width=width*scale;canvas.height=height*scale;const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Canvas недоступен');ctx.drawImage(img,0,0,canvas.width,canvas.height);return await new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Ошибка PNG')),'image/png'));}finally{URL.revokeObjectURL(url);}
 }
 $('#downloadPngBtn').addEventListener('click',async()=>{
-  const filename='svet_'+state.model.date.replace(/\./g,'-')+(vizQueue.value?'_'+vizQueue.value:'')+'.png';
-  try {
-    const url=URL.createObjectURL(await chartPng()), a=document.createElement('a');
-    a.href=url; a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(url),3000);
-  } catch { toast('Не удалось сохранить PNG',true); }
+  const button=$('#downloadPngBtn'),filename='lumina_'+state.model.date.replace(/\./g,'-')+(vizQueue.value?'_'+vizQueue.value:'')+'.png';
+  button.disabled=true;button.textContent='Сохраняем…';
+  try{const url=URL.createObjectURL(await chartPng()),a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),3000);}catch(error){toast('Не удалось сохранить PNG. '+error.message,true);}finally{button.disabled=!currentVizRows().length;button.textContent='↓ PNG';}
 });
 $('#copyPngBtn').addEventListener('click',async()=>{
-  if (!window.ClipboardItem || !navigator.clipboard?.write) return toast('Браузер не поддерживает копирование PNG',true);
-  try { await navigator.clipboard.write([new ClipboardItem({'image/png':chartPng()})]); toast('График скопирован'); }
-  catch { toast('Не удалось скопировать PNG',true); }
+  if(!window.ClipboardItem||!navigator.clipboard?.write)return toast('Браузер не поддерживает копирование PNG. Используйте скачивание.',true);
+  try{await navigator.clipboard.write([new ClipboardItem({'image/png':chartPng()})]);toast('График скопирован');}catch{toast('Не удалось скопировать PNG. Используйте скачивание.',true);}
 });
-
 
 // ---------- tabs ----------
 function showTab(name) {
   $$('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   $$('.pane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
   store.set('tab', name);
-  if (name === 'viz') { refreshViz(); if (!state.model.rows.length) $('#vizEditor').open = true; }
+  if (name === 'viz') refreshViz();
   if (name === 'compare') [oldInput, newInput].forEach(autosize);
 }
 $('.tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); });
@@ -1319,9 +1381,10 @@ let tick = 0;
 setInterval(() => {
   tick++;
   const L = renderLive(); checkEvents(L);
-  if (tick % 30 === 0) { renderTables(); if ($('#tab-viz').classList.contains('active')) updateVizClock(); }
+  if (tick % 30 === 0) { renderTables(); if (chartModal.open || $('#tab-viz').classList.contains('active')) updateVizClock(); }
 }, 1000);
 })();
 </script>
 </body>
 </html>
+

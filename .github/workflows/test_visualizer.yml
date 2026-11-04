@@ -1,0 +1,19 @@
+name: Test official schedule visualizer
+on:
+  pull_request:
+  push:
+    branches: [main, codex/schedule-visualizer]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Official grid and export regression tests
+        run: node test_visualizer.cjs
+      - name: My Queue regression tests
+        run: node test_my_queue.cjs
