@@ -963,7 +963,7 @@ function renderTables() {
     updateCards('<div class="mq-empty">'+MQ_ICONS.calendar+msg+'</div>',key);
     return;
   }
-  sumInfo.textContent = `${day.date}${day.time ? ' · обновлено в ' + day.time : ''} · Киев`;
+  sumInfo.textContent = `${day.date}${day.time ? ' · обновлено в ' + day.time : ''} · Запорожье`;
   const isToday = state.sumDay === 'today', nowM = t.sec / 60;
   let rows = '', cards = '';
   day.queues.forEach((iv, name) => {
