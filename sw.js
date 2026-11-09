@@ -1,4 +1,4 @@
-const VER = 'lumina-v4';
+const VER = 'lumina-v5';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg'];
 
 self.addEventListener('install', e => {
