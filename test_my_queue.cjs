@@ -59,8 +59,8 @@ assert.match(sandbox.rendered, /class="mq-hero/);
 assert.equal(sandbox.dayModel.next.at, 780, 'official engine stays unchanged');
 assert.equal(sandbox.dayModel.off, true, 'original scheduled status stays unchanged');
 const cardFunction = script[1].slice(script[1].indexOf('function queueCard('), script[1].indexOf('function updateCards('));
-const cardApi = vm.runInNewContext(core + '\nconst MQ_ICONS =' + view + '\n' + cardFunction +
-  '\n;({card:(iv,minute)=>queueCard("1.1",iv,stats(iv),minute,true),mqScheduleSlots,myQueueForecast,cityPower})', {});
+const cardApi = vm.runInNewContext(core + '\nfunction tlHtml(' + timeline + '\nconst MQ_ICONS =' + view + '\n' + cardFunction +
+  '\n;({card:(iv,minute)=>queueCard("1.1",iv,stats(iv),minute,true),mqScheduleSlots,myQueueForecast,cityPower,scheduleSegments,mqBar})', {});
 assert.match(cardApi.card(one,540), /data-tone="off"/);
 assert.match(cardApi.card(one,780), /data-tone="on"/);
 assert.match(cardApi.card(one,null), /План на завтра/);
@@ -81,4 +81,18 @@ assert.equal(powerAt([[540,565]],540),powerAt(one,558), 'zero-length forecast wi
 assert.equal(powerAt([[540,565]],565),1);
 assert.ok(powerAt([[1440,1560]],1439) < 1, 'approaching a tomorrow event before midnight');
 assert.equal(powerAt([],810),1);
+const plain = value => JSON.parse(JSON.stringify(value));
+assert.deepEqual(plain(cardApi.scheduleSegments([])), [[0,1440,'Со светом по графику']]);
+assert.deepEqual(plain(cardApi.scheduleSegments([[100,150],[120,180],[-20,30],[1430,1500]])), [
+  [0,30,'Без света по графику'],[30,100,'Со светом по графику'],[100,180,'Без света по графику'],
+  [180,1430,'Со светом по графику'],[1430,1440,'Без света по графику']
+]);
+const intervals = [[60,120],[120,180]];
+assert.deepEqual(plain(cardApi.scheduleSegments(intervals)), [[0,60,'Со светом по графику'],[60,180,'Без света по графику'],[180,1440,'Со светом по графику']]);
+assert.deepEqual(intervals, [[60,120],[120,180]], 'tooltips must not mutate official intervals');
+const forecastBar = cardApi.mqBar(cardApi.myQueueForecast(one,550).intervals,0,null);
+const tips = JSON.parse(forecastBar.match(/data-timeline="([^"]+)"/)[1].replace(/&quot;/g,'"'));
+assert.deepEqual(tips, [[0,554,'Свет возможен'],[554,558,'Переходное окно'],[558,750,'Вероятное отключение'],[750,760,'Переходное окно'],[760,1440,'Свет возможен']]);
+assert.match(cardApi.card(one,null), /data-timeline=/);
+assert.doesNotThrow(() => new vm.Script(fs.readFileSync('interface.js','utf8')));
 console.log('My Queue regression tests passed');
