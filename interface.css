@@ -1,0 +1,42 @@
+/* Schedule interactions. The city artwork and hero are intentionally untouched. */
+.nav-icon{display:none}
+:is(button,summary,[tabindex="0"]):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.queue-select{background:none;color:inherit;padding:4px 8px;min-height:40px;border:1px solid transparent}
+.queue-select[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.mq-qbody{animation:none}
+.mq-qbody .tl-wrap{margin:14px 0 24px}
+[data-timeline]{touch-action:pan-y;cursor:help}
+.tl-bar i,.tl-bar .nowline,.mq-track>span{pointer-events:none}
+.schedule-tip{position:fixed;inset:auto;margin:0;z-index:120;max-width:min(300px,calc(100vw - 24px));padding:12px 15px;border:1px solid #807396;border-radius:12px;background:#242337;color:#fcf7f2;box-shadow:0 8px 28px #0006;font:14px/1.5 system-ui;pointer-events:none;white-space:pre-line}
+.schedule-tip[hidden]{display:none}
+.data-updated{animation:scheduleUpdated 3.2s ease-out}
+@keyframes scheduleUpdated{0%,20%{box-shadow:inset 0 0 0 2px #e7c785;background-color:#514332}100%{box-shadow:inset 0 0 0 2px transparent}}
+.chart-scroll{overflow-x:auto;overscroll-behavior-x:contain}
+.chart{overflow:visible}
+.g-label,.g-corner{position:sticky;left:0;z-index:2;background:#172d35;box-shadow:3px 0 8px #0003}
+.g-corner{z-index:3}
+.g-cell[data-timeline]{touch-action:pan-x pan-y}
+.table-wrap{overscroll-behavior-x:contain}
+#sumTable{border-collapse:separate;border-spacing:0}
+#sumTable :is(th,td):first-child{position:sticky;left:0;z-index:1;background:var(--card);box-shadow:3px 0 8px #0003}
+#sumTable tr.mine td:first-child{background:#303b43}
+@media(max-width:540px){
+  .container{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+  .tabs{position:fixed;bottom:0;left:0;right:0;z-index:30;margin:0;padding:6px 8px calc(6px + env(safe-area-inset-bottom));gap:4px;border:0;border-top:1px solid #42465c;background:#171d2ff5;box-shadow:0 -6px 24px #0003;overflow:visible}
+  .tabs button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0;min-height:52px;padding:5px 3px;border:0;border-radius:12px;font-size:.7rem}
+  .tabs button.active{background:#303348;color:#dbc6ff}
+  .nav-icon{display:block;font-size:21px;line-height:1.1}
+  button,button.small,.seg button,.mq-atlas .seg button,.mq-pick{min-height:44px}
+  .chk{min-height:44px;padding:4px 0}
+  .mq-qcard summary{padding:18px 16px}
+  .tl-bar,.mq-dashboard .mq-track{height:44px}
+  .c-grid{grid-template-columns:110px repeat(48,minmax(30px,1fr))}
+  .chart{min-width:1550px}
+  .g-label{padding:0 10px;font-size:.95rem;flex-direction:column;justify-content:center;align-items:flex-start}
+  .g-corner .date{font-size:1.3rem}
+  .dlg-body{padding:12px}
+  .dlg-foot{padding:10px;gap:4px}
+  .dlg-foot button{padding:9px 10px}
+  #toasts{bottom:calc(82px + env(safe-area-inset-bottom))}
+}
+@media(prefers-reduced-motion:reduce){.data-updated{animation:none;outline:2px solid var(--warn);outline-offset:-2px}.tabs button{transition:none}}

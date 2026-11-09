@@ -292,6 +292,7 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 @media(max-width:540px){.mq-toolbar{gap:9px}.mq-toolbar .mq-intro{flex-basis:100%}.mq-prefs{margin-left:auto}.mq-city{height:170px;width:100%;mask-image:linear-gradient(to bottom,transparent,#000 24%)}.mq-hero{align-items:flex-start;min-height:0;border-radius:20px}.mq-copy{width:100%;max-width:none;padding:22px 20px 154px}.mq-title{max-width:17ch}.mq-countbox{margin-top:15px}.mq-atlas .seg button{min-height:42px}.mq-panel .mq-legend{font-size:.73rem}}
 @media(prefers-reduced-motion:reduce){#tab-my *,#tab-my *::before,#tab-my *::after{animation:none!important;transition:none!important}}
 </style>
+<link rel="stylesheet" href="interface.css">
 </head>
 <body>
 <div class="container">
@@ -306,14 +307,14 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
   </div>
   <div id="update-status">Проверка обновлений...</div>
 
-  <div class="tabs" role="tablist">
-    <button data-tab="my" class="active">⚡ Моя очередь</button>
-    <button data-tab="compare">Сравнение</button>
-    <button data-tab="viz">Визуализатор</button>
+  <div class="tabs" role="tablist" aria-label="Разделы сайта">
+    <button id="nav-my" data-tab="my" role="tab" aria-controls="tab-my" aria-selected="true" class="active"><span class="nav-icon" aria-hidden="true">ϟ</span><span>Моя очередь</span></button>
+    <button id="nav-compare" data-tab="compare" role="tab" aria-controls="tab-compare" aria-selected="false"><span class="nav-icon" aria-hidden="true">⇄</span><span>Сравнение</span></button>
+    <button id="nav-viz" data-tab="viz" role="tab" aria-controls="tab-viz" aria-selected="false"><span class="nav-icon" aria-hidden="true">▥</span><span>Визуализатор</span></button>
   </div>
 
   <!-- MY QUEUE -->
-  <section id="tab-my" class="pane active">
+  <section id="tab-my" role="tabpanel" aria-labelledby="nav-my" class="pane active">
     <div class="card mq-shell">
       <div class="row-between mq-toolbar">
         <div class="mq-intro"><div class="mq-kicker">LUMINA</div><h2 class="mq-heading">Моя очередь</h2></div>
@@ -332,12 +333,12 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
       <div class="row-between mq-viewbar"><span id="sumInfo" class="mq-muted"></span>
         <div class="seg" id="mqView" role="group" aria-label="Вид графика"><button data-view="cards" aria-pressed="true" class="active">Карточки</button><button data-view="table" aria-pressed="false">Таблица</button></div></div>
       <div id="queueCards" class="mq-cards"></div>
-      <div id="queueTableView" class="table-wrap" hidden><table id="sumTable"></table></div>
+      <div id="queueTableView" class="table-wrap" tabindex="0" role="region" aria-label="Таблица очередей, прокручивается по горизонтали" hidden><table id="sumTable"></table></div>
     </div>
   </section>
 
   <!-- COMPARE -->
-  <section id="tab-compare" class="pane">
+  <section id="tab-compare" role="tabpanel" aria-labelledby="nav-compare" class="pane">
     <div class="card">
       <div class="grid2">
         <label class="field">Старый график (предыдущий)<textarea id="old" placeholder="1.1: 00:00-04:00"></textarea></label>
@@ -361,7 +362,7 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
   </section>
 
   <!-- VISUALIZER -->
-  <section id="tab-viz" class="pane">
+  <section id="tab-viz" role="tabpanel" aria-labelledby="nav-viz" class="pane">
     <div class="card">
       <h3>Генератор графика</h3>
       <div class="muted" style="font-size:.88rem;margin-bottom:8px">Поддерживаются очереди на одной или нескольких строках. Форматы: «1.1: 00:00-02:00, 15:00-20:00», «Черга 1.1: з 00:00 до 02:00». Заголовок «=== 17.10.2026 · 14:32 ===» задаёт дату и время обновления.</div>
@@ -681,7 +682,29 @@ function tlHtml(iv, title, nowSec) {
   const bars = (iv || []).map(([s, e]) => `<i style="left:${s / 14.4}%;width:${(e - s) / 14.4}%" title="${fmt(s)}–${fmt(e)}"></i>`).join('');
   const now = nowSec != null ? `<b class="nowline" style="left:${nowSec / 864}%"></b>` : '';
   const hrs = [0, 3, 6, 9, 12, 15, 18, 21, 24].map(h => `<span style="left:${h / 24 * 100}%">${h}</span>`).join('');
-  return `<div class="tl-wrap"><div class="tl-title">${title}</div><div class="tl-bar">${bars}${now}</div><div class="tl-hours">${hrs}</div></div>`;
+  return `<div class="tl-wrap"><div class="tl-title">${title}</div><div class="tl-bar" ${timelineAttrs(scheduleSegments(iv),title)}>${bars}${now}</div><div class="tl-hours">${hrs}</div></div>`;
+}
+// Timeline segments include powered gaps and use half-open boundaries.
+function scheduleSegments(iv, offLabel = 'Без света по графику', onLabel = 'Со светом по графику') {
+  const sorted = (iv || []).map(([a,b]) => [Math.max(0,a),Math.min(1440,b)])
+    .filter(([a,b]) => b>a).sort((a,b) => a[0]-b[0]);
+  const merged = [];
+  for (const range of sorted) {
+    const last = merged[merged.length-1];
+    if (last && range[0]<=last[1]) last[1] = Math.max(last[1],range[1]);
+    else merged.push([...range]);
+  }
+  let cursor = 0;
+  const parts = [];
+  for (const [a,b] of merged) {
+    if (a>cursor) parts.push([cursor,a,onLabel]);
+    parts.push([a,b,offLabel]); cursor=b;
+  }
+  if (cursor<1440) parts.push([cursor,1440,onLabel]);
+  return parts;
+}
+function timelineAttrs(parts, label, focusable = true) {
+  return `data-timeline="${esc(JSON.stringify(parts))}"${focusable ? ' tabindex="0" role="group"' : ''} aria-label="${esc(label)}. Интервалы: стрелки влево и вправо; Escape — закрыть подсказку"`;
 }
 // Custom SVGs use only existing theme colors.
 const MQ_ICONS = {
@@ -832,10 +855,11 @@ function mqStatus(phase) {
   return {cls:'mq-on',title:'Вероятно, свет есть'};
 }
 function mqBar(iv, day, nowSec) {
-  const parts = [];
+  const parts = [], tips = [];
   const start = day * 1440, end = start + 1440;
   function add(a, b, cls) {
     const left = Math.max(start, a), right = Math.min(end, b);
+    if (right > left) tips.push([left-start,right-start,cls === 'mq-risk' ? 'Переходное окно' : 'Вероятное отключение']);
     if (right > left) parts.push('<span class="'+cls+'" style="left:'+((left-start)/14.4)+'%;width:'+((right-left)/14.4)+'%"></span>');
   }
   for(const slot of iv) {
@@ -844,7 +868,9 @@ function mqBar(iv, day, nowSec) {
     add(slot.on[0],slot.on[1],'mq-risk');
   }
   const now = nowSec == null ? '' : '<span class="mq-now" data-mq-now style="left:'+(nowSec/864)+'%"></span>';
-  return '<div class="mq-timeline"><div class="mq-track">'+parts.join('')+now+'</div>'+
+  const gaps = scheduleSegments(tips.map(([a,b]) => [a,b]),'', 'Свет возможен').filter(x => x[2]);
+  const segments = [...tips,...gaps].sort((a,b) => a[0]-b[0]);
+  return '<div class="mq-timeline"><div class="mq-track" '+timelineAttrs(segments,'Прогноз на '+(day ? 'завтра' : 'сегодня'))+'>'+parts.join('')+now+'</div>'+
     '<div class="mq-hours"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>'+
     '<div class="mq-legend"><span><i class="mq-swatch mq-lit"></i> Свет возможен</span>'+
     '<span><i class="mq-swatch mq-changing"></i> Переходное окно</span>'+
@@ -991,6 +1017,8 @@ function checkEvents(L) {
 const queueCards = $('#queueCards'), queueTableView = $('#queueTableView');
 let queueView = store.get('queue_view') === 'table' ? 'table' : 'cards';
 let cardsMarkup = '', cardsDate = '';
+const openQueueCards = new Set();
+let lastTableDate = '', lastTableSchedules = new Map();
 
 function queueCard(name, iv, totals, nowM, selected) {
   const current = nowM == null ? null : iv.find(([a,b]) => a <= nowM && nowM < b);
@@ -1004,19 +1032,21 @@ function queueCard(name, iv, totals, nowM, selected) {
       <div class="mq-qstatus">${icon}${status}</div><div class="mq-mini" aria-hidden="true">${bands}</div>
       <div class="mq-qmeta"><span>Без света за сутки</span><b>${hm(totals.off)}</b></div></summary>
     <div class="mq-qbody"><div class="mq-muted">${ranges ? 'Отключения по графику' : 'Отключений не запланировано'}</div>
-      <ul>${ranges}</ul><button type="button" class="mq-pick" data-pick="${esc(name)}" aria-pressed="${selected}">${MQ_ICONS.pin}${selected ? 'Моя очередь' : 'Выбрать моей очередью'}</button></div></details>`;
+      <ul>${ranges}</ul>${tlHtml(iv,'По официальному графику',null)}<button type="button" class="mq-pick" data-pick="${esc(name)}" aria-pressed="${selected}">${MQ_ICONS.pin}${selected ? 'Моя очередь' : 'Выбрать моей очередью'}</button></div></details>`;
 }
 
 function updateCards(markup, date) {
   if (cardsMarkup === markup && cardsDate === date) return;
-  const opened = cardsDate === date ? new Set($$('details[open]',queueCards).map(el => el.dataset.q)) : new Set();
+  for (const el of $$('details',queueCards)) {
+    if (el.open) openQueueCards.add(el.dataset.q); else openQueueCards.delete(el.dataset.q);
+  }
   const focused = document.activeElement;
   const card = focused?.closest('#queueCards details');
   cardsMarkup = markup;
   cardsDate = date;
   queueCards.innerHTML = markup;
   for (const el of $$('details',queueCards)) {
-    el.open = opened.has(el.dataset.q);
+    el.open = openQueueCards.has(el.dataset.q);
     if (card?.dataset.q === el.dataset.q) el.querySelector(focused.closest('button') && el.open ? 'button' : 'summary').focus({preventScroll:true});
   }
 }
@@ -1038,6 +1068,9 @@ function renderTables() {
     return;
   }
   sumInfo.textContent = `${day.date}${day.time ? ' · обновлено в ' + day.time : ''} · Запорожье`;
+  const signatures = new Map([...day.queues].map(([q,iv]) => [q,JSON.stringify(iv)]));
+  const changedQueues = lastTableDate === key ? [...signatures].filter(([q,signature]) => lastTableSchedules.has(q) && lastTableSchedules.get(q) !== signature).map(([q]) => q) : [];
+  lastTableDate = key; lastTableSchedules = signatures;
   const isToday = state.sumDay === 'today', nowM = t.sec / 60;
   let rows = '', cards = '';
   day.queues.forEach((iv, name) => {
@@ -1049,10 +1082,21 @@ function renderTables() {
       if (cur) { nxt = `включение в ${fmt(cur[1])}`; dot = '<span class="sdot off"></span>'; }
       else { const n = iv.find(([a]) => a > nowM); nxt = n ? `отключение в ${fmt(n[0])}` : 'больше нет'; dot = '<span class="sdot on"></span>'; }
     }
-    rows += `<tr class="q ${name === mySel.value ? 'mine' : ''}" data-q="${esc(name)}"><td>${dot}<b>${esc(name)}</b></td><td>${hm(s.off)}</td><td>${hm(s.on)}</td><td>${s.count}</td><td>${hm(s.maxOff)}</td><td>${hm(s.maxOn)}</td><td>${nxt}</td></tr>`;
+    rows += `<tr class="q ${name === mySel.value ? 'mine' : ''}" data-q="${esc(name)}"><td><button class="queue-select" data-pick="${esc(name)}" aria-pressed="${name === mySel.value}" aria-label="Выбрать очередь ${esc(name)}">${dot}<b>${esc(name)}</b></button></td><td>${hm(s.off)}</td><td>${hm(s.on)}</td><td>${s.count}</td><td>${hm(s.maxOff)}</td><td>${hm(s.maxOn)}</td><td>${nxt}</td></tr>`;
   });
-  sumTable.innerHTML = `<thead><tr><th>Очередь</th><th>Без света</th><th>Со светом</th><th>Отключений</th><th>Макс. без света</th><th>Макс. со светом</th><th>Дальше</th></tr></thead><tbody>${rows}</tbody>`;
+  const tableMarkup = `<thead><tr><th>Очередь</th><th>Без света</th><th>Со светом</th><th>Отключений</th><th>Макс. без света</th><th>Макс. со светом</th><th>Дальше</th></tr></thead><tbody>${rows}</tbody>`;
+  if (sumTable.renderedMarkup !== tableMarkup || !sumTable.tHead) {
+    const focusedQueue = document.activeElement.closest('#sumTable [data-pick]')?.dataset.pick;
+    sumTable.innerHTML = tableMarkup; sumTable.renderedMarkup = tableMarkup;
+    if (focusedQueue) $$('[data-pick]',sumTable).find(b => b.dataset.pick === focusedQueue)?.focus({preventScroll:true});
+  }
   if (queueView === 'cards') updateCards(cards, key);
+  for (const el of [...$$('[data-q]',queueCards),...$$('tr[data-q]',sumTable)]) {
+    if (changedQueues.includes(el.dataset.q)) {
+      el.classList.add('data-updated');
+      setTimeout(() => el.classList.remove('data-updated'),3200);
+    }
+  }
 }
 queueCards.addEventListener('click', e => {
   const button = e.target.closest('[data-pick]');
@@ -1074,12 +1118,14 @@ sumTable.addEventListener('click', e => {
 });
 $('#daySeg').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
+  if (state.sumDay === b.dataset.day) return;
   state.sumDay = b.dataset.day;
   for (const x of $$('#daySeg button')) {
     x.classList.toggle('active', x === b);
     x.setAttribute('aria-pressed', String(x === b));
   }
   renderTables();
+  animateScheduleChange();
 });
 
 // ---------- compare ----------
@@ -1238,13 +1284,18 @@ function renderChart() {
   let h = `<div class="chart"><div class="c-grid"><div class="g-corner"><span class="date">${esc(m.date.slice(0, 5))}</span>${m.time ? `<span class="upd">обновлено в ${esc(m.time)}</span>` : ''}</div>`;
   for (let i = 0; i < 24; i++) h += `<div class="g-hour${i === nowH ? ' now' : ''}">${pad2(i)}:00</div>`;
   for (const r of m.rows) {
-    h += `<div class="g-label"><span>${esc(r.name)}</span><small>(${hmFull(r.total)})</small></div>`;
+    const segments = scheduleSegments(r.iv);
+    h += `<div class="g-label" ${timelineAttrs(segments,'Очередь '+r.name)}><span>${esc(r.name)}</span><small>(${hmFull(r.total)})</small></div>`;
     const off = slotsOff(r.iv);
-    for (let i = 0; i < 48; i++) h += `<div class="g-cell${off[i] ? ' off' : ''}${(i >> 1) === nowH ? ' nowh' : ''}"></div>`;
+    for (let i = 0; i < 48; i++) h += `<div class="g-cell${off[i] ? ' off' : ''}${(i >> 1) === nowH ? ' nowh' : ''}" ${timelineAttrs(segments,'Очередь '+r.name,false)} data-start="${i*30}" data-end="${(i+1)*30}"></div>`;
   }
   const total = m.rows.reduce((a, r) => a + r.total, 0);
   h += `<div class="g-foot">Всего времени отсутствия света (сумма по группам):<b>${hmFull(total)}</b></div></div></div>`;
-  chartHost.innerHTML = `<div style="overflow-x:auto">${h}</div>`;
+  if (h === renderChart.markup) return;
+  renderChart.markup = h;
+  const scrollLeft = chartHost.querySelector('.chart-scroll')?.scrollLeft || 0;
+  chartHost.innerHTML = `<div class="chart-scroll" tabindex="0" role="region" aria-label="График очередей, прокручивается по горизонтали">${h}</div>`;
+  chartHost.querySelector('.chart-scroll').scrollLeft = scrollLeft;
 }
 $('#generateVizBtn').addEventListener('click', () => {
   const m = buildModel(vizInput.value, $('#nextDayCheck').checked);
@@ -1322,7 +1373,12 @@ $('#copyPngBtn').addEventListener('click', () => {
 
 // ---------- tabs ----------
 function showTab(name) {
-  $$('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  if (!['my','compare','viz'].includes(name)) name = 'my';
+  $$('.tabs button').forEach(b => {
+    const active = b.dataset.tab === name;
+    b.classList.toggle('active',active); b.setAttribute('aria-selected',String(active));
+    b.tabIndex = active ? 0 : -1;
+  });
   $$('.pane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
   store.set('tab', name);
   if (name === 'compare') [oldInput, newInput].forEach(autosize);
@@ -1360,5 +1416,6 @@ setInterval(() => {
 }, 1000);
 })();
 </script>
+<script src="interface.js"></script>
 </body>
 </html>

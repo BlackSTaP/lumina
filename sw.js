@@ -1,5 +1,5 @@
-const VER = 'lumina-v5';
-const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg'];
+const VER = 'lumina-v6';
+const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'interface.css', 'interface.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VER).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
