@@ -339,26 +339,24 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 
   <!-- COMPARE -->
   <section id="tab-compare" role="tabpanel" aria-labelledby="nav-compare" class="pane">
-    <div class="card">
-      <div class="grid2">
-        <label class="field">Старый график (предыдущий)<textarea id="old" placeholder="1.1: 00:00-04:00"></textarea></label>
-        <div class="mid hide-sm"><button id="moveDataBtn" class="btn-round" title="Перенести Новый в Старый">⇄</button></div>
-        <label class="field">Новый график (актуальный)<textarea id="new" placeholder="1.1: 00:00-03:00&#10;Черга 1.1: з 00:00 до 03:00"></textarea></label>
+    <div class="cmp-heading"><div><div class="mq-kicker">LUMINA · ИЗМЕНЕНИЯ</div><h2 class="mq-heading">Что изменилось?</h2><p>Два графика. Все изменения — на одной шкале времени.</p></div>
+      <button id="editComparisonBtn" class="ghost">Изменить данные</button></div>
+    <div class="cmp-notice" role="status"><span id="compareNotice">Сравните версии расписания или вставьте свои данные.</span><button id="applyCompareUpdate" class="ghost small" hidden>Применить обновление</button></div>
+    <details id="compareSources" class="cmp-sources">
+      <summary><span><b>Исходные графики</b><small id="compareSourceMeta">Выберите версии или вставьте текст</small></span><span class="cmp-disclosure" aria-hidden="true">⌄</span></summary>
+      <div class="cmp-source-body"><div id="versions"></div>
+        <div class="cmp-inputs">
+          <label class="field"><span class="cmp-input-title"><b>01 · Было</b><span>Предыдущая версия</span></span><textarea id="old" placeholder="1.1: 00:00-04:00" spellcheck="false"></textarea></label>
+          <label class="field"><span class="cmp-input-title"><b>02 · Стало</b><span>Актуальная версия</span></span><textarea id="new" placeholder="1.1: 00:00-03:00" spellcheck="false"></textarea></label>
+        </div>
+        <div class="actions"><button id="compareBtn">Сравнить графики</button><button id="moveDataBtn" class="ghost" title="Заменить предыдущую версию актуальной">Новый → Старый</button><button id="clearBtn" class="flat">Очистить</button></div>
+        <div class="cmp-source-tools"><span>Исходные данные сохраняются после сравнения.</span><div><input type="file" id="jsonInput" accept=".json" hidden><button id="importJsonBtn" class="flat small">Импорт JSON</button><button id="copyJsonBtn" class="flat small">Копировать JSON</button></div></div>
       </div>
-      <div id="versions" style="margin-top:12px"></div>
-      <div class="row-between" style="margin-top:12px">
-        <label class="chk"><input type="checkbox" id="onlyChanges"><span>Показать только изменения</span></label>
-      </div>
-      <div class="actions">
-        <button id="compareBtn">Сравнить и Перенести</button>
-        <button id="clearBtn" class="flat">Очистить</button>
-        <span class="spacer"></span>
-        <input type="file" id="jsonInput" accept=".json" hidden>
-        <button id="importJsonBtn" class="flat small">⬆ Импорт JSON</button>
-        <button id="copyJsonBtn" class="flat small">⧉ JSON</button>
-      </div>
-      <div id="resultArea" style="margin-top:16px"><div class="empty">Вставьте данные и нажмите «Сравнить»</div></div>
-    </div>
+    </details>
+    <div id="compareOverview"></div>
+    <div class="cmp-results-head"><div><div class="mq-kicker">ПО ОЧЕРЕДЯМ</div><h3>Было и стало</h3></div><div class="cmp-filters"><label class="chk"><input type="checkbox" id="onlyChanges"><span>Только изменения</span></label><label class="field"><span class="sr-only">Очередь для сравнения</span><select id="compareQueueFilter"><option value="">Все очереди</option></select></label></div></div>
+    <div class="cmp-legend"><span><i class="cmp-key-off"></i> Без света</span><span><i class="cmp-key-added"></i> Добавили отключение</span><span><i class="cmp-key-removed"></i> Убрали отключение</span></div>
+    <div id="resultArea" class="cmp-results"><div class="cmp-empty">Здесь появится сравнение графиков.</div></div>
   </section>
 
   <!-- VISUALIZER -->
@@ -502,13 +500,31 @@ function stats(iv) {
   maxOn = Math.max(maxOn, 1440 - prev);
   return {off, on: 1440 - off, count: m.length, maxOn, maxOff};
 }
+// Exact set difference, rather than comparing whole interval strings.
+function subtractIntervals(source, excluded) {
+  const normalize = iv => mergeIv(iv.map(([a,b]) => [Math.max(0,a),Math.min(1440,b)]).filter(([a,b]) => b>a));
+  const result=[], cuts=normalize(excluded);
+  for (const [start,end] of normalize(source)) {
+    let cursor=start;
+    for (const [a,b] of cuts) {
+      if (b<=cursor) continue;
+      if (a>=end) break;
+      if (a>cursor) result.push([cursor,a]);
+      cursor=Math.max(cursor,b);
+      if (cursor>=end) break;
+    }
+    if (cursor<end) result.push([cursor,end]);
+  }
+  return result;
+}
 function compareQueues(oldQ, newQ) {
   const names = [...new Set([...oldQ.keys(), ...newQ.keys()])].sort(natural);
   return names.map(name => {
     const a = oldQ.get(name) || [], b = newQ.get(name) || [], as = strs(a), bs = strs(b);
-    const removed = as.filter(x => !bs.includes(x)), added = bs.filter(x => !as.includes(x));
+    const removedIv = subtractIntervals(a,b), addedIv = subtractIntervals(b,a);
+    const removed = strs(removedIv), added = strs(addedIv);
     const status = !oldQ.has(name) ? 'new' : !newQ.has(name) ? 'gone' : (added.length || removed.length) ? 'changed' : 'same';
-    return {name, status, added, removed, as, bs, ta: sum(a), tb: sum(b)};
+    return {name, status, added, removed, addedIv, removedIv, as, bs, ta: stats(a).off, tb: stats(b).off};
   });
 }
 // Живое состояние очереди: dayMap — Map(dateStr -> {queues: Map})
@@ -1042,12 +1058,34 @@ function updateCards(markup, date) {
   }
   const focused = document.activeElement;
   const card = focused?.closest('#queueCards details');
+  const previous=new Map($$('details[data-q]',queueCards).map(el=>[el.dataset.q,el]));
+  const anchor=[...previous.values()].find(el=>el.getBoundingClientRect().bottom>100);
+  const anchorTop=anchor?.getBoundingClientRect().top;
   cardsMarkup = markup;
   cardsDate = date;
-  queueCards.innerHTML = markup;
-  for (const el of $$('details',queueCards)) {
-    el.open = openQueueCards.has(el.dataset.q);
-    if (card?.dataset.q === el.dataset.q) el.querySelector(focused.closest('button') && el.open ? 'button' : 'summary').focus({preventScroll:true});
+  const template=document.createElement('template'); template.innerHTML=markup;
+  let position=queueCards.firstElementChild;
+  const retained=new Set();
+  for (let el of [...template.content.children]) {
+    const sourceMarkup=el.outerHTML, old=previous.get(el.dataset.q);
+    if (old?.sourceMarkup===sourceMarkup) el=old;
+    else {
+      el.sourceMarkup=sourceMarkup; el.open=openQueueCards.has(el.dataset.q);
+      if (old) { if (position===old) position=el; old.replaceWith(el); }
+    }
+    retained.add(el);
+    if (el!==position) queueCards.insertBefore(el,position);
+    position=el.nextElementSibling;
+    if (!focused.isConnected && card?.dataset.q===el.dataset.q) {
+      const selector=!el.open ? 'summary' : focused.matches('[data-timeline]') ? '[data-timeline]' : focused.closest('button') ? 'button' : 'summary';
+      el.querySelector(selector)?.focus({preventScroll:true});
+    }
+  }
+  for (const el of [...queueCards.children]) if (!retained.has(el)) el.remove();
+  const nextAnchor=anchor && [...retained].find(el=>el.dataset.q===anchor.dataset.q);
+  if (nextAnchor && !queueCards.hidden && queueCards.closest('.pane.active')) {
+    const shift=nextAnchor.getBoundingClientRect().top-anchorTop;
+    if (Math.abs(shift)>1) window.scrollBy(0,shift);
   }
 }
 
@@ -1129,59 +1167,126 @@ $('#daySeg').addEventListener('click', e => {
 });
 
 // ---------- compare ----------
-const autosize = el => { el.style.height = 'auto'; el.style.height = Math.max(150, el.scrollHeight) + 'px'; };
+const autosize = el => {
+  // Comparison editors have a stable, user-resizable height.
+  if (el === oldInput || el === newInput || !el.offsetParent) return;
+  el.style.height = 'auto'; el.style.height = Math.max(150, el.scrollHeight) + 'px';
+};
+let comparisonDirty = store.get('comparison_dirty') === 'true', comparisonPending = false;
+function compareMessage(message) { $('#compareNotice').textContent=message; }
 function signed(min) { return (min > 0 ? '+' : min < 0 ? '−' : '') + hm(min); }
+function comparisonTrack(iv, changes, type, label, available) {
+  if (!available) return '<div class="cmp-unavailable">Нет данных для этой очереди</div>';
+  const bars=iv.map(([a,b]) => `<i class="cmp-off" style="left:${a/14.4}%;width:${(b-a)/14.4}%"></i>`).join('');
+  const overlays=changes.map(([a,b]) => `<i class="cmp-${type}" style="left:${a/14.4}%;width:${(b-a)/14.4}%"></i>`).join('');
+  return `<div class="cmp-track" ${timelineAttrs(scheduleSegments(iv),label)}>${bars}${overlays}</div>`;
+}
+function comparisonCard(r, oldQ, newQ) {
+  const both=oldQ.has(r.name) && newQ.has(r.name), delta=r.tb-r.ta;
+  const labels={same:'Без изменений',changed:'Изменено',new:'Новая очередь',gone:'Нет в новой версии'};
+  const change = !both ? 'Сравнение длительности недоступно' : delta ? `${hm(Math.abs(delta))} ${delta>0 ? 'больше' : 'меньше'} без света` : r.status==='same' ? 'Расписание совпадает' : 'Длительность прежняя, время изменилось';
+  return `<article class="cmp-card" data-compare-q="${esc(r.name)}" data-change="${r.status}">
+    <div class="cmp-card-head"><h4>Очередь ${esc(r.name)}</h4><span class="cmp-badge ${r.status}">${labels[r.status]}</span></div>
+    <p class="cmp-delta ${both && delta>0 ? 'pos' : both && delta<0 ? 'neg' : ''}">${change}</p>
+    <div class="cmp-track-row"><span>Было <b>${oldQ.has(r.name) ? hm(r.ta) : '—'}</b></span>${comparisonTrack(oldQ.get(r.name)||[],both ? r.removedIv : [],'removed','Было · очередь '+r.name,oldQ.has(r.name))}</div>
+    <div class="cmp-track-row"><span>Стало <b>${newQ.has(r.name) ? hm(r.tb) : '—'}</b></span>${comparisonTrack(newQ.get(r.name)||[],both ? r.addedIv : [],'added','Стало · очередь '+r.name,newQ.has(r.name))}</div>
+    <div class="cmp-hours"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+    ${both && (r.added.length || r.removed.length) ? `<div class="cmp-changes">${r.added.map(x=>`<span class="cmp-change added">+ ${x}</span>`).join('')}${r.removed.map(x=>`<span class="cmp-change removed">− ${x}</span>`).join('')}</div>` : ''}
+    <details><summary>Интервалы текстом <span aria-hidden="true">⌄</span></summary><div class="cmp-text"><p><b>Было:</b> ${oldQ.has(r.name) ? r.as.join(', ') || 'Отключений нет' : 'Нет данных'}</p><p><b>Стало:</b> ${newQ.has(r.name) ? r.bs.join(', ') || 'Отключений нет' : 'Нет данных'}</p></div></details>
+  </article>`;
+}
+// Update only changed cards; keep focus, open disclosures and the visible anchor.
+function updateComparisonCards(items, empty) {
+  const existing=new Map([...resultArea.querySelectorAll('[data-compare-q]')].map(el=>[el.dataset.compareQ,el]));
+  const anchor=[...existing.values()].find(el=>el.getBoundingClientRect().bottom>120);
+  const anchorTop=anchor?.getBoundingClientRect().top;
+  const focused=document.activeElement;
+  let position=resultArea.firstElementChild;
+  const retained=new Set();
+  for (const [name,markup] of items) {
+    let el=existing.get(name);
+    if (!el || el.sourceMarkup!==markup) {
+      const template=document.createElement('template'); template.innerHTML=markup;
+      const replacement=template.content.firstElementChild;
+      replacement.sourceMarkup=markup;
+      if (el) {
+        replacement.querySelector('details').open=el.querySelector('details').open;
+        const focusedTrack=[...el.querySelectorAll('[data-timeline]')].indexOf(focused);
+        const focusSummary=focused===el.querySelector('summary');
+        if (position===el) position=replacement;
+        el.replaceWith(replacement);
+        if (focusSummary) replacement.querySelector('summary').focus({preventScroll:true});
+        if (focusedTrack>=0) replacement.querySelectorAll('[data-timeline]')[focusedTrack]?.focus({preventScroll:true});
+      }
+      el=replacement;
+    }
+    retained.add(el);
+    if (el!==position) resultArea.insertBefore(el,position);
+    position=el.nextElementSibling;
+  }
+  for (const el of [...resultArea.children]) if (!retained.has(el)) el.remove();
+  if (!items.length) resultArea.innerHTML='<div class="cmp-empty">'+esc(empty)+'</div>';
+  const nextAnchor=anchor && [...retained].find(el=>el.dataset.compareQ===anchor.dataset.compareQ);
+  if (nextAnchor && resultArea.closest('.pane.active')) {
+    const shift=nextAnchor.getBoundingClientRect().top-anchorTop;
+    if (Math.abs(shift)>1) window.scrollBy(0,shift);
+  }
+}
 function renderCompare() {
   const o = parseText(oldInput.value), n = parseText(newInput.value);
-  if (!o.queues.size && !n.queues.size) {
-    resultArea.innerHTML = '<div class="empty">Не удалось распознать данные. Формат: «1.1: 00:00-04:00»</div>'; return false;
-  }
-  const rows = compareQueues(o.queues, n.queues);
-  const changed = rows.filter(r => r.status !== 'same');
-  const delta = rows.reduce((a, r) => a + (r.tb - r.ta), 0);
-  const meta = x => `${x.date || '—'}${x.time ? ' · ' + x.time : ''}`;
-  let html = `<div class="summary-box"><span>Старый: <b>${esc(meta(o))}</b></span><span>Новый: <b>${esc(meta(n))}</b></span><span>Изменено очередей: <b>${changed.length}</b> из ${rows.length}</span><span>Итого отключений: <b class="${delta > 0 ? 'pos' : 'neg'}">${delta ? signed(delta) : 'без изменений'}</b></span></div>
-  <div class="muted" style="font-size:.8rem;margin-bottom:8px"><span class="chip add">+ новое отключение</span><span class="chip rem">− отключение убрано</span></div>`;
-  const labels = {same: 'без изменений', changed: 'изменено', new: 'новая очередь', gone: 'нет в новом'};
-  for (const r of rows) {
-    if (onlyChanges.checked && r.status === 'same') continue;
-    const d = r.tb - r.ta;
-    html += `<div class="diff-row ${r.status}"><div class="diff-head"><b>${esc(r.name)}</b><span class="badge ${r.status}">${labels[r.status]}</span>
-      <span class="muted">${hm(r.ta)} → ${hm(r.tb)}${d ? ` <span class="${d > 0 ? 'pos' : 'neg'}">(${signed(d)})</span>` : ''}</span></div>
-      ${r.added.length || r.removed.length ? `<div style="margin-top:6px">${r.added.map(x => `<span class="chip add">+ ${x}</span>`).join('')}${r.removed.map(x => `<span class="chip rem">− ${x}</span>`).join('')}</div>` : ''}
-      <details><summary>Подробнее</summary><div class="muted">Было: ${r.as.length ? r.as.join(', ') : '—'}</div><div>Стало: ${r.bs.length ? r.bs.join(', ') : '—'}</div></details></div>`;
-  }
-  resultArea.innerHTML = html;
-  return {o, n, rows};
+  const rows = compareQueues(o.queues,n.queues), changed=rows.filter(r=>r.status!=='same');
+  const comparable=rows.filter(r=>r.status==='changed' || r.status==='same');
+  const longer=comparable.reduce((total,r)=>total+Math.max(0,r.tb-r.ta),0);
+  const shorter=comparable.reduce((total,r)=>total+Math.max(0,r.ta-r.tb),0);
+  const meta=x=>`${x.date || 'Дата не указана'}${x.time ? ' · '+x.time : ''}`;
+  const overview=`<div class="cmp-versions"><span>Было <b>${esc(meta(o))}</b></span><span class="cmp-arrow" aria-hidden="true">→</span><span>Стало <b>${esc(meta(n))}</b></span></div>
+    ${o.date && n.date && o.date!==n.date ? '<div class="cmp-date-note">Сравниваются разные даты — это не изменения одного расписания.</div>' : ''}
+    <div class="cmp-metrics"><div><span>Изменилось очередей</span><strong>${changed.length}<small> / ${rows.length}</small></strong></div><div><span>Дольше без света</span><strong class="pos">${hm(longer)}</strong></div><div><span>Меньше без света</span><strong class="neg">${hm(shorter)}</strong></div></div>
+    <p class="cmp-metric-note">Длительность — суммарно по очередям, которые есть в обеих версиях.</p>`;
+  if ($('#compareOverview').sourceMarkup!==overview) { $('#compareOverview').innerHTML=overview; $('#compareOverview').sourceMarkup=overview; }
+  $('#compareSourceMeta').textContent=rows.length ? `Очередей: было ${o.queues.size} · стало ${n.queues.size}` : 'Выберите версии или вставьте текст';
+  const filter=$('#compareQueueFilter'), selected=filter.value;
+  const options='<option value="">Все очереди</option>'+rows.map(r=>`<option value="${esc(r.name)}">Очередь ${esc(r.name)}</option>`).join('');
+  if (filter.sourceMarkup!==options) { filter.innerHTML=options; filter.sourceMarkup=options; filter.value=rows.some(r=>r.name===selected) ? selected : ''; }
+  const shown=rows.filter(r=>(!onlyChanges.checked || r.status!=='same') && (!filter.value || filter.value===r.name));
+  updateComparisonCards(shown.map(r=>[r.name,comparisonCard(r,o.queues,n.queues)]),rows.length ? 'По выбранному фильтру изменений нет. Попробуйте показать все очереди.' : 'Добавьте два графика в «Исходные графики» и нажмите «Сравнить графики».');
+  return rows.length ? {o,n,rows} : false;
 }
 function saveFields() { store.set('old', oldInput.value); store.set('new', newInput.value); store.set('viz', vizInput.value); }
 function moveNewToOld() { oldInput.value = newInput.value; store.set('old', oldInput.value); autosize(oldInput); }
 $('#compareBtn').addEventListener('click', () => {
-  if (renderCompare()) { moveNewToOld(); toast('Сравнено. Новый график перенесён в Старый'); }
+  if (renderCompare()) { compareMessage('Сравнение готово. Исходные графики сохранены.'); acknowledgeAction($('#compareBtn')); }
+  else compareMessage('Не удалось найти очереди. Проверьте формат исходных графиков.');
 });
-$('#moveDataBtn').addEventListener('click', () => { moveNewToOld(); toast('Новый → Старый'); });
+$('#moveDataBtn').addEventListener('click', () => { moveNewToOld(); markComparisonEdited(); renderCompare(); acknowledgeAction($('#moveDataBtn')); compareMessage('Предыдущая версия заменена актуальной.'); });
 $('#clearBtn').addEventListener('click', () => {
   oldInput.value = newInput.value = ''; saveFields(); rebuildDayMap();
-  resultArea.innerHTML = '<div class="empty">Вставьте данные и нажмите «Сравнить»</div>'; autosize(oldInput); autosize(newInput);
+  markComparisonEdited(); renderCompare(); compareMessage('Поля очищены. Вставьте графики для сравнения.');
 });
 onlyChanges.addEventListener('change', () => renderCompare());
-oldInput.addEventListener('input', () => { store.set('old', oldInput.value); autosize(oldInput); });
-newInput.addEventListener('input', () => { store.set('new', newInput.value); autosize(newInput); rebuildDayMap(); renderTables(); });
+$('#compareQueueFilter').addEventListener('change', () => renderCompare());
+$('#editComparisonBtn').addEventListener('click', () => { $('#compareSources').open=true; oldInput.focus({preventScroll:true}); $('#compareSources').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'}); });
+$('#applyCompareUpdate').addEventListener('click', () => { comparisonDirty=false; processJsonData(state.days,false); compareMessage('Показаны последние опубликованные версии.'); });
+function markComparisonEdited() { comparisonDirty=true; store.set('comparison_dirty',true); compareMessage(comparisonPending ? 'Есть новый график. Ручной ввод сохранён.' : 'Данные изменены. Нажмите «Сравнить графики».'); }
+oldInput.addEventListener('input', () => { store.set('old', oldInput.value); markComparisonEdited(); });
+newInput.addEventListener('input', () => { store.set('new', newInput.value); markComparisonEdited(); rebuildDayMap(); renderTables(); });
 vizInput.addEventListener('input', () => store.set('viz', vizInput.value));
 soundCheck.addEventListener('change', () => { store.set('sound_enabled', soundCheck.checked); if (soundCheck.checked) initAudio(); });
 
 function renderVersions() {
   const box = $('#versions');
   const latest = [...state.days].sort((a, b) => dateNum(b.date) - dateNum(a.date))[0];
-  if (!latest || !latest.versions || latest.versions.length < 2) { box.innerHTML = ''; return; }
-  box.innerHTML = `<div class="muted" style="font-size:.82rem;margin-bottom:4px">Версии графика на ${esc(latest.date)} (нажмите, чтобы сравнить с текущей):</div>` +
+  if (!latest || !latest.versions || latest.versions.length < 2) { box.innerHTML = ''; box.sourceMarkup=''; return; }
+  const versionsMarkup = `<div class="muted" style="font-size:.82rem;margin-bottom:4px">Версии графика на ${esc(latest.date)} (нажмите, чтобы сравнить с текущей):</div>` +
     latest.versions.map((v, i) => `<button class="chip btn ${i === 0 ? 'cur' : ''}" data-i="${i}">${esc(isoHM(v.published_at) || '??:??')}${i === 0 ? ' · текущая' : ''}</button>`).join('');
+  if (box.sourceMarkup===versionsMarkup) return;
+  box.sourceMarkup=versionsMarkup; box.innerHTML=versionsMarkup;
   box.onclick = e => {
     const b = e.target.closest('button'); if (!b || b.dataset.i === '0') return;
     const v = latest.versions[+b.dataset.i];
     oldInput.value = formatDay(latest.date, v.published_at, v.queues);
     newInput.value = formatDay(latest.date, latest.versions[0].published_at, latest.versions[0].queues);
-    saveFields(); autosize(oldInput); autosize(newInput); renderCompare();
+    markComparisonEdited(); saveFields(); renderCompare(); compareMessage('Выбранная версия сравнена с текущей.');
   };
 }
 
@@ -1204,21 +1309,25 @@ function processJsonData(data, isAuto) {
 
   const saved = store.get('new', '');
   let changed = false;
-  if (latestText && latestText !== saved) {
+  const deferComparison=isAuto && comparisonDirty;
+  if (!isAuto) { comparisonDirty=false; store.set('comparison_dirty',false); comparisonPending=false; $('#applyCompareUpdate').hidden=true; }
+  if (deferComparison && latestText && latestText !== saved) changed=true;
+  if (deferComparison && latestText !== saved) { comparisonPending=true; $('#applyCompareUpdate').hidden=false; compareMessage('Есть новый график. Ручной ввод сохранён.'); }
+  if (!deferComparison && latestText && (latestText !== saved || !isAuto)) {
     changed = true;
     const oldText = prevText || saved;
     if (oldText) { oldInput.value = oldText; store.set('old', oldText); }
     newInput.value = latestText; vizInput.value = latestText;
     store.set('new', latestText); store.set('viz', latestText);
-  } else {
+  } else if (!deferComparison) {
     if (!newInput.value && latestText) newInput.value = latestText;
     if (!vizInput.value && latestText) vizInput.value = latestText;
   }
   [oldInput, newInput].forEach(autosize);
   rebuildDayMap(); renderVersions(); renderTables(); renderLive(); setStatus();
 
+  if (!deferComparison) renderCompare();
   if (changed) {
-    renderCompare();
     if (isAuto && saved) {
       playSound().then(ok => { if (!ok) toast('🔇 Браузер блокирует звук — кликните в любом месте страницы один раз', true, 9000); });
       flashTitle();
@@ -1227,7 +1336,7 @@ function processJsonData(data, isAuto) {
       if (notifyOn.checked) {
         const q = mySel.value;
         if (q) {
-          const o = parseText(oldInput.value).queues.get(q) || [], n = parseText(newInput.value).queues.get(q) || [];
+          const o = parseText(prevText || saved).queues.get(q) || [], n = parseText(latestText).queues.get(q) || [];
           const a = strs(n).filter(x => !strs(o).includes(x)), r = strs(o).filter(x => !strs(n).includes(x));
           if (a.length || r.length) notify(`График изменился (очередь ${q})`, [a.length ? '+ ' + a.join(', ') : '', r.length ? '− ' + r.join(', ') : ''].filter(Boolean).join('\n'), 'sched-' + q);
           else notify(`Новый график (очередь ${q})`, 'Для вашей очереди изменений нет', 'sched-' + q);
@@ -1268,7 +1377,7 @@ $('#copyJsonBtn').addEventListener('click', async () => {
   const queues = {};
   p.queues.forEach((iv, k) => queues[k] = iv.map(([s, e]) => `${fmt(s)} - ${fmt(e)}`).join(', '));
   const json = JSON.stringify([{date: p.date || nowKyiv().date, queues}], null, 2);
-  try { await navigator.clipboard.writeText(json); toast('JSON скопирован'); } catch { toast('Не удалось скопировать', true); }
+  try { await navigator.clipboard.writeText(json); acknowledgeAction($('#copyJsonBtn')); toast('JSON скопирован'); } catch { toast('Не удалось скопировать', true); }
 });
 
 // ---------- visualizer ----------
@@ -1366,22 +1475,26 @@ $('#downloadPngBtn').addEventListener('click', () => {
 $('#copyPngBtn').addEventListener('click', () => {
   if (!state.model || !window.ClipboardItem) return toast('Копирование картинки не поддерживается', true);
   drawCanvas(state.model).toBlob(async b => {
-    try { await navigator.clipboard.write([new ClipboardItem({'image/png': b})]); toast('Картинка скопирована'); }
+    try { await navigator.clipboard.write([new ClipboardItem({'image/png': b})]); acknowledgeAction($('#copyPngBtn')); toast('Картинка скопирована'); }
     catch { toast('Не удалось скопировать картинку', true); }
   }, 'image/png');
 });
 
 // ---------- tabs ----------
+let activeSection='';
 function showTab(name) {
-  if (!['my','compare','viz'].includes(name)) name = 'my';
-  $$('.tabs button').forEach(b => {
-    const active = b.dataset.tab === name;
-    b.classList.toggle('active',active); b.setAttribute('aria-selected',String(active));
-    b.tabIndex = active ? 0 : -1;
-  });
-  $$('.pane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
-  store.set('tab', name);
-  if (name === 'compare') [oldInput, newInput].forEach(autosize);
+  if (!['my','compare','viz'].includes(name)) name='my';
+  if (activeSection===name) return;
+  const apply=() => {
+    $$('.tabs button').forEach(b => {
+      const active=b.dataset.tab===name;
+      b.classList.toggle('active',active); b.setAttribute('aria-selected',String(active)); b.tabIndex=active ? 0 : -1;
+    });
+    $$('.pane').forEach(p=>p.classList.toggle('active',p.id==='tab-'+name));
+    activeSection=name; store.set('tab',name);
+  };
+  if (typeof transitionSection==='function') transitionSection(name,apply); else apply();
+  document.dispatchEvent(new CustomEvent('lumina:section',{detail:{name}}));
 }
 $('.tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); });
 
@@ -1401,7 +1514,7 @@ const ss = store.get('sound_enabled'); if (ss !== null) soundCheck.checked = ss 
 notifyOn.checked = store.get('notify') === 'true' && 'Notification' in window && Notification.permission === 'granted';
 leadSel.value = store.get('lead', '15');
 try { const raw = store.get('last_raw_json'); if (raw) { const d = JSON.parse(raw); if (Array.isArray(d)) state.days = d; } } catch {}
-rebuildDayMap(); renderVersions(); renderTables(); renderLive(); setStatus(); updateAudioBadge();
+rebuildDayMap(); renderVersions(); renderTables(); renderLive(); setStatus(); updateAudioBadge(); renderCompare();
 [oldInput, newInput].forEach(autosize);
 showTab(store.get('tab', 'my'));
 
