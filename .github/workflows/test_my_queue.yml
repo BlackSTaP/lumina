@@ -19,3 +19,5 @@ jobs:
           node-version: '22'
       - name: Test forecast model and rendered HTML
         run: node test_my_queue.cjs
+      - name: Test exact schedule differences and comparison cards
+        run: node test_compare.cjs

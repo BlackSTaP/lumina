@@ -1,5 +1,41 @@
 /* Progressive enhancements for the schedule, outside the city illustration. */
 const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+const sectionPositions = new Map();
+let sectionAnimation;
+function transitionSection(name, apply) {
+  const current=document.querySelector('.pane.active');
+  if (current) sectionPositions.set(current.id,scrollY);
+  sectionAnimation?.cancel(); hideScheduleTip();
+  // Reserve the old document height until the new section's scroll is restored.
+  const container=document.querySelector('.container');
+  container.style.minHeight=container.getBoundingClientRect().height+'px';
+  apply();
+  const next=document.querySelector('#tab-'+name);
+  window.scrollTo({top:sectionPositions.get(next.id)||0,behavior:'instant'});
+  container.style.minHeight='';
+  if (!motionPreference.matches && next.animate) sectionAnimation=next.animate([{opacity:.2,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}],{duration:240,easing:'cubic-bezier(.2,.7,.2,1)'});
+}
+const acknowledgements=new WeakMap();
+function acknowledgeAction(button) {
+  clearTimeout(acknowledgements.get(button));
+  button.dataset.ack='true';
+  acknowledgements.set(button,setTimeout(()=>delete button.dataset.ack,1600));
+}
+function positionIndicator(group) {
+  const active=group.querySelector('button.active');
+  if (!active || !group.getClientRects().length) return;
+  let indicator=group.querySelector('.selection-indicator');
+  if (!indicator) { indicator=document.createElement('span'); indicator.className='selection-indicator'; indicator.setAttribute('aria-hidden','true'); group.append(indicator); group.classList.add('has-indicator'); }
+  indicator.style.width=active.offsetWidth+'px'; indicator.style.height=active.offsetHeight+'px';
+  indicator.style.transform=`translate(${active.offsetLeft}px,${active.offsetTop}px)`;
+}
+const indicatorGroups=[...document.querySelectorAll('.tabs,.seg')];
+for (const group of indicatorGroups) {
+  positionIndicator(group);
+  new MutationObserver(()=>positionIndicator(group)).observe(group,{subtree:true,attributes:true,attributeFilter:['aria-selected','aria-pressed']});
+  new ResizeObserver(()=>positionIndicator(group)).observe(group);
+}
+document.addEventListener('lumina:section',()=>indicatorGroups.forEach(positionIndicator));
 let scheduleAnimation;
 function animateScheduleChange() {
   const cards = document.querySelector('#queueCards');
@@ -13,7 +49,7 @@ function animateScheduleChange() {
 // Keep native details semantics; only intercept the summary's activation.
 const disclosureAnimations = new Map();
 document.addEventListener('click', event => {
-  const summary = event.target.closest('#queueCards summary, #resultArea summary, #liveCard .mq-slot summary');
+  const summary = event.target.closest('#queueCards summary, #resultArea summary, #liveCard .mq-slot summary, #compareSources>summary');
   if (!summary || event.target.closest('button,a,input,[data-timeline]')) return;
   const detail = summary.parentElement;
   if (motionPreference.matches || !detail.animate) return;
@@ -34,6 +70,7 @@ document.addEventListener('click', event => {
   };
 });
 motionPreference.addEventListener('change', () => {
+  sectionAnimation?.cancel();
   scheduleAnimation?.cancel();
   for (const [detail,{animation,opening}] of disclosureAnimations) {
     animation.cancel(); detail.open=opening; detail.style.overflow='';
@@ -121,5 +158,5 @@ document.querySelector('.tabs').addEventListener('keydown', event => {
   if (current<0) return;
   event.preventDefault();
   const index=event.key==='Home' ? 0 : event.key==='End' ? buttons.length-1 : (current+(event.key==='ArrowRight' ? 1 : -1)+buttons.length)%buttons.length;
-  buttons[index].click(); buttons[index].focus();
+  buttons[index].click(); buttons[index].focus({preventScroll:true});
 });
