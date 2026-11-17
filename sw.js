@@ -1,4 +1,4 @@
-const VER = 'lumina-v6';
+const VER = 'lumina-v7-emergency';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'interface.css', 'interface.js'];
 
 self.addEventListener('install', e => {
@@ -22,11 +22,16 @@ self.addEventListener('fetch', e => {
     e.respondWith(
       fetch(req, { cache: 'no-store' })
         .then(res => {
+          if (!res.ok) throw new Error("Schedule unavailable");
           const copy = res.clone();
           caches.open(VER).then(c => c.put(url.origin + url.pathname, copy));
           return res;
         })
-        .catch(() => caches.match(url.origin + url.pathname).then(r => r || Response.error()))
+        .catch(() => caches.match(url.origin + url.pathname).then(async r => {
+          if (!r) return Response.error();
+          const headers = new Headers(r.headers); headers.set('X-Lumina-Cache','1');
+          return new Response(await r.blob(), {status:r.status, headers});
+        }))
     );
     return;
   }

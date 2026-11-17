@@ -20,4 +20,4 @@ jobs:
       - name: Install dependencies
         run: pip install requests beautifulsoup4
       - name: Run parser tests
-        run: python -m unittest -v test_scraper
+        run: python -m unittest -v test_scraper test_emergency
