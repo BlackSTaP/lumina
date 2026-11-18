@@ -291,6 +291,37 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 @media(min-width:541px) and (max-width:760px){.mq-hero{align-items:flex-start;min-height:300px}.mq-city{width:84%;height:84%;mask-image:linear-gradient(to right,transparent,#000 24%)}.mq-copy{width:65%;padding:23px 22px 124px}}
 @media(max-width:540px){.mq-toolbar{gap:9px}.mq-toolbar .mq-intro{flex-basis:100%}.mq-prefs{margin-left:auto}.mq-city{height:170px;width:100%;mask-image:linear-gradient(to bottom,transparent,#000 24%)}.mq-hero{align-items:flex-start;min-height:0;border-radius:20px}.mq-copy{width:100%;max-width:none;padding:22px 20px 154px}.mq-title{max-width:17ch}.mq-countbox{margin-top:15px}.mq-atlas .seg button{min-height:42px}.mq-panel .mq-legend{font-size:.73rem}}
 @media(prefers-reduced-motion:reduce){#tab-my *,#tab-my *::before,#tab-my *::after{animation:none!important;transition:none!important}}
+
+/* Emergency details live behind the schedule disclosure. */
+.emergency-banner { margin:8px 0; color:#e5b8aa; font-size:.86rem }
+.emergency-banner[hidden],body:has(#tab-my.active) .emergency-banner:not(.is-cancelled) { display:none }
+.emergency-banner summary { cursor:pointer; padding:6px 0 }
+.emergency-banner.is-cancelled { color:#a7cbbf }
+.emergency-source-text { white-space:pre-line; line-height:1.55; max-width:70ch }
+.emergency-banner a,.mq-original a { color:inherit; text-decoration:underline }
+.mq-hero.mq-emergency { min-height:312px; background:linear-gradient(115deg,#292638,#342a39 68%,#41303a); border-color:#574652 }
+.mq-emergency .mq-city { --power:.06 }
+.mq-emergency .mq-title { font-size:clamp(1.8rem,3.3vw,2.85rem); max-width:17ch; margin:0 0 10px }
+.mq-emergency .mq-lead { color:#dfd5dc; line-height:1.5 }
+.emergency-note { color:#e8c5b8; font-size:.85rem }
+.city-disaster { display:none }
+.mq-emergency .city-disaster { display:inline }
+.mq-emergency :is(.city-birds,.city-night-sky,.city-cyclist,.city-smoke,.city-taxi,.city-car,.city-tram) { display:none }
+.mq-emergency .city-ferry { animation-play-state:paused }
+.mq-emergency .city-walker { animation-duration:18s }
+.heat-tongue { transform-box:fill-box; transform-origin:50% 100%; animation:heatWaver var(--period) var(--phase) ease-in-out infinite alternate }
+.rising-haze { transform-box:fill-box; transform-origin:50% 100%; animation:hazeLean 8s var(--phase) ease-in-out infinite alternate }
+.heat-reflection { animation:waterGlint 5.4s ease-in-out infinite alternate }
+@keyframes heatWaver { from { transform:skewX(-8deg) scaleY(.84) } to { transform:skewX(12deg) scaleY(1.12) } }
+@keyframes hazeLean { from { transform:skewX(-3deg); opacity:.48 } to { transform:skewX(-12deg); opacity:.83 } }
+@keyframes waterGlint { from { opacity:.29 } to { opacity:.58 } }
+@media(max-width:540px) {
+  .mq-hero.mq-emergency { min-height:0 }
+  .mq-emergency .mq-city { height:190px }
+  .mq-emergency .mq-copy { padding:20px 20px 185px }
+}
+@media(prefers-reduced-motion:reduce) { .mq-emergency .mq-city * { animation:none!important } }
+
 </style>
 <link rel="stylesheet" href="interface.css">
 </head>
@@ -306,6 +337,8 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
     </div>
   </div>
   <div id="update-status">Проверка обновлений...</div>
+
+  <aside id="emergencyBanner" class="emergency-banner" role="status" aria-live="polite" hidden></aside>
 
   <div class="tabs" role="tablist" aria-label="Разделы сайта">
     <button id="nav-my" data-tab="my" role="tab" aria-controls="tab-my" aria-selected="true" class="active"><span class="nav-icon" aria-hidden="true">ϟ</span><span>Моя очередь</span></button>
@@ -564,6 +597,17 @@ function myQueueForecast(iv, nowM) {
   return {intervals, events, next, nextOff, nextOn, phase};
 }
 
+function emergencyFromData(data, previous = null) {
+  const value = Array.isArray(data) && data.find(day => day.emergency?.regimes)?.emergency;
+  if (!value) return previous;
+  const regimes = Object.fromEntries(Object.entries(value.regimes).filter(([kind, item]) =>
+    ['gav','sgav'].includes(kind) && item && typeof item.active === 'boolean'));
+  return {...value, regimes, active:Object.values(regimes).some(item => item.active)};
+}
+function emergencyNames(emergency) {
+  return Object.entries(emergency?.regimes || {}).filter(([,item]) => item.active)
+    .map(([kind]) => kind === 'sgav' ? 'СГАВ' : 'ГАВ').join(' + ');
+}
 // </core>
 
 (() => {
@@ -580,7 +624,7 @@ const onlyChanges = $('#onlyChanges'), soundCheck = $('#soundEnabled'), updateSt
 const mySel = $('#mySel'), notifyOn = $('#notifyOn'), leadSel = $('#leadSel'), liveCard = $('#liveCard');
 const sumTable = $('#sumTable'), sumInfo = $('#sumInfo'), chartModal = $('#chartModal'), chartHost = $('#chartHost');
 
-const state = {days: [], dayMap: new Map(), sumDay: 'today', model: null, lastCheck: null};
+const state = {days: [], dayMap: new Map(), sumDay: 'today', model: null, lastCheck: null, emergency: null};
 
 // ---------- toast ----------
 function toast(msg, err = false, ms = 5000) {
@@ -739,8 +783,22 @@ const cityTrees = [[452,226,1],[522,224,.85],[578,222,.7],[661,220,1.15]].map(([
   `<g transform="translate(${x} ${y}) scale(${scale})"><g class="city-tree"><path d="M0 0v-19m0 11-5-5m5 2 5-6" fill="none" stroke="#92918e" stroke-width="1.4"/><path d="M0-32c-9 5-12 11-10 17 2 7 16 8 20 1 3-7-2-14-10-18" fill="#536d72"/><path d="M-2-29c-6 7-7 15-3 19" fill="none" stroke="#8ca099" opacity=".4"/></g></g>`).join('');
 const cityWalkers = ['city-walker','city-walker city-walker-two'].map((cls,i) =>
   `<g class="${cls}"><circle cy="-9" r="1.6" fill="#e6c7b5"/><path d="M0-6v4m0-3 3 2" stroke="${i ? '#bba9d0' : '#d5ad88'}" stroke-width="2" stroke-linecap="round"/><path class="city-step" d="M0-3v6" stroke="#a8aec5" stroke-width="1.4"/><path class="city-step city-step-back" d="M0-3v6" stroke="#a8aec5" stroke-width="1.4"/></g>`).join('');
+// Place the glow and flame bases at the roofline, behind the buildings.
+const roofFires = [[368,158,1],[440,140,.65],[611,166,.9]];
+const cityDisaster = `<g class="city-disaster">
+  ${roofFires.map(([x,y,k],i) => `<g transform="translate(${x} ${y}) scale(${k})" style="--phase:-${i*2.1}s">
+    <ellipse cy="-4" rx="58" ry="43" fill="url(#disaster-glow)"/>
+    <path class="rising-haze" d="M-11 2C-24-17 6-29-13-50S-40-77-27-96C-38-69-4-67 2-47S-4-18 13 2Z" fill="url(#smoke-fade)"/>
+    ${[[-13,8],[-4,16],[3,10],[9,19],[15,7]].map(([dx,h],j)=>`<g transform="translate(${dx} 2) scale(.85 ${h/20})">
+      <path class="heat-tongue" style="--period:${1.5+j*.33}s;--phase:-${i+j*.63}s" d="M-7 2C-7-5-2-7-4-13Q-1-11 0-7C3-11 1-14 6-21C4-11 11-4 6 2Z" fill="url(#flame-fade)"/>
+    </g>`).join('')}
+  </g>`).join('')}
+</g>`;
 const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" viewBox="0 0 680 320" preserveAspectRatio="xMaxYMax meet" xmlns="http://www.w3.org/2000/svg">
   <defs>
+    <linearGradient id="smoke-fade" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#453c49" stop-opacity="0"/><stop offset=".55" stop-color="#66515a" stop-opacity=".6"/><stop offset="1" stop-color="#785658" stop-opacity=".75"/></linearGradient>
+    <linearGradient id="flame-fade" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#b55d4e"/><stop offset=".65" stop-color="#dd8e63"/><stop offset="1" stop-color="#ffd49a"/></linearGradient>
+    <radialGradient id="disaster-glow"><stop stop-color="#eb5b3b" stop-opacity=".55"/><stop offset="1" stop-color="#d43b36" stop-opacity="0"/></radialGradient>
     <radialGradient id="city-haze"><stop stop-color="#c590ca" stop-opacity=".67"/><stop offset="1" stop-color="#624b92" stop-opacity="0"/></radialGradient>
     <radialGradient id="city-lantern"><stop stop-color="#ffdf96" stop-opacity=".85"/><stop offset=".28" stop-color="#ffc875" stop-opacity=".32"/><stop offset="1" stop-color="#ffb75f" stop-opacity="0"/></radialGradient>
     <clipPath id="city-road"><path d="m21 229 411-29v14l-411 29z"/></clipPath>
@@ -761,6 +819,7 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
   </g>
   <path d="M0 207q64-32 119-19t101-6q55-36 125-14t117-13q60-32 119-14t99-17v111H0z" fill="#65577c"/>
   <path d="M0 222v-15h43v-19h26v11h30v-22h29v31h39v-54h12v-9h6v9h14v44h21v-16h42v21h23v-39h24v-9h6v9h13v43h32v-26h30v14h42v-37h26v42h35v-18h23v18h28v-30h41v19h29v-38h25v18h41v60H0z" fill="#4a476c"/>
+  ${cityDisaster}
   <g fill="#333651">
     <path d="M282 234v-47l9-5h51v52z"/><path d="M347 234v-75l47-5 11 9v71z"/>
     <path d="M418 234v-91l34-8 14 9v90z"/><path d="M473 234v-62h44l11 8v54z"/>
@@ -832,6 +891,7 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
     </g>
   </g>
   <path d="M0 286q67-18 128-7t106 16q90 19 149 25H0zm680-21q-45 11-83 33t-74 22h157z" fill="#171a31"/>
+<g class="city-disaster"><path class="heat-reflection" d="M358 242l25-1-6 2zm57 12 22-1-3 2zm180-16 35-1-8 2zm-14 12 26-1-3 2zm-213 9 12-1-2 2z" fill="#d39169"/></g>
 </svg>`;
 let liveContext = '';
 function mqTime(min) {
@@ -940,8 +1000,26 @@ function updateMyQueueDynamic(L, model) {
     if (city.style.getPropertyValue('--power') !== power) city.style.setProperty('--power',power);
   }
 }
+function operatorLink(emergency) {
+  const url = /^https:\/\/t\.me\/zoe_alarm\/\d+$/.test(emergency.source_url) ? emergency.source_url : 'https://t.me/zoe_alarm';
+  return '<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Сообщение оператора</a>';
+}
 function renderLive() {
   const t = nowKyiv(), L = computeLive(state.dayMap, mySel.value, t);
+  if (state.emergency?.active) {
+    const key = 'emergency|' + t.date + '|' + L.q + '|' + JSON.stringify([state.emergency,L.ivT,L.ivN]);
+    if (myQueueRenderKey !== key) {
+      const opened = liveCard.querySelector('.mq-original')?.open;
+      myQueueRenderKey = key;
+      liveContext = '';
+      liveCard.innerHTML = '<div class="mq-hero mq-emergency">'+riverfront+
+        '<div class="mq-copy"><h3 class="mq-title">Аварийные отключения</h3><p class="mq-lead">Свет могут отключить вне графика.</p></div></div>'+
+        '<details class="mq-original"'+(opened ? ' open' : '')+'><summary>Посмотреть предварительный график'+(L.q ? ' · очередь '+esc(L.q) : '')+'</summary>'+
+        (L.ivT ? tlHtml(L.ivT,'План ГПВ · '+t.date,null) : '<p class="mq-muted">'+(!L.q ? 'Выберите очередь или откройте обзор ниже.' : 'На сегодня график не опубликован.')+'</p>')+
+        (L.ivN ? tlHtml(L.ivN,'План ГПВ · '+addDays(t.date,1),null) : '')+operatorLink(state.emergency)+'</details>';
+    }
+    return {...L, emergency:true, next:null};
+  }
   if (!mySel.value || L.none) {
     liveContext = '';
     const key = mySel.value+'|'+t.date+'|'+(L.none?'missing':'empty');
@@ -997,7 +1075,7 @@ function renderLive() {
 }
 const fired = new Set();
 function checkEvents(L) {
-  if (!notifyOn.checked || !L || L.none) return;
+  if (state.emergency?.active || L?.emergency || !notifyOn.checked || !L || L.none) return;
   const lead = Number(leadSel.value);
   if (!lead) return;
   const model = mqForecastForLive(L), ev = model.next;
@@ -1020,17 +1098,17 @@ let cardsMarkup = '', cardsDate = '';
 const openQueueCards = new Set();
 let lastTableDate = '', lastTableSchedules = new Map();
 
-function queueCard(name, iv, totals, nowM, selected) {
+function queueCard(name, iv, totals, nowM, selected, emergency = false) {
   const current = nowM == null ? null : iv.find(([a,b]) => a <= nowM && nowM < b);
-  const tone = nowM == null ? 'plan' : current ? 'off' : 'on';
-  const status = tone === 'plan' ? 'План на завтра' : current ? 'Без света по графику' : 'Со светом по графику';
-  const icon = tone === 'plan' ? MQ_ICONS.calendar : current ? MQ_ICONS.bolt : MQ_ICONS.bulb;
+  const tone = emergency ? 'emergency' : nowM == null ? 'plan' : current ? 'off' : 'on';
+  const status = emergency ? 'Предварительный график' : tone === 'plan' ? 'План на завтра' : current ? 'Без света по графику' : 'Со светом по графику';
+  const icon = emergency ? MQ_ICONS.info : tone === 'plan' ? MQ_ICONS.calendar : current ? MQ_ICONS.bolt : MQ_ICONS.bulb;
   const bands = iv.map(([a,b]) => `<i style="left:${a/14.4}%;width:${(b-a)/14.4}%"></i>`).join('');
   const ranges = iv.map(([a,b]) => `<li>${fmt(a)}–${fmt(b)}</li>`).join('');
   return `<details class="mq-qcard${selected ? ' mine' : ''}" data-q="${esc(name)}" data-tone="${tone}">
     <summary><div class="mq-qtop"><strong>Очередь ${esc(name)}</strong>${selected ? '<span class="mq-pin" aria-label="Моя очередь">'+MQ_ICONS.pin+'</span>' : ''}${MQ_ICONS.chevron}</div>
       <div class="mq-qstatus">${icon}${status}</div><div class="mq-mini" aria-hidden="true">${bands}</div>
-      <div class="mq-qmeta"><span>Без света за сутки</span><b>${hm(totals.off)}</b></div></summary>
+      <div class="mq-qmeta"><span>По плану без света</span><b>${hm(totals.off)}</b></div></summary>
     <div class="mq-qbody"><div class="mq-muted">${ranges ? 'Отключения по графику' : 'Отключений не запланировано'}</div>
       <ul>${ranges}</ul>${tlHtml(iv,'По официальному графику',null)}<button type="button" class="mq-pick" data-pick="${esc(name)}" aria-pressed="${selected}">${MQ_ICONS.pin}${selected ? 'Моя очередь' : 'Выбрать моей очередью'}</button></div></details>`;
 }
@@ -1067,7 +1145,7 @@ function renderTables() {
     updateCards('<div class="mq-empty">'+MQ_ICONS.calendar+msg+'</div>',key);
     return;
   }
-  sumInfo.textContent = `${day.date}${day.time ? ' · обновлено в ' + day.time : ''} · Запорожье`;
+  sumInfo.textContent = `${day.date}${day.time ? ' · обновлено в ' + day.time : ''} · Запорожье${state.emergency?.active ? ' · Предварительно: ГПВ не гарантирует наличие света' : ''}`;
   const signatures = new Map([...day.queues].map(([q,iv]) => [q,JSON.stringify(iv)]));
   const changedQueues = lastTableDate === key ? [...signatures].filter(([q,signature]) => lastTableSchedules.has(q) && lastTableSchedules.get(q) !== signature).map(([q]) => q) : [];
   lastTableDate = key; lastTableSchedules = signatures;
@@ -1075,9 +1153,10 @@ function renderTables() {
   let rows = '', cards = '';
   day.queues.forEach((iv, name) => {
     const s = stats(iv);
-    if (queueView === 'cards') cards += queueCard(name, iv, s, isToday ? nowM : null, name === mySel.value);
+    if (queueView === 'cards') cards += queueCard(name, iv, s, isToday ? nowM : null, name === mySel.value, !!state.emergency?.active);
     let nxt = '—', dot = '';
-    if (isToday) {
+    if (state.emergency?.active) nxt = "Время неизвестно";
+    else if (isToday) {
       const cur = iv.find(([a, b]) => nowM >= a && nowM < b);
       if (cur) { nxt = `включение в ${fmt(cur[1])}`; dot = '<span class="sdot off"></span>'; }
       else { const n = iv.find(([a]) => a > nowM); nxt = n ? `отключение в ${fmt(n[0])}` : 'больше нет'; dot = '<span class="sdot on"></span>'; }
@@ -1186,6 +1265,20 @@ function renderVersions() {
 }
 
 // ---------- JSON data ----------
+function renderEmergencyBanner() {
+  const banner = $('#emergencyBanner'), emergency = state.emergency;
+  banner.hidden = !emergency;
+  if (!emergency) return;
+  banner.classList.toggle('is-cancelled', !emergency.active);
+  const title = emergency.active ? 'Аварийные отключения · '+emergencyNames(emergency) : 'Аварийные отключения отменены';
+  const summary = emergency.active ? title+' · График предварительный' : title;
+  const markup = '<details><summary>'+esc(summary)+'</summary><p class="emergency-source-text">'+esc(emergency.text || '')+'</p>'+operatorLink(emergency)+'</details>';
+  if (banner.dataset.markup !== markup) {
+    banner.innerHTML = markup;
+    banner.dataset.markup = markup;
+  }
+}
+
 function setStatus(extra = '') {
   const latest = [...state.days].sort((a, b) => dateNum(b.date) - dateNum(a.date))[0];
   let s = '';
@@ -1195,7 +1288,19 @@ function setStatus(extra = '') {
 }
 function processJsonData(data, isAuto) {
   if (!Array.isArray(data) || !data.length) return false;
+  const previousEmergency = state.emergency;
+  state.emergency = emergencyFromData(data, state.emergency);
   state.days = data;
+  if (state.emergency) store.set('emergency',JSON.stringify(state.emergency));
+  renderEmergencyBanner();
+  if (isAuto && state.emergency && !!previousEmergency?.active !== state.emergency.active) {
+    const message = state.emergency.active ? 'Введены аварийные отключения. Время переключений неизвестно.' : 'Аварийные отключения отменены. Действуют ГПВ.';
+    toast(message, state.emergency.active, 10000);
+    if (notifyOn.checked) notify('Режим электроснабжения изменился',message,'emergency-status');
+    playSound();
+    fired.clear();
+  }
+  if (chartModal.open) renderChart();
   const sorted = [...data].sort((a, b) => dateNum(b.date) - dateNum(a.date));
   const latest = sorted[0], latestText = formatDay(latest.date, latest.published_at, latest.queues);
   let prevText = '';
@@ -1244,11 +1349,16 @@ async function checkForUpdates() {
     const res = await fetch(JSON_URL + '?t=' + Date.now(), {cache: 'no-store'});
     if (!res.ok) throw new Error('schedule.json не найден');
     const data = await res.json(), raw = JSON.stringify(data), last = store.get('last_raw_json');
+    if (res.headers.get('X-Lumina-Cache')) {
+      if (!state.days.length) processJsonData(data, false);
+      setStatus('нет сети — сохраненные данные; аварийный статус не проверен');
+      return;
+    }
     const p = kyivParts(); state.lastCheck = `${p.hour}:${p.minute}:${p.second}`;
     if (raw !== last) { if (processJsonData(data, true)) store.set('last_raw_json', raw); }
-    else { state.days = data; if (!newInput.value) processJsonData(data, false); rebuildDayMap(); renderVersions(); setStatus(); }
+    else { state.days = data; state.emergency = emergencyFromData(data,state.emergency); renderEmergencyBanner(); if (!newInput.value) processJsonData(data, false); rebuildDayMap(); renderVersions(); setStatus(); }
   } catch (e) {
-    setStatus(state.days.length ? 'нет сети — показан сохранённый график' : 'ожидание данных');
+    setStatus(state.days.length ? 'нет сети — сохраненные данные; аварийный статус не проверен' : 'ожидание данных');
   }
 }
 $('#importJsonBtn').addEventListener('click', () => $('#jsonInput').click());
@@ -1281,7 +1391,7 @@ function buildModel(text, nextDay) {
 function renderChart() {
   const m = state.model; if (!m) return;
   const t = nowKyiv(), isToday = m.date === t.date, nowH = isToday ? Math.floor(t.sec / 3600) : -1;
-  let h = `<div class="chart"><div class="c-grid"><div class="g-corner"><span class="date">${esc(m.date.slice(0, 5))}</span>${m.time ? `<span class="upd">обновлено в ${esc(m.time)}</span>` : ''}</div>`;
+  let h = (state.emergency?.active ? '<p class="emergency-note">Аварийные отключения: график предварительный, фактическое время неизвестно.</p>' : '') + `<div class="chart"><div class="c-grid"><div class="g-corner"><span class="date">${esc(m.date.slice(0, 5))}</span>${m.time ? `<span class="upd">обновлено в ${esc(m.time)}</span>` : ''}</div>`;
   for (let i = 0; i < 24; i++) h += `<div class="g-hour${i === nowH ? ' now' : ''}">${pad2(i)}:00</div>`;
   for (const r of m.rows) {
     const segments = scheduleSegments(r.iv);
@@ -1354,6 +1464,11 @@ function drawCanvas(m) {
   g.textAlign = 'right'; g.fillStyle = '#6ee7b7'; g.font = `600 32px ${FONT}`; g.fillText(val, W - 28, H - FH / 2);
   const vw = g.measureText(val).width;
   g.fillStyle = '#e6eef6'; g.font = `600 22px ${FONT}`; g.fillText('Всего времени отсутствия света (сумма по группам):', W - 28 - vw - 14, H - FH / 2);
+  if (state.emergency?.active) {
+    g.fillStyle = '#38202b'; g.fillRect(0,H-FH,W,FH);
+    g.fillStyle = '#ffd3b4'; g.font = `700 25px ${FONT}`; g.textAlign = 'center';
+    g.fillText('АВАРИЙНЫЕ ОТКЛЮЧЕНИЯ · График предварительный. Фактическое время неизвестно.', W/2, H-FH/2);
+  }
   return c;
 }
 $('#downloadPngBtn').addEventListener('click', () => {
@@ -1400,8 +1515,9 @@ oldInput.value = store.get('old', ''); newInput.value = store.get('new', ''); vi
 const ss = store.get('sound_enabled'); if (ss !== null) soundCheck.checked = ss === 'true';
 notifyOn.checked = store.get('notify') === 'true' && 'Notification' in window && Notification.permission === 'granted';
 leadSel.value = store.get('lead', '15');
-try { const raw = store.get('last_raw_json'); if (raw) { const d = JSON.parse(raw); if (Array.isArray(d)) state.days = d; } } catch {}
-rebuildDayMap(); renderVersions(); renderTables(); renderLive(); setStatus(); updateAudioBadge();
+try { state.emergency = JSON.parse(store.get('emergency', 'null')); } catch {}
+try { const raw = store.get('last_raw_json'); if (raw) { const d = JSON.parse(raw); if (Array.isArray(d)) { state.days = d; state.emergency = emergencyFromData(d,state.emergency); } } } catch {}
+renderEmergencyBanner(); rebuildDayMap(); renderVersions(); renderTables(); renderLive(); setStatus(); updateAudioBadge();
 [oldInput, newInput].forEach(autosize);
 showTab(store.get('tab', 'my'));
 

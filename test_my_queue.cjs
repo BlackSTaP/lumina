@@ -96,3 +96,32 @@ assert.deepEqual(tips, [[0,554,'Свет возможен'],[554,558,'Перех
 assert.match(cardApi.card(one,null), /data-timeline=/);
 assert.doesNotThrow(() => new vm.Script(fs.readFileSync('interface.js','utf8')));
 console.log('My Queue regression tests passed');
+
+// A real render must suppress timers and reminders, including before queue selection.
+const emergencySandbox = {};
+vm.runInNewContext(core + '\nfunction tlHtml(' + timeline + '\nconst MQ_ICONS =' + view + '\n' + mocks + `
+state.emergency={active:true,regimes:{gav:{active:true},sgav:{active:true}}};
+const notifyOn={checked:true},leadSel={value:'15'};
+let reminders=0;
+function notify(){reminders++;} function toast(){} function playSound(){}
+globalThis.emergencyLive=renderLive();
+globalThis.emergencyHTML=liveCard.innerHTML;
+checkEvents(emergencyLive);
+globalThis.reminders=reminders;
+mySel.value=''; renderLive(); globalThis.noQueueHTML=liveCard.innerHTML;
+state.emergency={active:false,regimes:{gav:{active:false},sgav:{active:false}}};
+mySel.value='1.1';renderLive();globalThis.restoredHTML=liveCard.innerHTML;
+globalThis.names=emergencyNames({regimes:{gav:{active:true},sgav:{active:false}}});
+globalThis.retained=emergencyFromData([{date:'03.11.2026',queues:{}}],{active:true});
+`, emergencySandbox);
+assert.equal(emergencySandbox.emergencyLive.next,null);
+assert.equal(emergencySandbox.reminders,0);
+assert.match(emergencySandbox.emergencyHTML,/mq-emergency/);
+assert.match(emergencySandbox.emergencyHTML,/Посмотреть предварительный график/);
+assert.doesNotMatch(emergencySandbox.emergencyHTML,/data-mq-count|До включения|До отключения|Ближайшие события/);
+assert.match(emergencySandbox.noQueueHTML,/<h3 class="mq-title">Аварийные отключения<\/h3>/);
+assert.match(emergencySandbox.restoredHTML,/data-mq-count/);
+assert.doesNotMatch(emergencySandbox.restoredHTML,/class="mq-hero mq-emergency"/);
+assert.equal(emergencySandbox.names,'ГАВ');
+assert.equal(emergencySandbox.retained.active,true);
+console.log('Emergency render, cancellation, and reminder tests passed');

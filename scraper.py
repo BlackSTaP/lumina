@@ -47,6 +47,95 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 log = logging.getLogger("lumina")
 
 
+TYPE_RE = re.compile(
+    r"\b(?P<gpv>гпв|графік\w*\s+погодин\w*\s+відключ\w*|график\w*\s+почасов\w*\s+отключ\w*)\b|"
+    r"\b(?P<sgav>сгав|спеціальн\w*\s+графік\w*\s+аварійн\w*\s+відключ\w*|"
+    r"спеціальн\w*\s+графік\w*\s+аварійн\w*\s+вимкн\w*|специальн\w*\s+график\w*\s+аварийн\w*\s+отключ\w*)\b|"
+    r"\b(?P<gav>гав|графік\w*\s+аварійн\w*\s+(?:відключ|вимкн)\w*|график\w*\s+аварийн\w*\s+отключ\w*)\b|"
+    r"\b(?P<generic>(?:аварійн\w*|екстрен\w*)\s+(?:відключ|вимкн)\w*|(?:аварийн\w*|экстренн\w*)\s+отключ\w*)\b", re.I)
+ACTION_RE = re.compile(
+    r"\b(?P<off>скасован\w*|скасов\w*|відмінено|відмінен\w*|припинено|припинені|припиня\w*|отменен\w*|отменя\w*|сняты|знято|зняті|не\s+(?:діють|застосовуються|застосовано|действуют|применяются))\b|"
+    r"\b(?P<on>запроваджен\w*|запроваджу\w*|введен\w*|вводя\w*|вводить\w*|вводит\w*|застосован\w*|застосову\w*|діють|діє|продовжують\s+діяти|дію\s+відновлено|відновлено|действуют|действует|применя\w*)\b", re.I)
+UNCERTAIN_RE = re.compile(r"\b(?:можлив\w*|можуть|може|можно|может|могут|ймовір\w*|у\s+разі|за\s+умови|якщо|если|будуть|будет|будут|планує\w*|планиру\w*|очіку\w*|завтра)\b")
+PARTIAL_RE = re.compile(r"\b(?:частково|частич\w*|частин\w*|части|черг\w*|очеред\w*)\b")
+
+
+def parse_emergency(text, published_at, source_url="", post_id=0, now=None):
+    normalized = re.sub(r"[\u200b\ufeff]", "", text.lower()).replace("’", "'")
+    changes = {}
+    now = now or datetime.now(TZ)
+    # Split coordinated directives, but keep subjects split over lines together.
+    clauses = re.split(r"[.!?;]+|,\s*(?=можлив|можуть|може)|\bале\b|\bоднак\b|\bно\b", normalized)
+    for clause in clauses:
+        mentions = [m for m in TYPE_RE.finditer(clause) if not re.search(
+            r"(?:через|замість|вместо|під час|до введення|до запровадження|після скасування|после отмены)\s+$",
+            clause[:m.start()])]
+
+        if not mentions or UNCERTAIN_RE.search(clause):
+            continue
+        # Announcements may specify a later switching time. Re-scan them on the
+        # next poll; never apply a future introduction or cancellation early.
+        clock = re.search(r"\b(?:з|із|від|о|с)\s+(\d{1,2})[:.](\d{2})", clause)
+        effective_at = published_at
+        if clock:
+            hour, minute = map(int, clock.groups())
+            if hour > 23 or minute > 59:
+                continue
+            effective_at = published_at.replace(hour=hour, minute=minute, second=0, microsecond=0)
+            if effective_at > now:
+                continue
+        actions = list(ACTION_RE.finditer(clause))
+        for i, action in enumerate(actions):
+            if re.search(r"\bне\s+$", clause[:action.start()]):
+                continue  # 'не скасовані' / 'не запроваджено'
+            # Each subject belongs to its nearest action. This handles mixed
+            # cancellation/introduction in one sentence, before or after subjects.
+            assigned = [m for m in mentions if min(actions, key=lambda a:
+                max(a.start()-m.end(), m.start()-a.end(), 0)) is action]
+            assigned = [m for m in assigned if m.lastgroup != "gpv"]
+            if not assigned:
+                continue
+            active = action.lastgroup == "on"
+            if not active and PARTIAL_RE.search(clause) and not re.search(r"у повному обсязі|повністю|полностью|всі черги|усі черги|всех очередей", clause):
+                continue  # A partial lifting is not a region-wide all-clear.
+            kinds = {m.lastgroup for m in assigned}
+            if "generic" in kinds:
+                kinds.remove("generic")
+                kinds.update(("gav", "sgav") if not active else ("gav",))
+            for kind in kinds:
+                changes[kind] = {
+                    "active": active, "published_at": published_at.isoformat(),
+                    "post_id": post_id, "source_url": source_url, "text": text.strip(),
+                    "effective_at": effective_at.isoformat(),
+                }
+    return changes
+
+
+def merge_emergency(previous, events):
+    regimes = dict((previous or {}).get("regimes", {}))
+    for event in events:
+        for kind, value in event.items():
+            old = regimes.get(kind)
+            key = lambda x: (datetime.fromisoformat(x.get("effective_at", x["published_at"])).timestamp(), x.get("post_id", 0))
+            # Equal IDs are deliberately replaced: Telegram edits keep publication time.
+            if old is None or key(value) >= key(old):
+                regimes[kind] = value
+    if not regimes:
+        return previous or None
+    latest = max(regimes.values(), key=lambda x: (datetime.fromisoformat(x.get("effective_at", x["published_at"])).timestamp(), x.get("post_id", 0)))
+    return {"active": any(v["active"] for v in regimes.values()), "regimes": regimes,
+            "published_at": latest["published_at"], "source_url": latest["source_url"], "text": latest["text"]}
+
+
+class ChannelScan(tuple):
+    """Keep the Ubuntu wrapper's empty-source check meaningful."""
+    def __new__(cls, schedules, events):
+        return super().__new__(cls, (schedules, events))
+
+    def __bool__(self):
+        return bool(self[0] or self[1])
+
+
 def make_session() -> requests.Session:
     s = requests.Session()
     retry = Retry(total=4, backoff_factor=1.5, status_forcelist=(429, 500, 502, 503, 504),
@@ -162,8 +251,10 @@ def post_datetime(wrap) -> datetime:
 
 
 def scan_channel(session, today: date) -> dict:
-    """date -> {published_iso: queues}"""
+    """Return schedule versions and independently parsed emergency directives."""
     found: dict = {}
+    events = []
+    seen_posts = set()
     url = CHANNEL_URL
     for page in range(1, MAX_PAGES + 1):
         log.info("Страница %d: %s", page, url)
@@ -184,7 +275,17 @@ def scan_channel(session, today: date) -> dict:
             if not text_div:
                 continue
             published_at = post_datetime(wrap)
-            parsed = parse_post(element_text(text_div), today, published_at)
+            message = wrap.select_one('.tgme_widget_message')
+            source = message.get('data-post', '') if message else ''
+            if source and source in seen_posts:
+                continue
+            seen_posts.add(source)
+            post_id = int(source.split('/')[-1]) if source.split('/')[-1].isdigit() else 0
+            text = element_text(text_div)
+            event = parse_emergency(text, published_at, 'https://t.me/' + source, post_id)
+            if event:
+                events.append(event)
+            parsed = parse_post(text, today, published_at)
             if not parsed:
                 continue
             d, queues = parsed
@@ -192,7 +293,7 @@ def scan_channel(session, today: date) -> dict:
             found.setdefault(d, {})[iso] = queues
 
         # Нужен запас: ещё один день сверх KEEP_DAYS, чтобы собрать все версии свежих дат
-        if len(found) > KEEP_DAYS:
+        if len(found) > KEEP_DAYS and {kind for event in events for kind in event} >= {"gav", "sgav"}:
             break
 
         try:
@@ -202,7 +303,7 @@ def scan_channel(session, today: date) -> dict:
         except (AttributeError, KeyError, ValueError, TypeError):
             break
         time.sleep(0.7)
-    return found
+    return ChannelScan(found, events)
 
 
 def load_existing() -> dict:
@@ -239,8 +340,14 @@ def build_versions(vmap: dict) -> list:
 
 def main() -> int:
     today = datetime.now(TZ).date()
-    fresh = scan_channel(make_session(), today)
-    if not fresh:
+    fresh, events = scan_channel(make_session(), today)
+    try:
+        existing_data = json.loads(OUTPUT.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        existing_data = []
+    previous = next((d['emergency'] for d in existing_data if d.get('emergency')), None)
+    emergency = merge_emergency(previous, events)
+    if not fresh and emergency == previous:
         log.warning("Новых данных нет — schedule.json не трогаю.")
         return 0
 
@@ -258,6 +365,13 @@ def main() -> int:
             "queues": latest["queues"],
             "versions": versions,
         })
+
+    if emergency:
+        if not result:
+            result = [{"date": today.strftime("%d.%m.%Y"), "queues": {}, "versions": []}]
+        # Embed metadata in the existing array: old clients and server scripts
+        # that only commit schedule.json remain compatible.
+        result[0]["emergency"] = emergency
 
     new_text = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
     old_text = OUTPUT.read_text(encoding="utf-8") if OUTPUT.exists() else ""
