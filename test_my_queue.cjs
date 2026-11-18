@@ -119,7 +119,7 @@ assert.equal(emergencySandbox.reminders,0);
 assert.match(emergencySandbox.emergencyHTML,/mq-emergency/);
 assert.match(emergencySandbox.emergencyHTML,/Посмотреть предварительный график/);
 assert.doesNotMatch(emergencySandbox.emergencyHTML,/data-mq-count|До включения|До отключения|Ближайшие события/);
-assert.match(emergencySandbox.noQueueHTML,/Город вне графика/);
+assert.match(emergencySandbox.noQueueHTML,/<h3 class="mq-title">Аварийные отключения<\/h3>/);
 assert.match(emergencySandbox.restoredHTML,/data-mq-count/);
 assert.doesNotMatch(emergencySandbox.restoredHTML,/class="mq-hero mq-emergency"/);
 assert.equal(emergencySandbox.names,'ГАВ');

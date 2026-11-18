@@ -292,19 +292,35 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 @media(max-width:540px){.mq-toolbar{gap:9px}.mq-toolbar .mq-intro{flex-basis:100%}.mq-prefs{margin-left:auto}.mq-city{height:170px;width:100%;mask-image:linear-gradient(to bottom,transparent,#000 24%)}.mq-hero{align-items:flex-start;min-height:0;border-radius:20px}.mq-copy{width:100%;max-width:none;padding:22px 20px 154px}.mq-title{max-width:17ch}.mq-countbox{margin-top:15px}.mq-atlas .seg button{min-height:42px}.mq-panel .mq-legend{font-size:.73rem}}
 @media(prefers-reduced-motion:reduce){#tab-my *,#tab-my *::before,#tab-my *::after{animation:none!important;transition:none!important}}
 
-/* Emergency mode keeps the existing riverfront; the disaster is an illustration. */
-.emergency-banner{margin:14px 0 18px;padding:18px 22px;border:1px solid #a96358;border-radius:18px;background:linear-gradient(120deg,#372533,#292435);color:#ffded0}
-.emergency-banner[hidden]{display:none}.emergency-banner-head{display:flex;gap:14px;align-items:flex-start}.emergency-banner strong{font-size:1.06rem}.emergency-banner p{margin:6px 0;font-size:.88rem;line-height:1.6}.emergency-symbol{flex-shrink:0;display:grid;place-items:center;width:30px;height:30px;border:1px solid currentColor;border-radius:50%;font-weight:800}.emergency-banner details{margin:12px 0 0 44px;font-size:.8rem}.emergency-banner summary{cursor:pointer}.emergency-banner a{color:#ffceae}.emergency-source-text{white-space:pre-line;max-height:220px;overflow:auto}.emergency-banner.is-cancelled{background:#232c32;border-color:#4c6a65;color:#bcdad1}.emergency-banner.is-cancelled a{color:#bcdad1}
-.mq-hero.mq-emergency{--sky:#482e3b;--light:#ffb48c;background:linear-gradient(110deg,#2b2438 15%,#382633 70%,#4c2b32);border-color:#8f595b}.mq-emergency .mq-city{--power:.04}.mq-emergency .mq-title{color:#ffe0ce}.mq-emergency .mq-copy{width:56%;padding-top:30px;padding-bottom:30px}.mq-emergency .mq-lead{max-width:32ch}.emergency-chip{display:inline-block;margin-top:18px;border:1px solid #9e6558;background:#4c3037;border-radius:8px;padding:8px 11px;color:#ffd6bc;font-size:.75rem;font-weight:650}.emergency-art-note{font-size:.65rem;color:#c7a7ac;margin:12px 0 0;max-width:30ch}.emergency-note{padding:14px 16px;border-radius:12px;background:#352937;color:#e8c5b8;line-height:1.6;font-size:.85rem;margin:14px 0}.mq-qcard[data-tone="emergency"]{--q-accent:#d6987e}.mq-qcard[data-tone="emergency"] .mq-qstatus{color:#e6b398}
-.city-disaster{display:none}.mq-emergency .city-disaster{display:inline}.mq-emergency .city-stars,.mq-emergency .city-birds,.mq-emergency .city-night-sky,.mq-emergency .city-smoke,.mq-emergency .city-cyclist{display:none}.mq-emergency .city-haze{opacity:.15}.mq-emergency .city-cloud{fill:#b98580;opacity:.22}.mq-emergency .city-moonpath{opacity:.15}.mq-emergency .city-tram{animation:none;transform:translate(175px,-12px)}.mq-emergency .city-car{animation:none;transform:translate(255px,-18px) rotate(-5deg)}.mq-emergency .city-taxi{animation:none;transform:translate(320px,-22px)}.mq-emergency .city-walker{animation-duration:7s}.mq-emergency .city-walker-two{animation-duration:9s}.mq-emergency .city-step{animation-duration:.25s}.mq-emergency .city-tree{animation-duration:1.7s}.mq-emergency .city-ferry{animation-play-state:paused}
-.disaster-flame{transform-box:fill-box;transform-origin:center bottom;animation:disasterFlame 1.7s var(--delay,0s) ease-in-out infinite alternate}.disaster-smoke{opacity:0;animation:disasterSmoke 7s var(--delay,0s) ease-out infinite}.disaster-embers{animation:disasterEmbers 4s var(--delay,0s) linear infinite}.disaster-spark{animation:disasterSiren 3.5s ease-in-out infinite}.disaster-siren{animation:disasterSiren 2.6s ease-in-out infinite alternate}.disaster-rescue{animation:disasterRescue 13s -6s linear infinite}
-@keyframes disasterFlame{from{transform:scale(.85,.88) skewX(-5deg)}to{transform:scale(1.08,1.13) skewX(6deg)}}
-@keyframes disasterSmoke{0%{opacity:0;transform:translate(0,0) scale(.6)}25%{opacity:.65}100%{opacity:0;transform:translate(20px,-80px) scale(2.4)}}
-@keyframes disasterEmbers{0%{opacity:0;transform:translate(0,0)}20%{opacity:.9}100%{opacity:0;transform:translate(24px,-65px)}}
-@keyframes disasterSiren{0%,100%{opacity:.2}50%{opacity:1}}
-@keyframes disasterRescue{from{transform:translate(25px,235px)}to{transform:translate(405px,208px)}}
-@media(max-width:540px){.emergency-banner{padding:16px}.emergency-banner details{margin-left:0}.mq-emergency .mq-copy{width:100%;padding:22px 20px 180px}.mq-emergency .mq-city{height:190px}.mq-emergency .mq-lead{max-width:100%}.emergency-art-note{max-width:100%}}
-@media(prefers-reduced-motion:reduce){.mq-emergency .mq-city *{animation:none!important}.disaster-smoke{opacity:.35;transform:translate(8px,-25px)}.disaster-rescue{transform:translate(290px,216px)}.disaster-embers{opacity:.5}}
+/* Emergency details live behind the schedule disclosure. */
+.emergency-banner { margin:8px 0; color:#e5b8aa; font-size:.86rem }
+.emergency-banner[hidden],body:has(#tab-my.active) .emergency-banner:not(.is-cancelled) { display:none }
+.emergency-banner summary { cursor:pointer; padding:6px 0 }
+.emergency-banner.is-cancelled { color:#a7cbbf }
+.emergency-source-text { white-space:pre-line; line-height:1.55; max-width:70ch }
+.emergency-banner a,.mq-original a { color:inherit; text-decoration:underline }
+.mq-hero.mq-emergency { min-height:312px; background:linear-gradient(115deg,#292638,#342a39 68%,#41303a); border-color:#574652 }
+.mq-emergency .mq-city { --power:.06 }
+.mq-emergency .mq-title { font-size:clamp(1.8rem,3.3vw,2.85rem); max-width:17ch; margin:0 0 10px }
+.mq-emergency .mq-lead { color:#dfd5dc; line-height:1.5 }
+.emergency-note { color:#e8c5b8; font-size:.85rem }
+.city-disaster { display:none }
+.mq-emergency .city-disaster { display:inline }
+.mq-emergency :is(.city-birds,.city-night-sky,.city-cyclist,.city-smoke,.city-taxi,.city-car,.city-tram) { display:none }
+.mq-emergency .city-ferry { animation-play-state:paused }
+.mq-emergency .city-walker { animation-duration:18s }
+.heat-tongue { transform-box:fill-box; transform-origin:50% 100%; animation:heatWaver var(--period) var(--phase) ease-in-out infinite alternate }
+.rising-haze { transform-box:fill-box; transform-origin:50% 100%; animation:hazeLean 8s var(--phase) ease-in-out infinite alternate }
+.heat-reflection { animation:waterGlint 5.4s ease-in-out infinite alternate }
+@keyframes heatWaver { from { transform:skewX(-8deg) scaleY(.84) } to { transform:skewX(12deg) scaleY(1.12) } }
+@keyframes hazeLean { from { transform:skewX(-3deg); opacity:.48 } to { transform:skewX(-12deg); opacity:.83 } }
+@keyframes waterGlint { from { opacity:.29 } to { opacity:.58 } }
+@media(max-width:540px) {
+  .mq-hero.mq-emergency { min-height:0 }
+  .mq-emergency .mq-city { height:190px }
+  .mq-emergency .mq-copy { padding:20px 20px 185px }
+}
+@media(prefers-reduced-motion:reduce) { .mq-emergency .mq-city * { animation:none!important } }
 
 </style>
 <link rel="stylesheet" href="interface.css">
@@ -767,22 +783,21 @@ const cityTrees = [[452,226,1],[522,224,.85],[578,222,.7],[661,220,1.15]].map(([
   `<g transform="translate(${x} ${y}) scale(${scale})"><g class="city-tree"><path d="M0 0v-19m0 11-5-5m5 2 5-6" fill="none" stroke="#92918e" stroke-width="1.4"/><path d="M0-32c-9 5-12 11-10 17 2 7 16 8 20 1 3-7-2-14-10-18" fill="#536d72"/><path d="M-2-29c-6 7-7 15-3 19" fill="none" stroke="#8ca099" opacity=".4"/></g></g>`).join('');
 const cityWalkers = ['city-walker','city-walker city-walker-two'].map((cls,i) =>
   `<g class="${cls}"><circle cy="-9" r="1.6" fill="#e6c7b5"/><path d="M0-6v4m0-3 3 2" stroke="${i ? '#bba9d0' : '#d5ad88'}" stroke-width="2" stroke-linecap="round"/><path class="city-step" d="M0-3v6" stroke="#a8aec5" stroke-width="1.4"/><path class="city-step city-step-back" d="M0-3v6" stroke="#a8aec5" stroke-width="1.4"/></g>`).join('');
+// Place the glow and flame bases at the roofline, behind the buildings.
+const roofFires = [[368,158,1],[440,140,.65],[611,166,.9]];
 const cityDisaster = `<g class="city-disaster">
-  <ellipse cx="487" cy="177" rx="203" ry="119" fill="url(#disaster-glow)"/>
-  <path d="M295 235l9-9 12 7 14-10 11 8 12-4 14 5M465 229l15-7 8 7 14-5 15 4M582 225l12-8 8 8 17-5 16 3" fill="#342b36" stroke="#b16b54"/>
-  ${[[308,222,.8],[370,170,1],[438,155,.85],[491,213,1.2],[559,135,1.1],[614,185,.9],[653,219,.8]].map(([x,y,k],i)=>`<g transform="translate(${x} ${y}) scale(${k})">
-    <ellipse cy="3" rx="25" ry="7" fill="#ff7f38" opacity=".18"/>
-    <g fill="#51404b"><circle class="disaster-smoke" style="--delay:-${i}s" cy="-21" r="14"/><circle class="disaster-smoke" style="--delay:-${i+3}s" cy="-22" r="11"/></g>
-    <g class="disaster-flame" style="--delay:-${i*.7}s"><path d="M-13 0C-24-15-5-23-8-43c14 10 9 20 14 23l5-16C26-16 23 6-13 0Z" fill="#e85c3a"/><path d="M-7 0C-14-10 1-17 0-30c14 12 20 34-7 30Z" fill="#ffa24f"/><path d="M0 0q-6-8 3-16Q13 0 0 0" fill="#ffe3a1"/></g>
-    <g class="disaster-embers" style="--delay:-${i*.6}s" fill="#ffb966"><circle cx="-9" cy="-28" r="1.4"/><circle cx="9" cy="-42" r="1"/><circle cx="2" cy="-15" r="1.2"/></g>
+  ${roofFires.map(([x,y,k],i) => `<g transform="translate(${x} ${y}) scale(${k})" style="--phase:-${i*2.1}s">
+    <ellipse cy="-4" rx="58" ry="43" fill="url(#disaster-glow)"/>
+    <path class="rising-haze" d="M-11 2C-24-17 6-29-13-50S-40-77-27-96C-38-69-4-67 2-47S-4-18 13 2Z" fill="url(#smoke-fade)"/>
+    ${[[-13,8],[-4,16],[3,10],[9,19],[15,7]].map(([dx,h],j)=>`<g transform="translate(${dx} 2) scale(.85 ${h/20})">
+      <path class="heat-tongue" style="--period:${1.5+j*.33}s;--phase:-${i+j*.63}s" d="M-7 2C-7-5-2-7-4-13Q-1-11 0-7C3-11 1-14 6-21C4-11 11-4 6 2Z" fill="url(#flame-fade)"/>
+    </g>`).join('')}
   </g>`).join('')}
-  <path d="m380 195 9 7-6 9 8 8m152-63 8 12-6 9 8 8m63 9 6 8-4 11" fill="none" stroke="#e6a08a" stroke-width="1.5" opacity=".7"/>
-  <path d="m405 211 14 7-8 12 13-3" class="disaster-spark" fill="none" stroke="#ffd8a0" stroke-width="2"/>
-  <g class="disaster-rescue"><path d="M0 0v-9h20l7 6v6H0z" fill="#c4aab4"/><path d="M14-8h5l6 5H14z" fill="#453f58"/><path d="M4-4h6m-3-3v6" stroke="#b64d53" stroke-width="1.8"/><circle cx="5" cy="3" r="2.7" fill="#241f32"/><circle cx="22" cy="3" r="2.7" fill="#241f32"/><g class="disaster-siren"><ellipse cx="12" cy="-10" rx="16" ry="7" fill="#ff665c" opacity=".24"/><path d="M8-10h8" stroke="#ff9f86" stroke-width="3"/></g></g>
-  <g stroke="#f18d63" opacity=".35" fill="none"><path d="M299 246h31m35 7h30m34-14h27m45 9h37m18-8h39m14 16h32"/><path class="city-current" d="M285 270h66m55 4h45m44-7h95"/></g>
 </g>`;
 const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" viewBox="0 0 680 320" preserveAspectRatio="xMaxYMax meet" xmlns="http://www.w3.org/2000/svg">
   <defs>
+    <linearGradient id="smoke-fade" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#453c49" stop-opacity="0"/><stop offset=".55" stop-color="#66515a" stop-opacity=".6"/><stop offset="1" stop-color="#785658" stop-opacity=".75"/></linearGradient>
+    <linearGradient id="flame-fade" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#b55d4e"/><stop offset=".65" stop-color="#dd8e63"/><stop offset="1" stop-color="#ffd49a"/></linearGradient>
     <radialGradient id="disaster-glow"><stop stop-color="#eb5b3b" stop-opacity=".55"/><stop offset="1" stop-color="#d43b36" stop-opacity="0"/></radialGradient>
     <radialGradient id="city-haze"><stop stop-color="#c590ca" stop-opacity=".67"/><stop offset="1" stop-color="#624b92" stop-opacity="0"/></radialGradient>
     <radialGradient id="city-lantern"><stop stop-color="#ffdf96" stop-opacity=".85"/><stop offset=".28" stop-color="#ffc875" stop-opacity=".32"/><stop offset="1" stop-color="#ffb75f" stop-opacity="0"/></radialGradient>
@@ -804,6 +819,7 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
   </g>
   <path d="M0 207q64-32 119-19t101-6q55-36 125-14t117-13q60-32 119-14t99-17v111H0z" fill="#65577c"/>
   <path d="M0 222v-15h43v-19h26v11h30v-22h29v31h39v-54h12v-9h6v9h14v44h21v-16h42v21h23v-39h24v-9h6v9h13v43h32v-26h30v14h42v-37h26v42h35v-18h23v18h28v-30h41v19h29v-38h25v18h41v60H0z" fill="#4a476c"/>
+  ${cityDisaster}
   <g fill="#333651">
     <path d="M282 234v-47l9-5h51v52z"/><path d="M347 234v-75l47-5 11 9v71z"/>
     <path d="M418 234v-91l34-8 14 9v90z"/><path d="M473 234v-62h44l11 8v54z"/>
@@ -875,7 +891,7 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
     </g>
   </g>
   <path d="M0 286q67-18 128-7t106 16q90 19 149 25H0zm680-21q-45 11-83 33t-74 22h157z" fill="#171a31"/>
-${cityDisaster}
+<g class="city-disaster"><path class="heat-reflection" d="M358 242l25-1-6 2zm57 12 22-1-3 2zm180-16 35-1-8 2zm-14 12 26-1-3 2zm-213 9 12-1-2 2z" fill="#d39169"/></g>
 </svg>`;
 let liveContext = '';
 function mqTime(min) {
@@ -984,6 +1000,10 @@ function updateMyQueueDynamic(L, model) {
     if (city.style.getPropertyValue('--power') !== power) city.style.setProperty('--power',power);
   }
 }
+function operatorLink(emergency) {
+  const url = /^https:\/\/t\.me\/zoe_alarm\/\d+$/.test(emergency.source_url) ? emergency.source_url : 'https://t.me/zoe_alarm';
+  return '<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Сообщение оператора</a>';
+}
 function renderLive() {
   const t = nowKyiv(), L = computeLive(state.dayMap, mySel.value, t);
   if (state.emergency?.active) {
@@ -993,14 +1013,10 @@ function renderLive() {
       myQueueRenderKey = key;
       liveContext = '';
       liveCard.innerHTML = '<div class="mq-hero mq-emergency">'+riverfront+
-        '<div class="mq-copy"><div class="mq-overline">'+esc(emergencyNames(state.emergency))+' · Аварийный режим</div>'+
-        '<h3 class="mq-title">Город вне графика</h3><p class="mq-lead">Введены аварийные отключения. Время включения и отключения света неизвестно.</p>'+
-        '<div class="emergency-chip">ГПВ — только для ознакомления</div><p class="emergency-art-note">Условная анимация, не сведения о пожарах</p></div></div>'+
-        '<div class="mq-note emergency-note">'+MQ_ICONS.info+'<span>Отключения возможны вне расписания. Прогноз, погрешности и напоминания о переключениях приостановлены до отмены аварийного режима.</span></div>'+
+        '<div class="mq-copy"><h3 class="mq-title">Аварийные отключения</h3><p class="mq-lead">Свет могут отключить вне графика.</p></div></div>'+
         '<details class="mq-original"'+(opened ? ' open' : '')+'><summary>Посмотреть предварительный график'+(L.q ? ' · очередь '+esc(L.q) : '')+'</summary>'+
-        '<p class="mq-muted">Эти интервалы не определяют фактическое наличие света. Возобновление ГПВ — после официальной отмены аварийных ограничений.</p>'+
         (L.ivT ? tlHtml(L.ivT,'План ГПВ · '+t.date,null) : '<p class="mq-muted">'+(!L.q ? 'Выберите очередь или откройте обзор ниже.' : 'На сегодня график не опубликован.')+'</p>')+
-        (L.ivN ? tlHtml(L.ivN,'План ГПВ · '+addDays(t.date,1),null) : '')+'</details>';
+        (L.ivN ? tlHtml(L.ivN,'План ГПВ · '+addDays(t.date,1),null) : '')+operatorLink(state.emergency)+'</details>';
     }
     return {...L, emergency:true, next:null};
   }
@@ -1255,11 +1271,12 @@ function renderEmergencyBanner() {
   if (!emergency) return;
   banner.classList.toggle('is-cancelled', !emergency.active);
   const title = emergency.active ? 'Аварийные отключения · '+emergencyNames(emergency) : 'Аварийные отключения отменены';
-  const source = /^https:\/\/t\.me\/[a-zA-Z0-9_]+\/\d+$/.test(emergency.source_url || '') ? emergency.source_url : 'https://t.me/zoe_alarm';
-  const markup = '<div class="emergency-banner-head"><span class="emergency-symbol" aria-hidden="true">'+(emergency.active ? '!' : '✓')+'</span><div><strong>'+esc(title)+'</strong><p>'+
-    (emergency.active ? 'Графики ГПВ не определяют время отключений. Все расписания на сайте доступны только для предварительного просмотра.' : 'По последнему сообщению действуют почасовые графики ГПВ. Прогноз и напоминания снова доступны.')+
-    '</p></div></div><details><summary>Сообщение оператора'+(emergency.published_at ? ' · '+esc(isoDM(emergency.published_at))+' '+esc(isoHM(emergency.published_at)) : '')+'</summary><p class="emergency-source-text">'+esc(emergency.text || '')+'</p><a href="'+esc(source)+'" target="_blank" rel="noopener noreferrer">Открыть сообщение в Telegram ↗</a></details>';
-  if (banner.innerHTML !== markup) banner.innerHTML = markup;
+  const summary = emergency.active ? title+' · График предварительный' : title;
+  const markup = '<details><summary>'+esc(summary)+'</summary><p class="emergency-source-text">'+esc(emergency.text || '')+'</p>'+operatorLink(emergency)+'</details>';
+  if (banner.dataset.markup !== markup) {
+    banner.innerHTML = markup;
+    banner.dataset.markup = markup;
+  }
 }
 
 function setStatus(extra = '') {
