@@ -172,8 +172,8 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 @keyframes mqWheel{to{transform:rotate(-360deg)}}
 @keyframes mqSign{0%,100%{opacity:.6}50%{opacity:1}}
 .city-ripples{transform-origin:65% 82%;animation:mqRipple 5s ease-in-out infinite alternate}
-.city-tram{animation:mqBridgeRide 25s -11s linear infinite}
-.city-car{animation:mqBridgeRide 16s -6s linear reverse infinite}
+.city-tram{animation:mqBridgeRide 35s -11s linear infinite}
+.city-car{animation:mqBridgeRide 23s -6s linear reverse infinite}
 .city-ferry{animation:mqCrossing 44s -12s linear infinite}
 .city-hull{transform-origin:32px 0;animation:mqSwell 1.8s ease-in-out infinite alternate}
 .city-wake{stroke-dasharray:7 4 3 4;animation:mqFoam .9s linear infinite}
@@ -184,7 +184,7 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 .city-night-sky{opacity:calc(1 - var(--power))}
 .city-wire{display:none;fill:none;stroke:#ffdfa1;stroke-width:2.4;stroke-linecap:round;stroke-dasharray:8 170;animation:mqGridFlow 2s linear infinite}
 .mq-transition .city-wire{display:inline}.mq-hero[data-change="off"] .city-wire{animation-direction:reverse}
-@keyframes mqCrossing{from{transform:translate(710px,258px)}to{transform:translate(-130px,281px)}}
+@keyframes mqCrossing{from{transform:translate(710px,253px)}to{transform:translate(-130px,270px)}}
 @keyframes mqSwell{from{transform:translateY(-1.5px) rotate(-1.6deg)}to{transform:translateY(1.5px) rotate(1.6deg)}}
 @keyframes mqFoam{to{stroke-dashoffset:-18}}
 @keyframes mqFlow{to{stroke-dashoffset:-96}}
@@ -194,11 +194,11 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 .city-beacon{animation:mqBeacon 6s ease-in-out infinite}
 @keyframes mqRipple{to{transform:scaleX(1.04) translateY(1px);opacity:.55}}
 @keyframes mqCloud{to{transform:translateX(-36px)}}
-@keyframes mqBridgeRide{from{transform:translateX(-80px)}to{transform:translateX(490px)}}
+@keyframes mqBridgeRide{from{transform:translateX(-80px)}to{transform:translateX(742px)}}
 @keyframes mqBeacon{0%,60%,100%{opacity:.22}80%{opacity:.9}}
 @media(prefers-reduced-motion:reduce){
   .city-tram{transform:translateX(218px)}.city-car{transform:translateX(345px)}
-  .city-ferry{transform:translate(433px,266px)}
+  .city-ferry{transform:translate(433px,259px)}
   .city-birds{transform:translate(350px,85px)}.city-walker{transform:translate(490px,225px)}
   .city-walker-two{transform:translate(624px,221px)}.city-cyclist{transform:translate(560px,227px)}
 }
@@ -349,13 +349,22 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
 }
 #tab-my .mq-scene-switch svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:1.6; }
 #tab-my .mq-scene-switch:hover { color:white; text-decoration:underline; }
-@keyframes mqSailing { from {transform:translate(724px,280px)} to {transform:translate(-38px,294px)} }
+#tab-my .city-tug { animation: mqTugCrossing 49s -16s linear infinite; }
+@keyframes mqTugCrossing {
+  0% { transform:translate(-68px,270px); }
+  25% { transform:translate(130px,271px); }
+  55% { transform:translate(368px,292px); }
+  78% { transform:translate(550px,283px); }
+  100% { transform:translate(724px,253px); }
+}
+@keyframes mqSailing { from {transform:translate(724px,243px)} to {transform:translate(-38px,253px)} }
 @keyframes mqBoatRock { from {transform:translateY(-1px) rotate(-2deg)} to {transform:translateY(1px) rotate(2deg)} }
-@keyframes mqCableRide { from {transform:translate(0,0)} to {transform:translate(562px,-75.58px)} }
+@keyframes mqCableRide { from {transform:translate(0,0)} to {transform:translate(400px,-80px)} }
 @media(prefers-reduced-motion:reduce) {
-  #tab-my .city-sail { transform:translate(240px,284px); }
-  #tab-my .city-lift { transform:translate(254px,-34.16px); }
-  #tab-my .city-lift-return { transform:translate(392px,-52.72px); }
+  #tab-my .city-sail { transform:translate(240px,249px); }
+  #tab-my .city-tug { transform:translate(335px,289px); }
+  #tab-my .city-lift { transform:translate(148px,-29.6px); }
+  #tab-my .city-lift-return { transform:translate(287px,-57.4px); }
 }
 @keyframes mqObservationWheel { to { transform: rotate(360deg); } }
 @keyframes mqHarborSweep { from { transform: scaleX(.36) rotate(-6deg); } to { transform: scaleX(1) rotate(8deg); } }
@@ -836,8 +845,8 @@ const MQ_ICONS = {
 };
 let myQueueRenderKey = '';
 // Each lamp shares a circuit with its pool of light on the bridge.
-const bridgeLights = [[96,232],[139,229],[218,223],[261,220],[304,217],[347,214]].map(([x,y],i) =>
-  `<g transform="translate(${x} ${y})"><path d="M0 3v-8h3" fill="none" stroke="#23263e" stroke-width="1.4"/>
+const bridgeLights = [96,139,218,261,304,347].map((x,i) =>
+  `<g transform="translate(${x} -1)"><path d="M0 3v-8h3" fill="none" stroke="#23263e" stroke-width="1.4"/>
     <g class="city-circuit" style="--offset:${i*.23}"><circle cx="3" cy="-5" r="12" fill="url(#city-lantern)"/>
     <path d="m2-4-5 7h13L4-4z" fill="#ffc676" opacity=".15"/><ellipse cx="3" cy="3" rx="7" ry="1.3" fill="#ffd395" opacity=".5"/>
     <circle cx="3" cy="-5" r="1.4" fill="#fff1c4"/></g></g>`).join('');
@@ -871,11 +880,11 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
     <radialGradient id="city-horizon"><stop stop-color="var(--horizon)" stop-opacity=".85"/><stop offset="1" stop-color="var(--horizon)" stop-opacity="0"/></radialGradient>
     <linearGradient id="city-beam"><stop stop-color="#ffe8ac" stop-opacity="0"/><stop offset="1" stop-color="#fff0bf" stop-opacity=".52"/></linearGradient>
     <radialGradient id="city-haze"><stop stop-color="#c590ca" stop-opacity=".67"/><stop offset="1" stop-color="#624b92" stop-opacity="0"/></radialGradient>
+    <radialGradient id="city-vapor"><stop stop-color="#c9bfcd" stop-opacity=".68"/><stop offset="1" stop-color="#c9bfcd" stop-opacity="0"/></radialGradient>
     <radialGradient id="city-lantern"><stop stop-color="#ffdf96" stop-opacity=".85"/><stop offset=".28" stop-color="#ffc875" stop-opacity=".32"/><stop offset="1" stop-color="#ffb75f" stop-opacity="0"/></radialGradient>
     <radialGradient id="city-orb-glow"><stop stop-color="var(--orb)" stop-opacity=".38"/><stop offset=".44" stop-color="var(--orb)" stop-opacity=".13"/><stop offset="1" stop-color="var(--orb)" stop-opacity="0"/></radialGradient>
     <radialGradient id="city-air"><stop stop-color="var(--shore-mist)" stop-opacity=".95"/><stop offset="1" stop-color="var(--shore-mist)" stop-opacity="0"/></radialGradient>
     <linearGradient id="city-facade" x2=".88" y2="1"><stop stop-color="#4d4c66"/><stop offset=".64" stop-color="#353a54"/><stop offset="1" stop-color="#282d46"/></linearGradient>
-    <linearGradient id="city-reflection" x2="0" y2="1"><stop stop-color="#222b43" stop-opacity=".36"/><stop offset="1" stop-color="#222b43" stop-opacity="0"/></linearGradient>
     <linearGradient id="city-sailcloth" x2="1" y2=".65"><stop stop-color="#f1d8bb"/><stop offset=".64" stop-color="#caa9a8"/><stop offset="1" stop-color="#ab8fa2"/></linearGradient>
     <g id="city-pine"><path d="m0-14-4 8h2l-4 6h12L2-6h2z" fill="#384c57"/><path d="m0-13 1 9 4 4H0z" fill="#4c5d64"/></g>
     <g id="city-cabin">
@@ -886,7 +895,6 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
       <path d="m-6 16 4-4m4 4 4-4" stroke="#b4c1d1" opacity=".7"/>
       <path class="city-circuit" d="M-7 12h6m2 0h6" stroke="#f5d3a9" stroke-width="2.5"/>
     </g>
-    <clipPath id="city-bridge-portal"><rect x="-100" y="-48" width="541" height="82"/></clipPath>
     <linearGradient id="city-water" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="var(--river-edge)"/><stop offset="1" stop-color="var(--river-deep)"/></linearGradient>
     <clipPath id="city-promenade"><path d="M432 190h248v48H432z"/></clipPath>
   </defs>
@@ -942,6 +950,25 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
     <path d="M196 226v-30h63v30m-67-30 35-15 36 15z" fill="#51475f" stroke-width="2"/>
     <path d="M204 205h12v14h-12zm21 0h12v14h-12z" fill="#a38c89" stroke="none"/>
   </g>
+  <g data-location="cable">
+    <path d="M0 191q58-24 100-15t89 0q45-4 78-26t65-34l15-7h45l20 7 19 21 35 15v51H0z" fill="#5e5b72"/>
+    <path d="m273 153 58-34 18-9h41l8 4-49 2-20 10z" fill="#908498"/>
+    <path d="m345 116 42-3-17 8-13 2-11 8 6-9z" fill="#716b80"/>
+    <path d="M138 177l13-47 4-1 7 47m-17-24 13-3m-16 12 18-3" fill="none" stroke="#625d73" stroke-width="2.6"/>
+    <path d="m145 131 15-3" stroke="#a89aae" stroke-width="2.4"/>
+    <path d="M-18 166 382 86M-18 168 382 88" fill="none" stroke="#b8acc0" stroke-width="1.2"/>
+    <g transform="translate(-18 166)"><g class="city-lift"><use href="#city-cabin"/></g></g>
+    <g transform="translate(-18 168)"><g class="city-lift city-lift-return"><use href="#city-cabin"/></g></g>
+    <g transform="translate(378 86)">
+      <path d="M-21 21h43v7h-43z" fill="#625d70"/><path d="M-22 22h45" stroke="#b5a5b1" stroke-width="2"/>
+      <path d="M-21-3h42v25h-42z" fill="#454459"/><path d="M-19 2h14v19h-14z" fill="#2d3044"/>
+      <path d="M-2 1h20v12H-2z" fill="#80909c"/><path d="M4 1v12m8-12v12" stroke="#555564" stroke-width="1.5"/>
+      <path class="city-circuit" d="M0 3h4m2 0h5m3 0h3" stroke="#f5cea6" stroke-width="2"/>
+      <path d="m-25-3 13-10h25L25-4v2h-50z" fill="#a28a97"/><path d="m-24-3 13-9h24" stroke="#d3b7ac" fill="none"/>
+    </g>
+    <g>${[[35,195,.8],[49,194,1.2],[62,197,.9],[118,196,1.2],[131,199,1.55],[145,197,1.2],[211,207,1.5],[227,207,1.9],[241,207,1.43],[255,206,1.06]].map(([x,y,s]) =>
+      `<use href="#city-pine" transform="translate(${x} ${y}) scale(${s})"/>`).join('')}</g>
+  </g>
   <g fill="url(#city-facade)">
     <path d="M282 234v-47l9-5h51v52z"/><path d="M347 234v-75l47-5 11 9v71z"/>
     <path d="M418 234v-91l34-8 14 9v90z"/><path d="M473 234v-62h44l11 8v54z"/>
@@ -952,12 +979,47 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
   <g fill="none" stroke="#6d6583" stroke-width="1" opacity=".65"><path d="M350 160v-9h42v4m28-11v-6l31-8 14 8v6M479 171v-7h21v7M598 166v-7h34v7M549 121l10-11 11 11M559 110v-10"/><path d="M352 188h37m-37 24h37m30-42h30m-30 24h30m145-5h42m-42 24h42"/></g>
   ${cityWindows}
   <g class="city-circuit" style="--offset:.85"><circle cx="559" cy="133" r="6" fill="#dfc8aa"/><path d="M559 129v4l3 2" stroke="#41415d" stroke-width="1.2" fill="none"/></g>
-  <g transform="translate(491 161)" fill="#bbb0c9"><circle class="city-smoke" cy="-2" r="4"/><circle class="city-smoke" style="--delay:-3s" cy="-2" r="4"/><circle class="city-smoke" style="--delay:-6s" cy="-2" r="4"/></g>
+  <g transform="translate(491 161)" fill="url(#city-vapor)"><circle class="city-smoke" cy="-2" r="4"/><circle class="city-smoke" style="--delay:-3s" cy="-2" r="4"/><circle class="city-smoke" style="--delay:-6s" cy="-2" r="4"/></g>
   <circle class="city-beacon" cx="560" cy="120" r="1.3" fill="#ffd1b2"/>
   <g fill="#292d49"><path d="M0 229q87-22 172-9t146-6q62-5 109 8t120-7q76-21 133-10v37H0z"/></g>
   <path d="M0 236q160-10 327-4t353-5v93H0z" fill="url(#city-water)"/>
-  <path d="m284 234 56-2-4 20-46 8zm67-2 55-1-5 27-41 7zm68-1 46-1-5 29-35 7zm122-2 35-1-2 35-29 10zm49-1 58-1-8 24-43 9z" fill="url(#city-reflection)"/>
+  <g fill="none" stroke="#32394e" stroke-linecap="round" opacity=".48">
+    <path d="m286 235 49-1m16-1 48-1m21 0 43-1m80-1 28-1m20 0 48-1" stroke-width="2.4"/>
+    <path d="m293 240 23-1m54-1 18-1m42 0 22-1m95-1h19m35-1h23" stroke-width="1.5"/>
+  </g>
   <path d="m434 227 246-8" stroke="#8c819d" stroke-width="2" opacity=".55"/>
+  <g data-location="bridge">
+    <g fill="none" stroke="#b4a7c5" stroke-width="1.3">
+      <path d="M32 237 175 134 342 225M79 235l96-101 106 94M122 233l53-99 51 96"/>
+      <path d="M154 237l19-105h7l17 103m-33-52h23m-26 20h29" stroke="#34334b" stroke-width="4.5"/>
+    </g>
+    <g transform="translate(0 238) rotate(-2.1)">
+      <path d="M-12 0h440v6H-12z" fill="#333449"/>
+      <path d="M-12 5h438M27 1l8 4 8-4m54 0 8 4 8-4m85 0 8 4 8-4m63 0 8 4 8-4" fill="none" stroke="#797183" stroke-width="1.1"/>
+      <path d="M156 6h9v21h-9zm155 0h8v18h-8z" fill="#303247"/>
+      <path d="M157 6v19m155-19v16" stroke="#8a8192" stroke-width="1.2"/>
+      <path d="M409 5l18-7h19v12l-37 2z" fill="#585567"/>
+      <path d="M426-1h264v7H426z" fill="#4c485a"/>
+      <path d="M-12 0h702" stroke="#ad9fb0" stroke-width="1.5"/>
+      <g class="city-tram">
+        <path d="M0-4v-10q0-4 5-4h46q5 0 8 5l3 7q1 3-3 3H4z" fill="#bc8593" stroke="#463e54" stroke-width="1.2"/>
+        <path d="M4-14h7v6H4zm10 0h8v6h-8zm11 0h8v6h-8zm11 0h8v6h-8zm11 0h6l4 6h-10z" fill="#8e899a"/>
+        <path class="city-circuit" d="M4-13h7m3 0h8m3 0h8m3 0h8m3 0h6" stroke="#ffe0ac" stroke-width="3"/>
+        <path d="M2-6h57m-38-12 5-5 10 5" fill="none" stroke="#ead1ca" stroke-width="1.3"/>
+        <g fill="#29293b"><circle cx="10" cy="-2.5" r="2.5"/><circle cx="51" cy="-2.5" r="2.5"/></g>
+        <path d="M3-3.7h53m-23-13v12m5-12v12" stroke="#704b64" stroke-width=".9"/>
+        <path d="M4-17h46" stroke="#e6beae" stroke-width="1.3"/>
+        <circle cx="59" cy="-6" r="1.3" fill="#fff2cd"/>
+      </g>
+      <g transform="translate(0 3)"><g class="city-car"><g transform="scale(-1 1)">
+        <path d="M0-3v-4l5-1 4-5h9l5 5 5 2v4H2z" fill="#adb5c9" stroke="#393950" stroke-width="1"/>
+        <path d="m8-8 3-4h6l4 4z" fill="#5a647e"/><path d="M3-5h3m18 0h3" stroke="#fff0cf" stroke-width="1.5"/>
+        <g fill="#212236"><circle cx="6" cy="-2" r="2"/><circle cx="22" cy="-2" r="2"/></g>
+      </g></g></g>
+      ${bridgeLights}
+      <path class="city-wire" d="M0 3h425"/>
+    </g>
+  </g>
   <g transform="translate(475 223)">
     <path d="M-8 0v-15h35V0" fill="#39354f"/><path d="M-10-14h39l-4-6H-6z" fill="#a48498"/>
     <path d="M-4-19-2-14m7-5 1 5m7-5 1 5m7-5 2 5" stroke="#debeac" stroke-width="3"/>
@@ -1004,41 +1066,6 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
     <g class="city-circuit" style="--offset:1"><path opacity=".65" d="M540 236h21m33 4h29m-108 9h19"/><path opacity=".32" d="M536 245h29m-6 12h9m30-9h22m-34 18h16"/></g>
   </g>
   <g fill="none" stroke="#83809d" opacity=".45"><path d="M100 257h91m-68 7h29m90-20h49m-84 35h112m24-4h17m69 13h76m70 8h59m-251 12h124"/></g>
-  <g data-location="bridge">
-    <g fill="none" stroke="#b4a7c5" stroke-width="1.4">
-      <path d="M36 239 175 134 334 219M83 236l92-102 102 89M123 233l52-99 51 93"/>
-      <path d="m152 249 21-117h7l16 114m-30-62h23m-26 18h29" stroke="#303048" stroke-width="5"/>
-    </g>
-    <g transform="translate(0 242) rotate(-4)">
-      <path d="M-12 0h467v6H-12z" fill="#292a41"/><path d="M-12 0h466" stroke="#ac9fb0" stroke-width="1.5"/>
-      <path d="M158 6v27h7V6m148 0v23h6V6" fill="#25283c"/>
-      <path d="M-4 6h441m-408 0 10 7 10-7m63 0 10 7 10-7m77 0 10 7 10-7m76 0 10 7 10-7" fill="none" stroke="#696579" stroke-width="1.6"/>
-      <path d="M157 8h8m-7 2v20m154-22h8m-7 2v16" fill="none" stroke="#82798b" stroke-width="1.2"/>
-      <g clip-path="url(#city-bridge-portal)">
-        <g class="city-tram">
-          <path d="M0-4v-10q0-4 5-4h46q5 0 8 5l3 7q1 3-3 3H4z" fill="#bc8593" stroke="#463e54" stroke-width="1.2"/>
-          <path d="M4-14h7v6H4zm10 0h8v6h-8zm11 0h8v6h-8zm11 0h8v6h-8zm11 0h6l4 6h-10z" fill="#8e899a"/>
-          <path class="city-circuit" d="M4-13h7m3 0h8m3 0h8m3 0h8m3 0h6" stroke="#ffe0ac" stroke-width="3"/>
-          <path d="M2-6h57m-38-12 5-5 10 5" fill="none" stroke="#ead1ca" stroke-width="1.3"/>
-          <g fill="#29293b"><circle cx="10" cy="-2.5" r="2.5"/><circle cx="51" cy="-2.5" r="2.5"/></g>
-          <path d="M3-3.7h53m-23-13v12m5-12v12" stroke="#704b64" stroke-width=".9"/>
-          <path d="M4-17h46" stroke="#e6beae" stroke-width="1.3"/>
-          <circle cx="59" cy="-6" r="1.3" fill="#fff2cd"/>
-        </g>
-        <g transform="translate(0 3)"><g class="city-car"><g transform="scale(-1 1)">
-          <path d="M0-3v-4l5-1 4-5h9l5 5 5 2v4H2z" fill="#adb5c9" stroke="#393950" stroke-width="1"/>
-          <path d="m8-8 3-4h6l4 4z" fill="#5a647e"/><path d="M3-5h3m18 0h3" stroke="#fff0cf" stroke-width="1.5"/>
-          <g fill="#212236"><circle cx="6" cy="-2" r="2"/><circle cx="22" cy="-2" r="2"/></g>
-        </g></g></g>
-      </g>
-      <path d="M439 4v-24q0-9 9-9h15v34z" fill="#44415b"/>
-      <path d="M438 0v-20q0-10 10-10h14" fill="none" stroke="#97899d" stroke-width="2"/>
-      <path d="M439-30h36l8 5h-44z" fill="#9b889c"/><path d="M447-22h6v8h-6zm9 0h6v8h-6z" fill="#5a556b"/>
-      <path class="city-circuit" d="M447-20h5m4 0h5" stroke="#e2bc9e" stroke-width="2"/>
-    </g>
-    ${bridgeLights}
-    <path class="city-wire" d="m0 245 439-31"/>
-  </g>
   <g data-location="harbor">
     <path d="m42 249 181-5v5l-181 5z" fill="#716078"/><path d="M55 253v11m75-14v10m76-12v8" stroke="#443d53" stroke-width="4"/>
     <g stroke-linecap="round" fill="none">
@@ -1050,27 +1077,15 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
     <g transform="translate(314 250)"><g class="city-buoy">
       <path d="m-5 0 3-3 1-8h2l1 8 3 3-2 3h-6z" fill="#c38981"/><path d="M-2-4h4" stroke="#e7d1bb" stroke-width="2"/>
       <circle cy="-11" r="1.6" fill="#ffdd9a"/></g></g>
-    <g class="city-sail"><g class="city-sail-hull">
-      <path d="M0-4v-45" stroke="#ddc7ba" stroke-width="1.6"/>
-      <path d="M-3-44q-4 16-22 35l22-2z" fill="url(#city-sailcloth)"/><path d="M3-37q13 20 15 25L3-10z" fill="#a99bb9"/>
-      <path d="M-4-32q-2 9-9 15m16-3 9 3" stroke="#e8ccb5" stroke-width=".85" fill="none"/>
-      <path d="m-28-7 54-2-7 8h-36z" fill="#665571" stroke="#d3afb5" stroke-width="1.5"/>
-      <path d="m-13 3 19 1m-10 3 16 1" stroke="#bcadc5" fill="none" opacity=".65"/>
-    </g></g>
   </g>
-  <g data-location="cable">
-    <path d="m-18 166 580-78m-580 80 580-78" stroke="#b3a6bc" stroke-width="1.2"/>
-    <path d="M181 210l5-72h4l7 69m-12-39h7m-9 18h11" fill="none" stroke="#51495f" stroke-width="3"/>
-    <g>${[[35,195,.8],[49,194,1.2],[62,197,.9],[118,196,1.2],[131,199,1.55],[145,197,1.2],[211,207,1.5],[227,207,1.9],[241,207,1.43],[255,206,1.06]].map(([x,y,s]) =>
-      `<use href="#city-pine" transform="translate(${x} ${y}) scale(${s})"/>`).join('')}</g>
-    <path d="m177 140 22-3" stroke="#93889f" stroke-width="3"/>
-    <g transform="translate(-18 166)"><g class="city-lift"><use href="#city-cabin"/></g></g>
-    <g transform="translate(-18 168)"><g class="city-lift city-lift-return"><use href="#city-cabin"/></g></g>
-    <g transform="translate(543 87)"><path d="m-22 4 23-13 22 8-1 17-43 7z" fill="#564b65" stroke="#ab9aac" stroke-width="1.5"/>
-      <path d="m-17 7 30-5v7l-30 5z" fill="#494656"/><path class="city-circuit" d="m-14 7 24-4" stroke="#f0c69e" stroke-width="2"/>
-      <path d="M-12 21v28m24-33v26m-24-17 24 12m-24 5 24-22" fill="none" stroke="#696078" stroke-width="2.5"/></g>
-  </g>
-  <g data-location="harbor" class="city-ferry">
+  <g class="city-sail"><g transform="scale(.72)"><g class="city-sail-hull">
+    <path d="M0-4v-45" stroke="#ddc7ba" stroke-width="1.6"/>
+    <path d="M-3-44q-4 16-22 35l22-2z" fill="url(#city-sailcloth)"/><path d="M3-37q13 20 15 25L3-10z" fill="#a99bb9"/>
+    <path d="M-4-32q-2 9-9 15m16-3 9 3" stroke="#e8ccb5" stroke-width=".85" fill="none"/>
+    <path d="m-28-7 54-2-7 8h-36z" fill="#665571" stroke="#d3afb5" stroke-width="1.5"/>
+    <path d="m-13 3 19 1m-10 3 16 1" stroke="#bcadc5" fill="none" opacity=".65"/>
+  </g></g></g>
+  <g class="city-ferry">
     <g class="city-wake" fill="none" stroke="#c9c6dd" stroke-linecap="round">
       <path d="M48 4q25 2 60-1m-53 6q19 3 39 2" opacity=".75"/><path d="M55 12q16 3 31 3" opacity=".35"/>
     </g>
@@ -1080,6 +1095,21 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
       <path d="M14-9h5m3 0h5m3 0h5m3 0h5" stroke="#ffe5ac" stroke-width="3"/>
       <path d="M1-4h57" stroke="#ce8d83" stroke-width="2.4"/><path d="M32-18v-7l10 3-10 2" fill="#b58eaa" stroke="#aca1b9"/>
       <circle cx="5" cy="-5" r="8" fill="url(#city-lantern)"/><circle cx="5" cy="-5" r="1.5" fill="#ffecab"/>
+    </g>
+  </g>
+  <g data-location="harbor">
+    <g class="city-tug">
+      <path class="city-wake" d="M3 4q-15 3-33 1m25 4q-9 2-18 1" fill="none" stroke="#c5c1ca" opacity=".63"/>
+      <g class="city-sail-hull">
+        <path d="M0-6h28l9-3h19q-2 10-11 13H9Q1 2 0-6z" fill="#954f4f" stroke="#44384b" stroke-width="1.4"/>
+        <path d="M1-6h27l10-3h17" fill="none" stroke="#e8bd91" stroke-width="2"/>
+        <path d="M17-7v-11h22l3 10z" fill="#ddbb92"/>
+        <path d="M22-18v-8h14l3 8z" fill="#e7ceac"/><path d="M23-24h4v4h-4zm6 0h5l2 4h-7z" fill="#4c6572"/>
+        <path d="M20-26h17l2 2H20z" fill="#65556a"/><path d="M11-7V-21h6v14z" fill="#855558"/>
+        <path d="M11-21h6v4h-6z" fill="#393b4c"/><path d="M29-26v-6m-3 3h6" stroke="#b7a6a9" stroke-width="1.3"/>
+        <g fill="#474250" stroke="#b5a09d" stroke-width=".9"><circle cx="8" cy="-3" r="3"/><circle cx="19" cy="-3" r="3"/><circle cx="46" cy="-5" r="3.5"/></g>
+        <circle cx="38" cy="-16" r="1.4" fill="#ffdfae"/>
+      </g>
     </g>
   </g>
   <path d="M0 286q67-18 128-7t106 16q90 19 149 25H0zm680-21q-45 11-83 33t-74 22h157z" fill="#1d2238"/>
