@@ -710,25 +710,18 @@ function toast(msg, err = false, ms = 5000) {
 
 // ---------- audio ----------
 let actx = null;
+let pendingUpdateSound = '';
 const audioBadge = $('#audioBadge');
 function updateAudioBadge() {
-  const ok = !!actx && actx.state === 'running';
-  audioBadge.textContent = ok ? '🔊 звук разрешён' : '🔇 кликните по странице — разрешить звук';
-  audioBadge.classList.toggle('ok', ok);
+  const ready = actx?.state === 'running';
+  audioBadge.textContent = !soundCheck.checked ? '🔇 Звук обновлений выключен'
+    : ready ? '🔊 Звук включен'
+    : pendingUpdateSound ? '🔔 График обновился — нажмите для звука'
+    : '🔇 Нажмите на страницу, чтобы разрешить звук';
+  audioBadge.classList.toggle('ok',soundCheck.checked && ready);
 }
-function initAudio() {
-  try {
-    if (!actx) { actx = new (window.AudioContext || window.webkitAudioContext)(); actx.onstatechange = updateAudioBadge; }
-    if (actx.state !== 'running') actx.resume().then(updateAudioBadge).catch(() => {});
-  } catch {}
-  updateAudioBadge();
-}
-['pointerdown', 'click', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, initAudio, {passive: true}));
-async function playSound(force = false) {
-  if (!force && !soundCheck.checked) return true;
-  if (!actx) return false;
-  if (actx.state !== 'running') { try { await actx.resume(); } catch {} }
-  if (actx.state !== 'running') return false;
+function ringChime() {
+  if (actx?.state !== 'running') return false;
   const t0 = actx.currentTime;
   [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
     const o = actx.createOscillator(), g = actx.createGain(), t = t0 + i * 0.1;
@@ -736,16 +729,55 @@ async function playSound(force = false) {
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(0.3, t + 0.02);
     g.gain.exponentialRampToValueAtTime(0.0001, t + (i === 3 ? 0.5 : 0.18));
-    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + 0.6);
+    o.connect(g);
+    g.connect(actx.destination);
+    o.start(t); o.stop(t + 0.6);
   });
   return true;
 }
-$('#testSoundBtn').addEventListener('click', async () => {
+function audioStateChanged() {
+  if (pendingUpdateSound && soundCheck.checked) {
+    if (store.get('last_sounded_update') === pendingUpdateSound) pendingUpdateSound = '';
+    else if (ringChime()) {
+      store.set('last_sounded_update',pendingUpdateSound);
+      pendingUpdateSound = '';
+    }
+  }
+  updateAudioBadge();
+}
+function getAudioContext() {
+  if (!actx || actx.state === 'closed') {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    actx.onstatechange = audioStateChanged;
+  }
+  return actx;
+}
+function initAudio() {
+  if (!soundCheck.checked) return;
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state !== 'running') ctx.resume().then(audioStateChanged).catch(updateAudioBadge);
+    audioStateChanged();
+  } catch { updateAudioBadge(); }
+}
+['pointerdown','touchend','click','keydown'].forEach(ev => document.addEventListener(ev,initAudio,{passive:true}));
+function queueUpdateSound(revision) {
+  if (!soundCheck.checked) return;
+  pendingUpdateSound = revision;
   initAudio();
+}
+async function playSound(force = false) {
+  if (!force && !soundCheck.checked) return true;
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state !== 'running') await ctx.resume();
+    return ringChime();
+  } catch { return false; }
+}
+$('#testSoundBtn').addEventListener('click', async () => {
   const ok = await playSound(true);
-  toast(ok ? '🔊 Звук работает' : '🔇 Браузер не дал включить звук — проверьте, что вкладка не заглушена', !ok, 6000);
+  toast(ok ? '🔊 Проверочный сигнал' : '🔇 Браузер не дал включить звук', !ok, 6000);
 });
-audioBadge.addEventListener('click', initAudio);
 let titleTimer = null;
 function flashTitle() {
   if (titleTimer) return;
@@ -1516,7 +1548,11 @@ onlyChanges.addEventListener('change', () => renderCompare());
 oldInput.addEventListener('input', () => { store.set('old', oldInput.value); autosize(oldInput); });
 newInput.addEventListener('input', () => { store.set('new', newInput.value); autosize(newInput); rebuildDayMap(); renderTables(); });
 vizInput.addEventListener('input', () => store.set('viz', vizInput.value));
-soundCheck.addEventListener('change', () => { store.set('sound_enabled', soundCheck.checked); if (soundCheck.checked) initAudio(); });
+soundCheck.addEventListener('change', () => {
+  store.set('sound_enabled',soundCheck.checked);
+  if (soundCheck.checked) initAudio();
+  else { pendingUpdateSound = ''; updateAudioBadge(); }
+});
 
 function renderVersions() {
   const box = $('#versions');
@@ -1541,7 +1577,7 @@ function setStatus(extra = '') {
   if (state.lastCheck) s += `${s ? ' · ' : ''}проверено ${state.lastCheck}`;
   updateStatus.innerHTML = esc(s || 'Ожидание данных...') + (extra ? ` <span style="color:var(--warn)">${esc(extra)}</span>` : '');
 }
-function processJsonData(data, isAuto) {
+function processJsonData(data) {
   if (!Array.isArray(data) || !data.length) return false;
   state.days = data;
   const sorted = [...data].sort((a, b) => dateNum(b.date) - dateNum(a.date));
@@ -1565,46 +1601,65 @@ function processJsonData(data, isAuto) {
   [oldInput, newInput].forEach(autosize);
   rebuildDayMap(); renderVersions(); renderTables(); renderLive(); setStatus();
 
-  if (changed) {
-    renderCompare();
-    if (isAuto && saved) {
-      playSound().then(ok => { if (!ok) toast('🔇 Браузер блокирует звук — кликните в любом месте страницы один раз', true, 9000); });
-      flashTitle();
-      const t = isoHM(latest.published_at);
-      toast(`Получен новый график${t ? ' (обновлён в ' + t + ')' : ''}!`, false, 7000);
-      if (notifyOn.checked) {
-        const q = mySel.value;
-        if (q) {
-          const o = parseText(oldInput.value).queues.get(q) || [], n = parseText(newInput.value).queues.get(q) || [];
-          const a = strs(n).filter(x => !strs(o).includes(x)), r = strs(o).filter(x => !strs(n).includes(x));
-          if (a.length || r.length) notify(`График изменился (очередь ${q})`, [a.length ? '+ ' + a.join(', ') : '', r.length ? '− ' + r.join(', ') : ''].filter(Boolean).join('\n'), 'sched-' + q);
-          else notify(`Новый график (очередь ${q})`, 'Для вашей очереди изменений нет', 'sched-' + q);
-        } else notify('Получен новый график', t ? 'Обновлён в ' + t : 'График обновлён', 'sched-any');
-      }
-    }
-  }
+  if (changed) renderCompare();
   return true;
 }
+function scheduleRevision(day) {
+  // Archive history and JSON key order do not describe a new publication.
+  return JSON.stringify([day.date, day.published_at || '', formatDay(day.date,day.published_at,day.queues)]);
+}
+function announceScheduleUpdate(previous, data) {
+  if (!Array.isArray(previous) || !previous.length) return;
+  const today = dateNum(nowKyiv().date);
+  const oldDays = new Map(previous.map(day => [day.date,day]));
+  const changedDay = [...data].sort((a,b) => dateNum(a.date) - dateNum(b.date)).find(day => {
+    const old = oldDays.get(day.date);
+    return dateNum(day.date) >= today && (!old || scheduleRevision(old) !== scheduleRevision(day));
+  });
+  if (!changedDay) return;
+  queueUpdateSound(scheduleRevision(changedDay));
+  flashTitle();
+  const message = 'Обновлен график на '+changedDay.date;
+  toast(message,false,7000);
+  if (!notifyOn.checked) return;
+  const q = mySel.value;
+  if (!q) { notify(message,'Опубликовано новое расписание','sched-any'); return; }
+  const old = oldDays.get(changedDay.date);
+  const before = old ? strs(dayModel(old).queues.get(q) || []) : [];
+  const after = strs(dayModel(changedDay).queues.get(q) || []);
+  const added = after.filter(x => !before.includes(x)), removed = before.filter(x => !after.includes(x));
+  const detail = [added.length ? '+ '+added.join(', ') : '',removed.length ? '− '+removed.join(', ') : ''].filter(Boolean).join('\n');
+  notify(message+' · очередь '+q,detail || 'Для вашей очереди изменений нет','sched-'+q);
+}
 const JSON_URL = 'schedule.json';
+let updateInFlight = false;
+let lastServerRaw;
 async function checkForUpdates() {
+  if (updateInFlight) return;
   if (location.protocol === 'file:') { updateStatus.textContent = 'Локальный режим (без авто-обновления)'; return; }
+  updateInFlight = true;
   try {
     const res = await fetch(JSON_URL + '?t=' + Date.now(), {cache: 'no-store'});
     if (!res.ok) throw new Error('schedule.json не найден');
-    const data = await res.json(), raw = JSON.stringify(data), last = store.get('last_raw_json');
+    const data = await res.json(), raw = JSON.stringify(data);
     const p = kyivParts(); state.lastCheck = `${p.hour}:${p.minute}:${p.second}`;
-    if (raw !== last) { if (processJsonData(data, true)) store.set('last_raw_json', raw); }
-    else { state.days = data; if (!newInput.value) processJsonData(data, false); rebuildDayMap(); renderVersions(); setStatus(); }
+    if (raw !== lastServerRaw) {
+      const previous = lastServerRaw;
+      if (!processJsonData(data)) return;
+      lastServerRaw = raw;
+      store.set('last_raw_json',raw);
+      if (previous) announceScheduleUpdate(JSON.parse(previous),data);
+    } else { state.days = data; if (!newInput.value) processJsonData(data); rebuildDayMap(); renderVersions(); setStatus(); }
   } catch (e) {
     setStatus(state.days.length ? 'нет сети — показан сохранённый график' : 'ожидание данных');
-  }
+  } finally { updateInFlight = false; }
 }
 $('#importJsonBtn').addEventListener('click', () => $('#jsonInput').click());
 $('#jsonInput').addEventListener('change', e => {
   const f = e.target.files[0]; if (!f) return;
   const r = new FileReader();
   r.onload = ev => {
-    try { toast(processJsonData(JSON.parse(ev.target.result), false) ? 'Файл успешно загружен!' : 'Файл пуст или неверный формат', false); }
+    try { toast(processJsonData(JSON.parse(ev.target.result)) ? 'Файл успешно загружен!' : 'Файл пуст или неверный формат', false); }
     catch { toast('Ошибка чтения JSON', true); }
     e.target.value = '';
   };
@@ -1748,7 +1803,7 @@ oldInput.value = store.get('old', ''); newInput.value = store.get('new', ''); vi
 const ss = store.get('sound_enabled'); if (ss !== null) soundCheck.checked = ss === 'true';
 notifyOn.checked = store.get('notify') === 'true' && 'Notification' in window && Notification.permission === 'granted';
 leadSel.value = store.get('lead', '15');
-try { const raw = store.get('last_raw_json'); if (raw) { const d = JSON.parse(raw); if (Array.isArray(d)) state.days = d; } } catch {}
+try { const raw = store.get('last_raw_json'); if (raw) { const d = JSON.parse(raw); if (Array.isArray(d)) { state.days = d; lastServerRaw = raw; } } } catch {}
 rebuildDayMap(); renderVersions(); renderTables(); renderLive(); setStatus(); updateAudioBadge();
 [oldInput, newInput].forEach(autosize);
 showTab(store.get('tab', 'my'));
