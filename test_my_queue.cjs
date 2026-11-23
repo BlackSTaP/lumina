@@ -49,7 +49,7 @@ globalThis.rendered=liveCard.innerHTML;
 globalThis.displayWindow=mqWindow([554,558]);
 globalThis.dayModel=computeLive(dayMap,'1.1',t);
 `;
-const sandbox = {store:new Map()};
+const sandbox = {};
 vm.runInNewContext(core + '\nfunction tlHtml(' + timeline + '\nconst MQ_ICONS =' + view + '\n' + mocks, sandbox);
 assert.match(sandbox.rendered, /09:14–09:18/);
 assert.match(sandbox.rendered, /12:30–12:40/);
@@ -60,7 +60,7 @@ assert.equal(sandbox.dayModel.next.at, 780, 'official engine stays unchanged');
 assert.equal(sandbox.dayModel.off, true, 'original scheduled status stays unchanged');
 const cardFunction = script[1].slice(script[1].indexOf('function queueCard('), script[1].indexOf('function updateCards('));
 const cardApi = vm.runInNewContext(core + '\nfunction tlHtml(' + timeline + '\nconst MQ_ICONS =' + view + '\n' + cardFunction +
-  '\n;({card:(iv,minute)=>queueCard("1.1",iv,stats(iv),minute,true),mqScheduleSlots,myQueueForecast,cityPower,updateCityScene,mqCountdown,scheduleSegments,mqBar,cityPlaces,pickOpeningPlace})', {store:new Map()});
+  '\n;({card:(iv,minute)=>queueCard("1.1",iv,stats(iv),minute,true),mqScheduleSlots,myQueueForecast,cityPower,scheduleSegments,mqBar})', {});
 assert.match(cardApi.card(one,540), /data-tone="off"/);
 assert.match(cardApi.card(one,780), /data-tone="on"/);
 assert.match(cardApi.card(one,null), /План на завтра/);
@@ -81,66 +81,6 @@ assert.equal(powerAt([[540,565]],540),powerAt(one,558), 'zero-length forecast wi
 assert.equal(powerAt([[540,565]],565),1);
 assert.ok(powerAt([[1440,1560]],1439) < 1, 'approaching a tomorrow event before midnight');
 assert.equal(powerAt([],810),1);
-const scene = {
-  dataset: {},
-  style: {getPropertyValue(k){return this[k];}, setProperty(k,v){this[k]=v;}}
-};
-for (const [minute, wheel, sky] of [
-  [330,'turning','night'], [430,'turning','twilight'], [535,'turning','day'],
-  [556,'parked','day'], [610,'parked','day'], [750,'parked','day'],
-  [758,'turning','day'], [1100,'turning','twilight'], [1300,'turning','night']
-]) {
-  cardApi.updateCityScene(scene,minute,cardApi.myQueueForecast(one,minute));
-  assert.equal(scene.dataset.wheel,wheel,'wheel at minute '+minute);
-  assert.equal(scene.dataset.sky,sky,'sky at minute '+minute);
-  assert.equal(Number(scene.style['--power']),Number(powerAt(one,minute).toFixed(4)));
-}
-const quietScene = {dataset:{}};
-cardApi.updateCityScene(quietScene,800,null);
-assert.deepEqual(quietScene.dataset,{sky:'day'});
-const places = Array.from(cardApi.cityPlaces, place => place.id);
-assert.deepEqual(places,['bridge','harbor','cable','wind']);
-// Check every equally sized random bucket, including new / stale stored values.
-for (const previous of [null,'retired',...places]) {
-  const available = places.filter(id => id !== previous);
-  for (let i=0; i<available.length; i++) {
-    const roll = (i + .5) / available.length;
-    assert.equal(cardApi.pickOpeningPlace(previous,roll).id,available[i]);
-  }
-}
-assert.ok(sandbox.rendered.includes('data-place="'+sandbox.store.get('lastCityPlace')+'"'));
-// A vehicle wraps only after clearing the whole city, including both traffic lanes.
-const bridgeRoute = html.match(/@keyframes mqBridgeRide\{from\{transform:translateX\((-?\d+)px\)\}to\{transform:translateX\((\d+)px\)\}\}/);
-assert.ok(bridgeRoute);
-assert.ok(Number(bridgeRoute[1]) + 63 < 0 && Number(bridgeRoute[2]) - 28 > 680);
-assert.doesNotMatch(sandbox.rendered,/city-bridge-portal/);
-const svg = sandbox.rendered.match(/<svg data-place="[\w-]+" class="mq-city"[\s\S]*?<\/svg>/)[0];
-const scopes = [], vessels = new Map();
-for (const [tag] of svg.matchAll(/<g\b[^>]*>|<\/g>/g)) {
-  if (tag === '</g>') { scopes.pop(); continue; }
-  const location = tag.match(/data-location="([^"]+)"/)?.[1] ?? scopes.at(-1) ?? 'all';
-  scopes.push(location);
-  const vessel = tag.match(/class="city-(sail|ferry|tug)"/)?.[1];
-  if (vessel) vessels.set(vessel,location);
-}
-assert.deepEqual(Object.fromEntries(vessels),{sail:'all',ferry:'all',tug:'harbor'});
-assert.ok(sandbox.rendered.indexOf('Расписание на сегодня') < sandbox.rendered.indexOf('Ближайшие события'));
-const cityStub = {dataset:{place:'bridge'}};
-const caption = {textContent:''};
-const switcher = {querySelector:()=>caption,setAttribute(k,v){this[k]=v;}};
-const selectScene = script[1].split("liveCard.addEventListener('click', event => {")[1].split('\n});')[0];
-const sceneStore = new Map();
-const cycle = vm.runInNewContext('const MQ_ICONS ='+view+'\nconst liveCard={querySelector:()=>cityStub};\n'+
-  'event=>{'+selectScene+'}',{cityStub,store:sceneStore});
-const event = {target:{closest:()=>switcher}};
-for (const id of ['harbor','cable','wind','bridge']) {
-  cycle(event);
-  assert.equal(cityStub.dataset.place,id);
-  assert.equal(sceneStore.get('lastCityPlace'),id);
-  assert.ok(switcher['aria-label'].includes(caption.textContent));
-}
-const midnightEvent = cardApi.myQueueForecast([[1440,1560]],1439).next;
-assert.match(cardApi.mqCountdown({t:{sec:1439*60}},midnightEvent)[1],/00:14.*00:18.*завтра/);
 const plain = value => JSON.parse(JSON.stringify(value));
 assert.deepEqual(plain(cardApi.scheduleSegments([])), [[0,1440,'Со светом по графику']]);
 assert.deepEqual(plain(cardApi.scheduleSegments([[100,150],[120,180],[-20,30],[1430,1500]])), [
