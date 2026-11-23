@@ -109,11 +109,21 @@ for (const previous of [null,'retired',...places]) {
   }
 }
 assert.ok(sandbox.rendered.includes('data-place="'+sandbox.store.get('lastCityPlace')+'"'));
-const bridgeClip = sandbox.rendered.match(/<clipPath id="city-bridge-portal"><rect x="(-?\d+)" y="(-?\d+)" width="(\d+)" height="(\d+)"\/><\/clipPath>/);
-assert.ok(bridgeClip,'the mask belongs to the local bridge coordinate system');
-const [,clipX,clipY,clipWidth,clipHeight] = Array.from(bridgeClip,Number);
-assert.ok(clipY < -23 && clipY + clipHeight > 3,'pantograph and wheels fit on both lanes');
-assert.ok(-80+63 < 0 && 490-28 > clipX+clipWidth,'both vehicles wrap out of view');
+// A vehicle wraps only after clearing the whole city, including both traffic lanes.
+const bridgeRoute = html.match(/@keyframes mqBridgeRide\{from\{transform:translateX\((-?\d+)px\)\}to\{transform:translateX\((\d+)px\)\}\}/);
+assert.ok(bridgeRoute);
+assert.ok(Number(bridgeRoute[1]) + 63 < 0 && Number(bridgeRoute[2]) - 28 > 680);
+assert.doesNotMatch(sandbox.rendered,/city-bridge-portal/);
+const svg = sandbox.rendered.match(/<svg data-place="[\w-]+" class="mq-city"[\s\S]*?<\/svg>/)[0];
+const scopes = [], vessels = new Map();
+for (const [tag] of svg.matchAll(/<g\b[^>]*>|<\/g>/g)) {
+  if (tag === '</g>') { scopes.pop(); continue; }
+  const location = tag.match(/data-location="([^"]+)"/)?.[1] ?? scopes.at(-1) ?? 'all';
+  scopes.push(location);
+  const vessel = tag.match(/class="city-(sail|ferry|tug)"/)?.[1];
+  if (vessel) vessels.set(vessel,location);
+}
+assert.deepEqual(Object.fromEntries(vessels),{sail:'all',ferry:'all',tug:'harbor'});
 assert.ok(sandbox.rendered.indexOf('Расписание на сегодня') < sandbox.rendered.indexOf('Ближайшие события'));
 const cityStub = {dataset:{place:'bridge'}};
 const caption = {textContent:''};
