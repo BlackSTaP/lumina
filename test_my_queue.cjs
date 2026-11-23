@@ -60,7 +60,7 @@ assert.equal(sandbox.dayModel.next.at, 780, 'official engine stays unchanged');
 assert.equal(sandbox.dayModel.off, true, 'original scheduled status stays unchanged');
 const cardFunction = script[1].slice(script[1].indexOf('function queueCard('), script[1].indexOf('function updateCards('));
 const cardApi = vm.runInNewContext(core + '\nfunction tlHtml(' + timeline + '\nconst MQ_ICONS =' + view + '\n' + cardFunction +
-  '\n;({card:(iv,minute)=>queueCard("1.1",iv,stats(iv),minute,true),mqScheduleSlots,myQueueForecast,cityPower,scheduleSegments,mqBar})', {});
+  '\n;({card:(iv,minute)=>queueCard("1.1",iv,stats(iv),minute,true),mqScheduleSlots,myQueueForecast,cityPower,updateCityScene,mqCountdown,scheduleSegments,mqBar})', {});
 assert.match(cardApi.card(one,540), /data-tone="off"/);
 assert.match(cardApi.card(one,780), /data-tone="on"/);
 assert.match(cardApi.card(one,null), /План на завтра/);
@@ -81,6 +81,25 @@ assert.equal(powerAt([[540,565]],540),powerAt(one,558), 'zero-length forecast wi
 assert.equal(powerAt([[540,565]],565),1);
 assert.ok(powerAt([[1440,1560]],1439) < 1, 'approaching a tomorrow event before midnight');
 assert.equal(powerAt([],810),1);
+const scene = {
+  dataset: {},
+  style: {getPropertyValue(k){return this[k];}, setProperty(k,v){this[k]=v;}}
+};
+for (const [minute, wheel, sky] of [
+  [330,'turning','night'], [430,'turning','twilight'], [535,'turning','day'],
+  [556,'parked','day'], [610,'parked','day'], [750,'parked','day'],
+  [758,'turning','day'], [1100,'turning','twilight'], [1300,'turning','night']
+]) {
+  cardApi.updateCityScene(scene,minute,cardApi.myQueueForecast(one,minute));
+  assert.equal(scene.dataset.wheel,wheel,'wheel at minute '+minute);
+  assert.equal(scene.dataset.sky,sky,'sky at minute '+minute);
+  assert.equal(Number(scene.style['--power']),Number(powerAt(one,minute).toFixed(4)));
+}
+const quietScene = {dataset:{}};
+cardApi.updateCityScene(quietScene,800,null);
+assert.deepEqual(quietScene.dataset,{sky:'day'});
+const midnightEvent = cardApi.myQueueForecast([[1440,1560]],1439).next;
+assert.match(cardApi.mqCountdown({t:{sec:1439*60}},midnightEvent)[1],/00:14.*00:18.*завтра/);
 const plain = value => JSON.parse(JSON.stringify(value));
 assert.deepEqual(plain(cardApi.scheduleSegments([])), [[0,1440,'Со светом по графику']]);
 assert.deepEqual(plain(cardApi.scheduleSegments([[100,150],[120,180],[-20,30],[1430,1500]])), [
