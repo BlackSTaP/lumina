@@ -310,7 +310,13 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
   --daylight: 1;
   --orb: #fff0b9;
 }
+/* Each shore has its own reflected sky, even while the grid is dark. */
+#tab-my .mq-city[data-place="bridge"] { --shore-mist:#d69c9f; --river-edge:#656078; --river-deep:#282c4a; }
+#tab-my .mq-city[data-place="harbor"] { --shore-mist:#daa98c; --river-edge:#587d83; --river-deep:#203d50; }
+#tab-my .mq-city[data-place="cable"]  { --shore-mist:#bab1d7; --river-edge:#697595; --river-deep:#2b3555; }
+#tab-my .mq-city[data-place="wind"]   { --shore-mist:#a0c6bc; --river-edge:#598787; --river-deep:#243f4f; }
 #tab-my .city-day-glow { opacity: var(--sky-tint); }
+#tab-my .city-shore-mist { opacity:calc(.36 + var(--daylight) * .22); }
 #tab-my .city-starlight { opacity: calc(1 - var(--daylight)); }
 #tab-my .city-orb { fill: var(--orb); }
 #tab-my .city-wheel-frame { transform-origin: 0 0; animation: mqObservationWheel 64s linear infinite; }
@@ -783,6 +789,7 @@ liveCard.addEventListener('click', event => {
   const city = liveCard.querySelector('.mq-city');
   const current = cityPlaces.findIndex(place => place.id === city.dataset.place);
   chosenPlace = cityPlaces[(current + 1) % cityPlaces.length];
+  store.set('lastCityPlace',chosenPlace.id);
   showCityPlace(city,button,chosenPlace);
 });
 mySel.addEventListener('change', () => { store.set('myQueue', mySel.value); renderTables(); renderLive(); });
@@ -865,23 +872,33 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
     <linearGradient id="city-beam"><stop stop-color="#ffe8ac" stop-opacity="0"/><stop offset="1" stop-color="#fff0bf" stop-opacity=".52"/></linearGradient>
     <radialGradient id="city-haze"><stop stop-color="#c590ca" stop-opacity=".67"/><stop offset="1" stop-color="#624b92" stop-opacity="0"/></radialGradient>
     <radialGradient id="city-lantern"><stop stop-color="#ffdf96" stop-opacity=".85"/><stop offset=".28" stop-color="#ffc875" stop-opacity=".32"/><stop offset="1" stop-color="#ffb75f" stop-opacity="0"/></radialGradient>
+    <radialGradient id="city-orb-glow"><stop stop-color="var(--orb)" stop-opacity=".38"/><stop offset=".44" stop-color="var(--orb)" stop-opacity=".13"/><stop offset="1" stop-color="var(--orb)" stop-opacity="0"/></radialGradient>
+    <radialGradient id="city-air"><stop stop-color="var(--shore-mist)" stop-opacity=".95"/><stop offset="1" stop-color="var(--shore-mist)" stop-opacity="0"/></radialGradient>
+    <linearGradient id="city-facade" x2=".88" y2="1"><stop stop-color="#4d4c66"/><stop offset=".64" stop-color="#353a54"/><stop offset="1" stop-color="#282d46"/></linearGradient>
+    <linearGradient id="city-reflection" x2="0" y2="1"><stop stop-color="#222b43" stop-opacity=".36"/><stop offset="1" stop-color="#222b43" stop-opacity="0"/></linearGradient>
+    <linearGradient id="city-sailcloth" x2="1" y2=".65"><stop stop-color="#f1d8bb"/><stop offset=".64" stop-color="#caa9a8"/><stop offset="1" stop-color="#ab8fa2"/></linearGradient>
+    <g id="city-pine"><path d="m0-14-4 8h2l-4 6h12L2-6h2z" fill="#384c57"/><path d="m0-13 1 9 4 4H0z" fill="#4c5d64"/></g>
     <g id="city-cabin">
       <path d="M0 0v6l-2 3" fill="none" stroke="#d5c8ce" stroke-width="1.6"/>
       <rect x="-10" y="8" width="20" height="15" rx="4" fill="#ba919d" stroke="#4c465e" stroke-width="1.3"/>
-      <path d="M-7 11h6v6h-6zm8 0h6v6H1z" fill="#786f88"/>
+      <path d="M-7 11h6v6h-6zm8 0h6v6H1z" fill="#637189"/>
+      <path d="M-8 9h16m-16 10h15" stroke="#e2b6a9" stroke-width="1.4"/>
+      <path d="m-6 16 4-4m4 4 4-4" stroke="#b4c1d1" opacity=".7"/>
       <path class="city-circuit" d="M-7 12h6m2 0h6" stroke="#f5d3a9" stroke-width="2.5"/>
     </g>
     <clipPath id="city-bridge-portal"><rect x="-100" y="-48" width="541" height="82"/></clipPath>
-    <linearGradient id="city-water" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#413756"/><stop offset="1" stop-color="#171d36"/></linearGradient>
+    <linearGradient id="city-water" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="var(--river-edge)"/><stop offset="1" stop-color="var(--river-deep)"/></linearGradient>
     <clipPath id="city-promenade"><path d="M432 190h248v48H432z"/></clipPath>
   </defs>
   <ellipse class="city-haze" cx="460" cy="143" rx="260" ry="169" fill="url(#city-haze)"/>
+  <ellipse class="city-shore-mist" cx="354" cy="164" rx="405" ry="105" fill="url(#city-air)"/>
   <ellipse class="city-day-glow" cx="475" cy="148" rx="350" ry="210" fill="url(#city-horizon)"/>
   <g class="city-starlight">
   <g class="city-stars" fill="#e9dcff"><circle cx="282" cy="65" r="1.4"/><circle cx="360" cy="34" r="1.1"/><circle cx="394" cy="70" r="1.8"/><circle cx="429" cy="62" r="1"/><circle cx="551" cy="36" r="1.2"/><circle cx="609" cy="109" r="1.5"/><circle cx="650" cy="62" r="1"/></g>
   <g fill="#eee2fb"><circle cx="118" cy="88" r="1.4"/><circle cx="229" cy="61" r="1"/><circle cx="336" cy="88" r="1.5"/><circle cx="416" cy="38" r="1"/><circle cx="589" cy="77" r="1.8"/><circle cx="625" cy="30" r="1"/><path d="m377 47 1.1 3.8 3.9 1-3.9 1.1-1.1 4-1-4-4-1.1 4-1z"/></g>
   </g>
-  <g class="city-orb"><circle cx="507" cy="73" r="51" opacity=".045"/><circle cx="507" cy="73" r="39" opacity=".075"/><circle cx="507" cy="73" r="25"/></g>
+  <g class="city-orb"><circle cx="507" cy="73" r="72" fill="url(#city-orb-glow)"/><circle cx="507" cy="73" r="25"/>
+    <g class="city-starlight" fill="#bbacaa" opacity=".22"><path d="M491 61q8-8 13-6l-2 6-7 3zM509 82q7-5 11-3l-4 6-6 2z"/><circle cx="498" cy="79" r="2.3"/></g></g>
   <g class="city-starlight"><g class="city-night-sky"><g class="city-meteor"><path d="m454 46-39 16" stroke="#c7c2ed" stroke-width="1.3"/><circle cx="415" cy="62" r="1.9" fill="#f6efff"/></g></g></g>
   <path class="city-cloud" d="M475 89q18-8 34-4 17-11 37-5 12-5 29 2l21 5q-42 4-79 3z" fill="#a998bc" opacity=".24"/>
   <path class="city-cloud city-cloud-far" d="M245 112q20-8 39-4 20-12 43-5l30 9q-56 7-112 0" fill="#a998bc" opacity=".12"/>
@@ -893,6 +910,7 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
   <g data-location="cable">
     <path d="M0 191V106l47 15 32-18 48 36 40-15 54 32 51-39 36 10 42-40 17 8 40-49 34 27 23-11 48 34 46-25 53 40 40-15 29 10v86z" fill="#726684"/>
     <path d="m353 84 14 11 40-49 34 27-21-8-11-9-13 19-9-1-19 29z" fill="#b9a5b7" opacity=".78"/>
+    <path d="m79 103 48 36-30-14-9-12-5 3-9-5zm328-57 34 27-12-4 23 22-32-20z" fill="#d8cbd0" opacity=".58"/>
     <path d="M0 158q72-38 144 12 64-56 133-35 105-21 171-53 78 17 124 45 73-13 108-4v70H0z" fill="#514e69"/>
   </g>
   <path d="M0 207q64-32 119-19t101-6q55-36 125-14t117-13q60-32 119-14t99-17v111H0z" fill="#65577c"/>
@@ -914,7 +932,7 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
         <path d="M-2 0h4l2 79h-8z" fill="#a39da9"/><path d="M2 1l2 78H1z" fill="#79788b"/>
         <g class="city-blades" style="--turn:${15+i*3}s;--start:-${2+i*4}s">
           ${[0,120,240].map(angle => `<path transform="rotate(${angle})" d="M-1 2q-3-6-2-13l3-29 1-2 1 38z" fill="#d1c6c9"/>`).join('')}
-        </g><circle r="3.3" fill="#d7c3ba"/>
+        </g><path d="M1-2.8h7q2 1 .5 4.3H1z" fill="#aba2ae"/><circle r="3.3" fill="#e1cec1"/>
       </g>`).join('')}
   </g>
   <g data-location="harbor" fill="none" stroke="#81758e" stroke-linejoin="round">
@@ -924,7 +942,7 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
     <path d="M196 226v-30h63v30m-67-30 35-15 36 15z" fill="#51475f" stroke-width="2"/>
     <path d="M204 205h12v14h-12zm21 0h12v14h-12z" fill="#a38c89" stroke="none"/>
   </g>
-  <g fill="#333651">
+  <g fill="url(#city-facade)">
     <path d="M282 234v-47l9-5h51v52z"/><path d="M347 234v-75l47-5 11 9v71z"/>
     <path d="M418 234v-91l34-8 14 9v90z"/><path d="M473 234v-62h44l11 8v54z"/>
     <path d="M540 234v-106h8v-7h23v7h8v106z"/><path d="M589 234v-68h58v68z"/>
@@ -938,6 +956,7 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
   <circle class="city-beacon" cx="560" cy="120" r="1.3" fill="#ffd1b2"/>
   <g fill="#292d49"><path d="M0 229q87-22 172-9t146-6q62-5 109 8t120-7q76-21 133-10v37H0z"/></g>
   <path d="M0 236q160-10 327-4t353-5v93H0z" fill="url(#city-water)"/>
+  <path d="m284 234 56-2-4 20-46 8zm67-2 55-1-5 27-41 7zm68-1 46-1-5 29-35 7zm122-2 35-1-2 35-29 10zm49-1 58-1-8 24-43 9z" fill="url(#city-reflection)"/>
   <path d="m434 227 246-8" stroke="#8c819d" stroke-width="2" opacity=".55"/>
   <g transform="translate(475 223)">
     <path d="M-8 0v-15h35V0" fill="#39354f"/><path d="M-10-14h39l-4-6H-6z" fill="#a48498"/>
@@ -975,6 +994,8 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
   <g data-location="wind">
     <path d="m74 225 1-23m-4 3h10m45 19v-25m-5 3h10m49 16v-23m-4 3h9" fill="none" stroke="#736a80" stroke-width="1.9"/>
     <path d="M75 205q27 6 51-3 23 6 54-4" fill="none" stroke="#837990" stroke-width="1"/>
+    <path d="M0 220q70-22 117-20t118-17q41-10 71-7-37 3-65 11-60 16-119 15-62 0-122 21z" fill="#899387" opacity=".74"/>
+    <path d="M7 229q37-13 76-17m50-6q55-4 102-15m-80 18q38-2 70-9" fill="none" stroke="#929884" stroke-width="1.3" opacity=".65"/>
     <path d="m168 224 1-12 27-2 6 4v10z" fill="#4b465b"/><path d="m169 212 27-3 7 4-34 2z" fill="#9a8b99"/>
     <path class="city-circuit" style="--offset:.55" d="M173 217h5m6-1h5" stroke="#e9b784" stroke-width="2"/>
   </g>
@@ -991,6 +1012,8 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
     <g transform="translate(0 242) rotate(-4)">
       <path d="M-12 0h467v6H-12z" fill="#292a41"/><path d="M-12 0h466" stroke="#ac9fb0" stroke-width="1.5"/>
       <path d="M158 6v27h7V6m148 0v23h6V6" fill="#25283c"/>
+      <path d="M-4 6h441m-408 0 10 7 10-7m63 0 10 7 10-7m77 0 10 7 10-7m76 0 10 7 10-7" fill="none" stroke="#696579" stroke-width="1.6"/>
+      <path d="M157 8h8m-7 2v20m154-22h8m-7 2v16" fill="none" stroke="#82798b" stroke-width="1.2"/>
       <g clip-path="url(#city-bridge-portal)">
         <g class="city-tram">
           <path d="M0-4v-10q0-4 5-4h46q5 0 8 5l3 7q1 3-3 3H4z" fill="#bc8593" stroke="#463e54" stroke-width="1.2"/>
@@ -998,6 +1021,8 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
           <path class="city-circuit" d="M4-13h7m3 0h8m3 0h8m3 0h8m3 0h6" stroke="#ffe0ac" stroke-width="3"/>
           <path d="M2-6h57m-38-12 5-5 10 5" fill="none" stroke="#ead1ca" stroke-width="1.3"/>
           <g fill="#29293b"><circle cx="10" cy="-2.5" r="2.5"/><circle cx="51" cy="-2.5" r="2.5"/></g>
+          <path d="M3-3.7h53m-23-13v12m5-12v12" stroke="#704b64" stroke-width=".9"/>
+          <path d="M4-17h46" stroke="#e6beae" stroke-width="1.3"/>
           <circle cx="59" cy="-6" r="1.3" fill="#fff2cd"/>
         </g>
         <g transform="translate(0 3)"><g class="city-car"><g transform="scale(-1 1)">
@@ -1016,12 +1041,19 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
   </g>
   <g data-location="harbor">
     <path d="m42 249 181-5v5l-181 5z" fill="#716078"/><path d="M55 253v11m75-14v10m76-12v8" stroke="#443d53" stroke-width="4"/>
+    <g stroke-linecap="round" fill="none">
+      <path d="m42 248 181-5m-159 9 8 7 9-8m44-1 8 6 9-7m40-1 9 6 9-7" stroke="#a69897" stroke-width="1.4"/>
+      <path d="M68 248v-9m37 8v-9m37 8v-9m37 8v-9m37 8v-9" stroke="#6f646e" stroke-width="2.8"/>
+      <path d="M68 240q18 9 37-1 18 9 37-1 18 9 37-1 18 9 37-1" stroke="#ad9a97" stroke-width="1.2"/>
+      <circle cx="148" cy="244" r="3.8" stroke="#e4b196" stroke-width="2.3"/>
+    </g>
     <g transform="translate(314 250)"><g class="city-buoy">
       <path d="m-5 0 3-3 1-8h2l1 8 3 3-2 3h-6z" fill="#c38981"/><path d="M-2-4h4" stroke="#e7d1bb" stroke-width="2"/>
       <circle cy="-11" r="1.6" fill="#ffdd9a"/></g></g>
     <g class="city-sail"><g class="city-sail-hull">
       <path d="M0-4v-45" stroke="#ddc7ba" stroke-width="1.6"/>
-      <path d="M-3-44q-4 16-22 35l22-2z" fill="#d3b7ad"/><path d="M3-37q13 20 15 25L3-10z" fill="#a99bb9"/>
+      <path d="M-3-44q-4 16-22 35l22-2z" fill="url(#city-sailcloth)"/><path d="M3-37q13 20 15 25L3-10z" fill="#a99bb9"/>
+      <path d="M-4-32q-2 9-9 15m16-3 9 3" stroke="#e8ccb5" stroke-width=".85" fill="none"/>
       <path d="m-28-7 54-2-7 8h-36z" fill="#665571" stroke="#d3afb5" stroke-width="1.5"/>
       <path d="m-13 3 19 1m-10 3 16 1" stroke="#bcadc5" fill="none" opacity=".65"/>
     </g></g>
@@ -1029,6 +1061,8 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
   <g data-location="cable">
     <path d="m-18 166 580-78m-580 80 580-78" stroke="#b3a6bc" stroke-width="1.2"/>
     <path d="M181 210l5-72h4l7 69m-12-39h7m-9 18h11" fill="none" stroke="#51495f" stroke-width="3"/>
+    <g>${[[35,195,.8],[49,194,1.2],[62,197,.9],[118,196,1.2],[131,199,1.55],[145,197,1.2],[211,207,1.5],[227,207,1.9],[241,207,1.43],[255,206,1.06]].map(([x,y,s]) =>
+      `<use href="#city-pine" transform="translate(${x} ${y}) scale(${s})"/>`).join('')}</g>
     <path d="m177 140 22-3" stroke="#93889f" stroke-width="3"/>
     <g transform="translate(-18 166)"><g class="city-lift"><use href="#city-cabin"/></g></g>
     <g transform="translate(-18 168)"><g class="city-lift city-lift-return"><use href="#city-cabin"/></g></g>
@@ -1048,7 +1082,18 @@ const riverfront = `<svg class="mq-city" aria-hidden="true" focusable="false" vi
       <circle cx="5" cy="-5" r="8" fill="url(#city-lantern)"/><circle cx="5" cy="-5" r="1.5" fill="#ffecab"/>
     </g>
   </g>
-  <path d="M0 286q67-18 128-7t106 16q90 19 149 25H0zm680-21q-45 11-83 33t-74 22h157z" fill="#171a31"/>
+  <path d="M0 286q67-18 128-7t106 16q90 19 149 25H0zm680-21q-45 11-83 33t-74 22h157z" fill="#1d2238"/>
+  <path d="M0 287q65-17 126-7t107 16m361 9q48-28 86-39" fill="none" stroke="#70677c" opacity=".7" stroke-width="1.4"/>
+  <g data-location="harbor">
+    <path d="m0 289 95 13-1 6L0 297z" fill="#474355"/>
+    <path d="m0 290 94 13" stroke="#a18d8b" stroke-width="1.5"/>
+    <path d="M16 287v-9q4-3 8 0v11zm52 10v-9q4-3 8 0v11z" fill="#353748" stroke="#857582" stroke-width="1.2"/>
+    <path d="M19 280q15 25 53 9m1 3q10 5 18 4" fill="none" stroke="#b49a89" stroke-width="1.6"/>
+  </g>
+  <g data-location="wind" fill="none" stroke="#465859" stroke-linecap="round">
+    <path d="M14 285q0-11-5-20m6 17q4-10 11-13m-8 14q3-5 10-6m22 4q-2-11-10-15m10 14q2-10 9-17m-2 17q5-8 9-9m56 10q-1-9-5-12m6 13q2-6 10-11m510 17q2-11 9-16m-6 15q5-6 12-9" stroke-width="1.8"/>
+    <path d="m9 265-3-5m20 9 4-3m29-3 3-4m69 13 4-2" stroke="#9d9487" stroke-width="2.1"/>
+  </g>
 </svg>`;
 const cityPlaces = [
   {id:'bridge',name:'Трамвайный мост'},
@@ -1056,22 +1101,20 @@ const cityPlaces = [
   {id:'cable',name:'Канатная дорога'},
   {id:'wind',name:'Ветряной берег'}
 ];
-let chosenPlace = null;
-function placeForQueue(L) {
-  if (chosenPlace) return chosenPlace;
-  const [day,month,year] = L.t.date.split('.').map(Number);
-  const serial = Math.floor(Date.UTC(year,month-1,day) / 86400000);
-  const queue = Array.from(L.q || '').reduce((sum,char) => sum + char.charCodeAt(0),0);
-  return cityPlaces[(serial + queue) % cityPlaces.length];
+function pickOpeningPlace(previous, roll = Math.random()) {
+  const choices = cityPlaces.filter(place => place.id !== previous);
+  return choices[Math.floor(roll * choices.length)];
 }
+let chosenPlace = pickOpeningPlace(store.get('lastCityPlace'));
+store.set('lastCityPlace',chosenPlace.id);
 function showCityPlace(city,button,place) {
   city.dataset.place = place.id;
   button.querySelector('span').textContent = place.name;
   button.setAttribute('aria-label','Сменить панораму. Сейчас — '+place.name);
 }
 // Keep the SVG mounted when forecast windows open or close so vehicles stop in place.
-function setQueueView(L,heroClass,change,copy,panels = '') {
-  const place = placeForQueue(L);
+function setQueueView(heroClass,change,copy,panels = '') {
+  const place = chosenPlace;
   const hero = liveCard.querySelector('.mq-hero');
   if (!hero) {
     const switcher = '<button type="button" class="mq-scene-switch" aria-label="Сменить панораму. Сейчас — '+place.name+'" title="Сменить панораму">'+
@@ -1221,7 +1264,7 @@ function renderLive() {
     const key = mySel.value+'|'+t.date+'|'+(L.none?'missing':'empty');
     if (myQueueRenderKey !== key) {
       myQueueRenderKey = key;
-      setQueueView(L,'mq-quiet','','<div class="mq-overline">Персональный график</div>'+
+      setQueueView('mq-quiet','','<div class="mq-overline">Персональный график</div>'+
         '<h3 class="mq-title">'+(!mySel.value ? 'Когда будет свет?' : 'Ждём расписание')+'</h3><p class="mq-lead">'+
         (!mySel.value ? 'Выберите свою очередь в списке выше или на карточке ниже.' :
           'Для очереди '+esc(mySel.value)+' на '+esc(t.date)+' график пока не опубликован.')+'</p>');
@@ -1243,7 +1286,7 @@ function renderLive() {
     const eventLabel = next ? (inWindow ? 'Переключение' : next.kind === 'off' ? 'До отключения' : 'До включения') : 'На сегодня';
     const count = mqCountdown(L,next);
     const officialStats = stats(L.ivT);
-    setQueueView(L,status.cls,next ? next.kind : '',
+    setQueueView(status.cls,next ? next.kind : '',
       '<div class="mq-overline">Очередь '+esc(L.q)+' · Прогноз</div>'+
           '<h3 class="mq-title">'+status.title+'</h3><p class="mq-lead">'+esc(t.date)+' · Киевское время</p>'+
           '<div class="mq-countbox"><span class="mq-count-label">'+eventLabel+'</span>'+

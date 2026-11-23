@@ -49,7 +49,7 @@ globalThis.rendered=liveCard.innerHTML;
 globalThis.displayWindow=mqWindow([554,558]);
 globalThis.dayModel=computeLive(dayMap,'1.1',t);
 `;
-const sandbox = {};
+const sandbox = {store:new Map()};
 vm.runInNewContext(core + '\nfunction tlHtml(' + timeline + '\nconst MQ_ICONS =' + view + '\n' + mocks, sandbox);
 assert.match(sandbox.rendered, /09:14–09:18/);
 assert.match(sandbox.rendered, /12:30–12:40/);
@@ -60,7 +60,7 @@ assert.equal(sandbox.dayModel.next.at, 780, 'official engine stays unchanged');
 assert.equal(sandbox.dayModel.off, true, 'original scheduled status stays unchanged');
 const cardFunction = script[1].slice(script[1].indexOf('function queueCard('), script[1].indexOf('function updateCards('));
 const cardApi = vm.runInNewContext(core + '\nfunction tlHtml(' + timeline + '\nconst MQ_ICONS =' + view + '\n' + cardFunction +
-  '\n;({card:(iv,minute)=>queueCard("1.1",iv,stats(iv),minute,true),mqScheduleSlots,myQueueForecast,cityPower,updateCityScene,mqCountdown,scheduleSegments,mqBar,cityPlaces,placeForQueue})', {});
+  '\n;({card:(iv,minute)=>queueCard("1.1",iv,stats(iv),minute,true),mqScheduleSlots,myQueueForecast,cityPower,updateCityScene,mqCountdown,scheduleSegments,mqBar,cityPlaces,pickOpeningPlace})', {store:new Map()});
 assert.match(cardApi.card(one,540), /data-tone="off"/);
 assert.match(cardApi.card(one,780), /data-tone="on"/);
 assert.match(cardApi.card(one,null), /План на завтра/);
@@ -100,8 +100,15 @@ cardApi.updateCityScene(quietScene,800,null);
 assert.deepEqual(quietScene.dataset,{sky:'day'});
 const places = Array.from(cardApi.cityPlaces, place => place.id);
 assert.deepEqual(places,['bridge','harbor','cable','wind']);
-const onDay = day => cardApi.placeForQueue({q:'1.1',t:{date:day+'.11.2026'}}).id;
-assert.equal(new Set(['20','21','22','23'].map(onDay)).size,4,'automatic daily rotation');
+// Check every equally sized random bucket, including new / stale stored values.
+for (const previous of [null,'retired',...places]) {
+  const available = places.filter(id => id !== previous);
+  for (let i=0; i<available.length; i++) {
+    const roll = (i + .5) / available.length;
+    assert.equal(cardApi.pickOpeningPlace(previous,roll).id,available[i]);
+  }
+}
+assert.ok(sandbox.rendered.includes('data-place="'+sandbox.store.get('lastCityPlace')+'"'));
 const bridgeClip = sandbox.rendered.match(/<clipPath id="city-bridge-portal"><rect x="(-?\d+)" y="(-?\d+)" width="(\d+)" height="(\d+)"\/><\/clipPath>/);
 assert.ok(bridgeClip,'the mask belongs to the local bridge coordinate system');
 const [,clipX,clipY,clipWidth,clipHeight] = Array.from(bridgeClip,Number);
@@ -112,12 +119,14 @@ const cityStub = {dataset:{place:'bridge'}};
 const caption = {textContent:''};
 const switcher = {querySelector:()=>caption,setAttribute(k,v){this[k]=v;}};
 const selectScene = script[1].split("liveCard.addEventListener('click', event => {")[1].split('\n});')[0];
+const sceneStore = new Map();
 const cycle = vm.runInNewContext('const MQ_ICONS ='+view+'\nconst liveCard={querySelector:()=>cityStub};\n'+
-  'event=>{'+selectScene+'}',{cityStub});
+  'event=>{'+selectScene+'}',{cityStub,store:sceneStore});
 const event = {target:{closest:()=>switcher}};
 for (const id of ['harbor','cable','wind','bridge']) {
   cycle(event);
   assert.equal(cityStub.dataset.place,id);
+  assert.equal(sceneStore.get('lastCityPlace'),id);
   assert.ok(switcher['aria-label'].includes(caption.textContent));
 }
 const midnightEvent = cardApi.myQueueForecast([[1440,1560]],1439).next;
