@@ -345,7 +345,10 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
         <div class="mid hide-sm"><button id="moveDataBtn" class="btn-round" title="Перенести Новый в Старый">⇄</button></div>
         <label class="field">Новый график (актуальный)<textarea id="new" placeholder="1.1: 00:00-03:00&#10;Черга 1.1: з 00:00 до 03:00"></textarea></label>
       </div>
-      <div id="versions" style="margin-top:12px"></div>
+      <div id="versions" style="margin-top:12px" hidden>
+        <label>История графиков <select id="versionDate" aria-label="Дата графика"></select></label>
+        <div id="versionTimes" style="margin-top:6px"></div>
+      </div>
       <div class="row-between" style="margin-top:12px">
         <label class="chk"><input type="checkbox" id="onlyChanges"><span>Показать только изменения</span></label>
       </div>
@@ -1170,17 +1173,36 @@ newInput.addEventListener('input', () => { store.set('new', newInput.value); aut
 vizInput.addEventListener('input', () => store.set('viz', vizInput.value));
 soundCheck.addEventListener('change', () => { store.set('sound_enabled', soundCheck.checked); if (soundCheck.checked) initAudio(); });
 
+const versionDate = $('#versionDate');
+const versionTimes = $('#versionTimes');
+versionDate.addEventListener('change', renderVersions);
+
 function renderVersions() {
-  const box = $('#versions');
-  const latest = [...state.days].sort((a, b) => dateNum(b.date) - dateNum(a.date))[0];
-  if (!latest || !latest.versions || latest.versions.length < 2) { box.innerHTML = ''; return; }
-  box.innerHTML = `<div class="muted" style="font-size:.82rem;margin-bottom:4px">Версии графика на ${esc(latest.date)} (нажмите, чтобы сравнить с текущей):</div>` +
-    latest.versions.map((v, i) => `<button class="chip btn ${i === 0 ? 'cur' : ''}" data-i="${i}">${esc(isoHM(v.published_at) || '??:??')}${i === 0 ? ' · текущая' : ''}</button>`).join('');
-  box.onclick = e => {
-    const b = e.target.closest('button'); if (!b || b.dataset.i === '0') return;
-    const v = latest.versions[+b.dataset.i];
-    oldInput.value = formatDay(latest.date, v.published_at, v.queues);
-    newInput.value = formatDay(latest.date, latest.versions[0].published_at, latest.versions[0].queues);
+  const days = [...state.days].sort((a, b) => dateNum(b.date) - dateNum(a.date));
+  $('#versions').hidden = !days.length;
+  if (!days.length) return;
+
+  const today = nowKyiv().date;
+  const day = days.find(d => d.date === versionDate.value) ||
+    days.find(d => d.date === today) || days.find(d => d.versions?.length > 1) || days[0];
+  const dates = days.map(d => d.date);
+  if (versionDate.options.length !== dates.length || dates.some((date, i) => versionDate.options[i].value !== date)) {
+    versionDate.replaceChildren(...dates.map(date => new Option(date, date)));
+  }
+  versionDate.value = day.date;
+  const versions = day.versions?.length ? day.versions : [day];
+  const times = versions.map((v, i) => {
+    const dm = isoDM(v.published_at);
+    const label = (dm && dm !== day.date.slice(0, 5) ? dm + ' · ' : '') + (isoHM(v.published_at) || 'Время неизвестно');
+    if (i === 0) return `<span class="chip">${esc(label)} · текущая</span>`;
+    return `<button type="button" class="chip btn" data-i="${i}" title="Сравнить с текущей версией">${esc(label)}</button>`;
+  }).join('');
+  if (versionTimes.innerHTML !== times) versionTimes.innerHTML = times;
+  versionTimes.onclick = e => {
+    const b = e.target.closest('button[data-i]'); if (!b) return;
+    const v = versions[Number(b.dataset.i)];
+    oldInput.value = formatDay(day.date, v.published_at, v.queues);
+    newInput.value = formatDay(day.date, versions[0].published_at, versions[0].queues);
     saveFields(); autosize(oldInput); autosize(newInput); renderCompare();
   };
 }
